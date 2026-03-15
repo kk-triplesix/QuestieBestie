@@ -1,0 +1,64 @@
+name: Build & Release
+on:
+  push:
+    tags:
+      - '*.*.*.*'
+
+env:
+  CI: true
+
+jobs:
+  Build:
+    permissions:
+      contents: write
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Get Tag Version
+        run: |
+          $tag = "${{ github.ref }}" -replace 'refs/tags/', ''
+          "tag=$tag" | Out-File -Append -FilePath $Env:GITHUB_ENV
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Download Dalamud
+        run: |
+          Invoke-WebRequest -Uri https://goatcorp.github.io/dalamud-distrib/latest.zip -OutFile latest.zip
+          Expand-Archive -Force latest.zip -DestinationPath "$env:AppData\XIVLauncher\addon\Hooks\dev"
+
+      - name: Restore NuGet Packages
+        run: dotnet restore QuestieBestie.csproj
+
+      - name: Build Plugin
+        run: |
+          dotnet build --no-restore -c Release QuestieBestie.csproj `
+            -p:AssemblyVersion=${{ env.tag }} `
+            -p:FileVersion=${{ env.tag }} `
+            -p:InformationalVersion=${{ env.tag }}
+
+      - name: Find latest.zip
+        id: find_zip
+        run: |
+          $zip = Get-ChildItem -Recurse -Filter "latest.zip" -Path . | Select-Object -First 1
+          if (-not $zip) { throw "latest.zip not found" }
+          Write-Host "Found: $($zip.FullName)"
+          "zip_path=$($zip.FullName)" | Out-File -Append -FilePath $Env:GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.find_zip.outputs.zip_path }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger Plugin Repo Update
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PLUGIN_REPO_TOKEN }}
+          repository: kk-triplesix/DalamudPlugins
+          event-type: plugin-updated
+          client-payload: '{"plugin": "QuestieBestie", "version": "${{ env.tag }}"}'

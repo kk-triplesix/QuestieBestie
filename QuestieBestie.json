@@ -1,0 +1,24 @@
+{
+  "Author": "kk-triplesix",
+  "Name": "QuestieBestie",
+  "InternalName": "QuestieBestie",
+  "Description": "Your friendly quest companion for FFXIV.",
+  "ApplicableVersion": "any",
+  "DalamudApiLevel": 14,
+  "TestingDalamudApiLevel": 14,
+  "Tags": [
+    "quest",
+    "companion",
+    "helper"
+  ],
+  "CategoryTags": [
+    "other"
+  ],
+  "LoadRequiredState": 0,
+  "LoadSync": false,
+  "CanUnloadAsync": false,
+  "LoadPriority": 0,
+  "IsTestingExclusive": false,
+  "Punchline": "Your friendly quest companion.",
+  "AcceptsFeedback": true
+}
