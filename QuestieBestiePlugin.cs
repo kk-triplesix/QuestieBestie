@@ -1,7 +1,9 @@
+using Dalamud.Game.Gui.Dtr;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using ECommons;
 using ECommons.DalamudServices;
+using QuestieBestie.Services;
 using QuestieBestie.UI;
 
 namespace QuestieBestie;
@@ -10,14 +12,26 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 {
     private readonly WindowSystem _windowSystem;
     private readonly MainWindow _mainWindow;
+    private readonly OverlayWindow _overlayWindow;
+    private readonly QuestService _questService;
+    private readonly IDtrBarEntry _dtrEntry;
 
     public QuestieBestiePlugin(IDalamudPluginInterface pluginInterface)
     {
         ECommonsMain.Init(pluginInterface, this);
 
-        _mainWindow = new MainWindow();
+        _questService = new QuestService();
+        _mainWindow = new MainWindow(_questService);
+        _overlayWindow = new OverlayWindow(_questService);
+
         _windowSystem = new WindowSystem("QuestieBestie");
         _windowSystem.AddWindow(_mainWindow);
+        _windowSystem.AddWindow(_overlayWindow);
+
+        // DTR bar entry
+        _dtrEntry = Svc.DtrBar.Get("QuestieBestie");
+        _dtrEntry.OnClick += OnDtrClick;
+        UpdateDtrText();
 
         Svc.PluginInterface.UiBuilder.OpenMainUi += OnOpenMainUi;
         Svc.PluginInterface.UiBuilder.OpenConfigUi += OnOpenMainUi;
@@ -31,10 +45,23 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
     private void OnCommand(string command, string args)
     {
-        _mainWindow.Toggle();
+        switch (args.Trim().ToLowerInvariant())
+        {
+            case "overlay":
+                _overlayWindow.Toggle();
+                break;
+            default:
+                _mainWindow.Toggle();
+                break;
+        }
     }
 
     private void OnOpenMainUi()
+    {
+        _mainWindow.Toggle();
+    }
+
+    private void OnDtrClick(DtrInteractionEvent e)
     {
         _mainWindow.Toggle();
     }
@@ -43,6 +70,15 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     {
         if (Svc.GameGui.GameUiHidden) return;
         _windowSystem.Draw();
+        UpdateDtrText();
+    }
+
+    private void UpdateDtrText()
+    {
+        _questService.RefreshCompletionStatus();
+        var percent = _questService.CompletionPercent;
+        _dtrEntry.Text = $"QB {percent:F0}%";
+        _dtrEntry.Tooltip = "QuestieBestie — Click to toggle";
     }
 
     public void Dispose()
@@ -51,6 +87,8 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         Svc.PluginInterface.UiBuilder.OpenMainUi -= OnOpenMainUi;
         Svc.PluginInterface.UiBuilder.OpenConfigUi -= OnOpenMainUi;
         Svc.PluginInterface.UiBuilder.Draw -= OnDraw;
+        _dtrEntry.OnClick -= OnDtrClick;
+        _dtrEntry.Remove();
         ECommonsMain.Dispose();
     }
 }
