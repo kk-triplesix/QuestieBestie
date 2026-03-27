@@ -83,22 +83,6 @@ https://raw.githubusercontent.com/kk-triplesix/QuestieBestie/repo/pluginmaster.j
 
 Then search for **QuestieBestie** in the plugin installer.
 
-### Manual / Development
-1. Clone this repository
-2. Build with `dotnet build`
-3. The plugin is automatically copied to your `devPlugins` folder
-
----
-
-## Tech Stack
-
-- .NET 10 / C# latest
-- Dalamud.NET.Sdk 14
-- ECommons
-- ImGui (via Dalamud.Bindings.ImGui)
-- Lumina (FFXIV game data)
-- FFXIVClientStructs (game memory access)
-
 ---
 
 ## License
