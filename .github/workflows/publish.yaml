@@ -55,10 +55,30 @@ jobs:
           files: ${{ steps.find_zip.outputs.zip_path }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Trigger Plugin Repo Update
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          token: ${{ secrets.PLUGIN_REPO_TOKEN }}
-          repository: kk-triplesix/DalamudPlugins
-          event-type: plugin-updated
-          client-payload: '{"plugin": "QuestieBestie", "version": "${{ env.tag }}"}'
+      - name: Generate and Push pluginmaster.json
+        run: |
+          $manifest = Get-Content "QuestieBestie.json" | ConvertFrom-Json
+          $downloadUrl = "https://github.com/${{ github.repository }}/releases/download/${{ env.tag }}/latest.zip"
+
+          $manifest | Add-Member -NotePropertyName "AssemblyVersion" -NotePropertyValue "${{ env.tag }}"
+          $manifest | Add-Member -NotePropertyName "TestingAssemblyVersion" -NotePropertyValue "${{ env.tag }}"
+          $manifest | Add-Member -NotePropertyName "DownloadLinkInstall" -NotePropertyValue $downloadUrl
+          $manifest | Add-Member -NotePropertyName "DownloadLinkUpdate" -NotePropertyValue $downloadUrl
+          $manifest | Add-Member -NotePropertyName "DownloadLinkTesting" -NotePropertyValue $downloadUrl
+          $manifest | Add-Member -NotePropertyName "DownloadCount" -NotePropertyValue 0
+          $manifest | Add-Member -NotePropertyName "LastUpdated" -NotePropertyValue (Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ")
+
+          $pluginmaster = ConvertTo-Json @($manifest) -Depth 10
+
+          New-Item -ItemType Directory -Path deploy -Force
+          Set-Content -Path "deploy/pluginmaster.json" -Value $pluginmaster -Encoding UTF8
+
+          Push-Location deploy
+          git init -b repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pluginmaster.json
+          git commit -m "Update QuestieBestie to ${{ env.tag }}"
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git push -f origin repo
+          Pop-Location
