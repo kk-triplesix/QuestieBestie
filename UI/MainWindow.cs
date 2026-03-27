@@ -17,7 +17,8 @@ internal sealed class MainWindow : Window
     private int _filterMode = 1; // 0 = All, 1 = Available, 2 = Incomplete, 3 = Complete
     private int _levelMin;
     private int _levelMax = 100;
-    private bool _hideClassQuests = true;
+    private int _classJobFilter; // 0 = All Classes
+    private string[] _classJobOptions = [];
     private List<QuestData> _filtered = [];
     private bool _dirty = true;
     private string _newListName = string.Empty;
@@ -35,6 +36,12 @@ internal sealed class MainWindow : Window
             MinimumSize = new Vector2(620, 420),
             MaximumSize = new Vector2(9999, 9999),
         };
+
+        _classJobOptions = ["All Classes", .. _questService.BlueQuests
+            .Select(q => q.RequiredClassJob)
+            .Where(c => !string.IsNullOrWhiteSpace(c))
+            .Distinct()
+            .OrderBy(c => c)];
     }
 
     public override void PreDraw()
@@ -143,8 +150,10 @@ internal sealed class MainWindow : Window
 
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 10);
-        if (ImGui.Checkbox("Hide class quests", ref _hideClassQuests))
+        ImGui.PushItemWidth(160);
+        if (ImGui.Combo("##classjob", ref _classJobFilter, _classJobOptions, _classJobOptions.Length))
             _dirty = true;
+        ImGui.PopItemWidth();
     }
 
     private void DrawQuestTable()
@@ -336,8 +345,8 @@ internal sealed class MainWindow : Window
                         break;
                 }
 
-                // Hide class quests
-                if (_hideClassQuests && !q.RequiredClassJob.Contains("All Classes", StringComparison.OrdinalIgnoreCase)) return false;
+                // Class/Job filter
+                if (_classJobFilter > 0 && !q.RequiredClassJob.Equals(_classJobOptions[_classJobFilter], StringComparison.OrdinalIgnoreCase)) return false;
 
                 // Level range
                 if (q.RequiredLevel < _levelMin || q.RequiredLevel > _levelMax) return false;
