@@ -10,4 +10,5 @@ public sealed class QuestData
     public string RequiredClassJob { get; init; } = string.Empty;
     public uint[] PrerequisiteIds { get; init; } = [];
     public bool IsCompleted { get; set; }
+    public bool IsClassQuest { get; init; }
 }

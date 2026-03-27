@@ -8,18 +8,21 @@ namespace QuestieBestie.UI;
 internal sealed class MainWindow : Window
 {
     private readonly QuestService _questService;
+    private readonly DetailWindow _detailWindow;
 
     private string _searchText = string.Empty;
-    private int _filterMode; // 0 = All, 1 = Incomplete, 2 = Complete
+    private int _filterMode = 1; // 0 = All, 1 = Available, 2 = Incomplete, 3 = Complete
     private int _levelMin;
     private int _levelMax = 100;
+    private bool _hideClassQuests = true;
     private List<QuestData> _filtered = [];
     private bool _dirty = true;
 
-    public MainWindow(QuestService questService)
+    public MainWindow(QuestService questService, DetailWindow detailWindow)
         : base("QuestieBestie###QuestieBestieMain", ImGuiWindowFlags.None)
     {
         _questService = questService;
+        _detailWindow = detailWindow;
         SizeConstraints = new WindowSizeConstraints
         {
             MinimumSize = new Vector2(620, 420),
@@ -73,7 +76,7 @@ internal sealed class MainWindow : Window
 
         ImGui.SameLine();
         ImGui.PushItemWidth(120);
-        var filterLabels = new[] { "All", "Incomplete", "Complete" };
+        var filterLabels = new[] { "All", "Available", "Incomplete", "Complete" };
         if (ImGui.Combo("##filter", ref _filterMode, filterLabels, filterLabels.Length))
             _dirty = true;
         ImGui.PopItemWidth();
@@ -105,6 +108,11 @@ internal sealed class MainWindow : Window
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
         ImGui.Text("Lv.");
         ImGui.PopStyleColor();
+
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 10);
+        if (ImGui.Checkbox("Hide class quests", ref _hideClassQuests))
+            _dirty = true;
     }
 
     private void DrawQuestTable()
@@ -129,7 +137,7 @@ internal sealed class MainWindow : Window
             return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
-        ImGui.TableSetupColumn("Done", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort, 36);
+        ImGui.TableSetupColumn("Done", ImGuiTableColumnFlags.WidthFixed, 36);
         ImGui.TableSetupColumn("Quest", ImGuiTableColumnFlags.WidthStretch | ImGuiTableColumnFlags.DefaultSort, 0);
         ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 36);
         ImGui.TableSetupColumn("Class/Job", ImGuiTableColumnFlags.WidthFixed, 140);
@@ -156,29 +164,28 @@ internal sealed class MainWindow : Window
                 ImGui.PopStyleColor();
             }
 
-            // Name column with prerequisites
+            // Name column — clickable to open map + details
             ImGui.TableNextColumn();
-            if (quest.IsCompleted)
-                ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed);
-
-            if (quest.PrerequisiteIds.Length > 0)
+            var nameColor = quest.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
+            ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
+            if (ImGui.Selectable($"{quest.Name}###{quest.RowId}", false, ImGuiSelectableFlags.SpanAllColumns))
             {
-                var open = ImGui.TreeNode($"{quest.Name}###{quest.RowId}");
-
-                if (quest.IsCompleted)
-                    ImGui.PopStyleColor();
-
-                if (open)
-                {
-                    DrawPrerequisites(quest);
-                    ImGui.TreePop();
-                }
+                _questService.OpenQuestOnMap(quest.RowId);
+                _detailWindow.ShowQuest(quest);
             }
-            else
+            ImGui.PopStyleColor();
+
+            if (ImGui.IsItemHovered())
             {
-                ImGui.Text(quest.Name);
-                if (quest.IsCompleted)
+                ImGui.BeginTooltip();
+                ImGui.Text("Click: Show on map + details");
+                if (quest.PrerequisiteIds.Length > 0)
+                {
+                    ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+                    ImGui.Text($"{quest.PrerequisiteIds.Length} prerequisite(s)");
                     ImGui.PopStyleColor();
+                }
+                ImGui.EndTooltip();
             }
 
             // Level column
@@ -198,36 +205,6 @@ internal sealed class MainWindow : Window
         ImGui.EndTable();
     }
 
-    private void DrawPrerequisites(QuestData quest)
-    {
-        foreach (var prereqId in quest.PrerequisiteIds)
-        {
-            var (name, isCompleted, isBlueQuest) = _questService.GetPrerequisiteInfo(prereqId);
-
-            var icon = isCompleted ? "\u2713" : "\u2717";
-            var color = isCompleted ? Styles.TextGreen : Styles.TextRed;
-            var typeTag = isBlueQuest ? "" : " (MSQ/Side)";
-
-            ImGui.PushStyleColor(ImGuiCol.Text, color);
-            ImGui.Text($"  {icon}");
-            ImGui.PopStyleColor();
-
-            ImGui.SameLine();
-            ImGui.PushStyleColor(ImGuiCol.Text, isCompleted ? Styles.TextDimmed : Styles.TextPrimary);
-            ImGui.Text($"{name}{typeTag}");
-            ImGui.PopStyleColor();
-
-            // Show level/class for blue prereqs
-            if (isBlueQuest && _questService.BlueQuestLookup.TryGetValue(prereqId, out var prereqQuest))
-            {
-                ImGui.SameLine();
-                ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-                ImGui.Text($"(Lv.{prereqQuest.RequiredLevel})");
-                ImGui.PopStyleColor();
-            }
-        }
-    }
-
     private void HandleSorting()
     {
         var sortSpecs = ImGui.TableGetSortSpecs();
@@ -239,6 +216,9 @@ internal sealed class MainWindow : Window
 
         _filtered = specs.ColumnIndex switch
         {
+            0 => ascending
+                ? [.. _filtered.OrderBy(q => q.IsCompleted)]
+                : [.. _filtered.OrderByDescending(q => q.IsCompleted)],
             1 => ascending
                 ? [.. _filtered.OrderBy(q => q.Name)]
                 : [.. _filtered.OrderByDescending(q => q.Name)],
@@ -261,10 +241,32 @@ internal sealed class MainWindow : Window
         _filtered = _questService.BlueQuests
             .Where(q =>
             {
-                if (_filterMode == 1 && q.IsCompleted) return false;
-                if (_filterMode == 2 && !q.IsCompleted) return false;
+                // Status filter
+                switch (_filterMode)
+                {
+                    case 1: // Available: not completed + all prereqs met
+                        if (q.IsCompleted || !_questService.ArePrerequisitesMet(q)) return false;
+                        break;
+                    case 2: // Incomplete
+                        if (q.IsCompleted) return false;
+                        break;
+                    case 3: // Complete
+                        if (!q.IsCompleted) return false;
+                        break;
+                }
+
+                // Hide class quests
+                if (_hideClassQuests && q.IsClassQuest) return false;
+
+                // Level range
                 if (q.RequiredLevel < _levelMin || q.RequiredLevel > _levelMax) return false;
-                if (search.Length > 0 && !q.Name.Contains(search, StringComparison.OrdinalIgnoreCase)) return false;
+
+                // Text search across all columns
+                if (search.Length > 0
+                    && !q.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
+                    && !q.RequiredClassJob.Contains(search, StringComparison.OrdinalIgnoreCase)
+                    && !q.RequiredLevel.ToString().Contains(search, StringComparison.Ordinal)) return false;
+
                 return true;
             })
             .OrderBy(q => q.RequiredLevel)

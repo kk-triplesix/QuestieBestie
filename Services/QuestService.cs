@@ -1,3 +1,6 @@
+using System.Numerics;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Utility;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel.Sheets;
@@ -40,6 +43,7 @@ public sealed class QuestService
             if (quest.PreviousQuest[2].RowId != 0) prereqs.Add(quest.PreviousQuest[2].RowId);
 
             var classJob = quest.ClassJobCategory0.ValueNullable?.Name.ExtractText() ?? "All Classes";
+            var isClassQuest = quest.ClassJobRequired.RowId != 0;
 
             var questData = new QuestData
             {
@@ -50,6 +54,7 @@ public sealed class QuestService
                 RequiredLevel = (byte)quest.ClassJobLevel[0],
                 RequiredClassJob = classJob,
                 PrerequisiteIds = prereqs.ToArray(),
+                IsClassQuest = isClassQuest,
             };
 
             BlueQuests.Add(questData);
@@ -100,6 +105,91 @@ public sealed class QuestService
         }
 
         return (name, isCompleted, false);
+    }
+
+    public void OpenQuestOnMap(uint rowId)
+    {
+        var questSheet = Svc.Data.GetExcelSheet<Quest>();
+        if (questSheet == null)
+            return;
+
+        var quest = questSheet.GetRowOrDefault(rowId);
+        if (quest == null)
+            return;
+
+        var issuerLocation = quest.Value.IssuerLocation.ValueNullable;
+        if (issuerLocation == null)
+            return;
+
+        var level = issuerLocation.Value;
+        var map = level.Map.ValueNullable;
+        var territory = level.Territory.ValueNullable;
+        if (map == null || territory == null)
+            return;
+
+        var mapCoords = MapUtil.WorldToMap(new Vector2(level.X, level.Z), map.Value);
+        var payload = new MapLinkPayload(territory.Value.RowId, map.Value.RowId, mapCoords.X, mapCoords.Y);
+        Svc.GameGui.OpenMapWithMapLink(payload);
+    }
+
+    public List<PrerequisiteNode> GetPrerequisiteTree(uint rowId, int maxDepth = 10)
+    {
+        var visited = new HashSet<uint>();
+        return BuildPrerequisiteTree(rowId, visited, maxDepth);
+    }
+
+    private List<PrerequisiteNode> BuildPrerequisiteTree(uint rowId, HashSet<uint> visited, int depth)
+    {
+        if (depth <= 0)
+            return [];
+
+        var questSheet = Svc.Data.GetExcelSheet<Quest>();
+        if (questSheet == null)
+            return [];
+
+        var quest = questSheet.GetRowOrDefault(rowId);
+        if (quest == null)
+            return [];
+
+        var prereqIds = new List<uint>();
+        if (quest.Value.PreviousQuest[0].RowId != 0) prereqIds.Add(quest.Value.PreviousQuest[0].RowId);
+        if (quest.Value.PreviousQuest[1].RowId != 0) prereqIds.Add(quest.Value.PreviousQuest[1].RowId);
+        if (quest.Value.PreviousQuest[2].RowId != 0) prereqIds.Add(quest.Value.PreviousQuest[2].RowId);
+
+        var nodes = new List<PrerequisiteNode>();
+        foreach (var prereqId in prereqIds)
+        {
+            if (!visited.Add(prereqId))
+                continue;
+
+            var (name, isCompleted, isBlueQuest) = GetPrerequisiteInfo(prereqId);
+            if (name == "Unknown")
+                continue;
+
+            var children = BuildPrerequisiteTree(prereqId, visited, depth - 1);
+
+            nodes.Add(new PrerequisiteNode
+            {
+                RowId = prereqId,
+                Name = name,
+                IsCompleted = isCompleted,
+                IsBlueQuest = isBlueQuest,
+                Children = children,
+            });
+        }
+
+        return nodes;
+    }
+
+    public bool ArePrerequisitesMet(QuestData quest)
+    {
+        foreach (var prereqId in quest.PrerequisiteIds)
+        {
+            var (_, isCompleted, _) = GetPrerequisiteInfo(prereqId);
+            if (!isCompleted)
+                return false;
+        }
+        return true;
     }
 
     public int CompletedCount => BlueQuests.Count(q => q.IsCompleted);
