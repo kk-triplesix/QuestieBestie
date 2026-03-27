@@ -14,6 +14,7 @@ public sealed class TrackingService
             _config.Lists.Add(new TrackingList { Name = "Default" });
     }
 
+    public OverlaySettings OverlaySettings => _config.Overlay;
     public IReadOnlyList<TrackingList> Lists => _config.Lists;
     public int ActiveListIndex
     {
@@ -83,6 +84,11 @@ public sealed class TrackingService
     public bool IsTrackedInAnyList(uint rowId)
     {
         return _config.Lists.Any(l => l.QuestRowIds.Contains(rowId));
+    }
+
+    public void SaveOverlaySettings()
+    {
+        Save();
     }
 
     private void Save()

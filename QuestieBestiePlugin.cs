@@ -14,6 +14,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     private readonly MainWindow _mainWindow;
     private readonly OverlayWindow _overlayWindow;
     private readonly DetailWindow _detailWindow;
+    private readonly SettingsWindow _settingsWindow;
     private readonly QuestService _questService;
     private readonly TrackingService _trackingService;
     private readonly IDtrBarEntry _dtrEntry;
@@ -25,13 +26,15 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         _questService = new QuestService();
         _trackingService = new TrackingService();
         _detailWindow = new DetailWindow(_questService);
-        _mainWindow = new MainWindow(_questService, _detailWindow, _trackingService);
         _overlayWindow = new OverlayWindow(_questService, _trackingService);
+        _settingsWindow = new SettingsWindow(_trackingService);
+        _mainWindow = new MainWindow(_questService, _detailWindow, _trackingService, _overlayWindow, _settingsWindow);
 
         _windowSystem = new WindowSystem("QuestieBestie");
         _windowSystem.AddWindow(_mainWindow);
         _windowSystem.AddWindow(_overlayWindow);
         _windowSystem.AddWindow(_detailWindow);
+        _windowSystem.AddWindow(_settingsWindow);
 
         // DTR bar entry
         _dtrEntry = Svc.DtrBar.Get("QuestieBestie");

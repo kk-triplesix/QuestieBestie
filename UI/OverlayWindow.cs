@@ -27,28 +27,57 @@ internal sealed class OverlayWindow : Window
 
     public override void PreDraw()
     {
-        Styles.PushOverlayStyle();
+        var s = _trackingService.OverlaySettings;
+
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, s.WindowRounding);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14, 10));
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 4));
+
+        var bg = new Vector4(s.BackgroundColor.X, s.BackgroundColor.Y, s.BackgroundColor.Z, s.BackgroundAlpha);
+        var border = new Vector4(s.BorderColor.X, s.BorderColor.Y, s.BorderColor.Z, s.BorderAlpha);
+
+        ImGui.PushStyleColor(ImGuiCol.WindowBg, bg);
+        ImGui.PushStyleColor(ImGuiCol.Border, border);
+        ImGui.PushStyleColor(ImGuiCol.Text, s.TextColor);
+        ImGui.PushStyleColor(ImGuiCol.TextDisabled, Styles.TextDimmed);
     }
 
     public override void PostDraw()
     {
-        Styles.PopOverlayStyle();
+        ImGui.PopStyleColor(4);
+        ImGui.PopStyleVar(3);
+
+        if (_fontScaled)
+        {
+            ImGui.SetWindowFontScale(1.0f);
+            _fontScaled = false;
+        }
     }
+
+    private bool _fontScaled;
 
     public override void Draw()
     {
+        var s = _trackingService.OverlaySettings;
+
+        if (Math.Abs(s.FontScale - 1.0f) > 0.01f)
+        {
+            ImGui.SetWindowFontScale(s.FontScale);
+            _fontScaled = true;
+        }
+
         _questService.RefreshCompletionStatus();
 
-        DrawHeader();
+        DrawHeader(s);
         ImGui.Separator();
-        DrawListSwitcher();
+        DrawListSwitcher(s);
         ImGui.Separator();
-        DrawTrackedQuests();
+        DrawTrackedQuests(s);
     }
 
-    private void DrawHeader()
+    private void DrawHeader(OverlaySettings s)
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
+        ImGui.PushStyleColor(ImGuiCol.Text, s.HeaderColor);
         ImGui.Text("QuestieBestie");
         ImGui.PopStyleColor();
 
@@ -58,7 +87,7 @@ internal sealed class OverlayWindow : Window
         ImGui.PopStyleColor();
     }
 
-    private void DrawListSwitcher()
+    private void DrawListSwitcher(OverlaySettings s)
     {
         var lists = _trackingService.Lists;
         if (lists.Count <= 1)
@@ -74,10 +103,7 @@ internal sealed class OverlayWindow : Window
             if (i > 0) ImGui.SameLine();
 
             var isActive = i == _trackingService.ActiveListIndex;
-            if (isActive)
-                ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
-            else
-                ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed);
+            ImGui.PushStyleColor(ImGuiCol.Text, isActive ? s.HeaderColor : Styles.TextDimmed);
 
             if (ImGui.Selectable($"{lists[i].Name}###list{i}", isActive, ImGuiSelectableFlags.None, new Vector2(ImGui.CalcTextSize(lists[i].Name).X + 8, 0)))
                 _trackingService.ActiveListIndex = i;
@@ -86,7 +112,7 @@ internal sealed class OverlayWindow : Window
         }
     }
 
-    private void DrawTrackedQuests()
+    private void DrawTrackedQuests(OverlaySettings s)
     {
         var activeList = _trackingService.ActiveList;
 
@@ -106,30 +132,27 @@ internal sealed class OverlayWindow : Window
             if (!_questService.BlueQuestLookup.TryGetValue(rowId, out var quest))
                 continue;
 
-            // Status icon
             if (quest.IsCompleted)
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextGreen);
+                ImGui.PushStyleColor(ImGuiCol.Text, s.CompletedColor);
                 ImGui.Text("\u2713");
                 ImGui.PopStyleColor();
             }
             else
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
+                ImGui.PushStyleColor(ImGuiCol.Text, s.LevelColor);
                 ImGui.Text($"[{quest.RequiredLevel,2}]");
                 ImGui.PopStyleColor();
             }
 
             ImGui.SameLine();
 
-            // Quest name — clickable
-            var nameColor = quest.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
+            var nameColor = quest.IsCompleted ? Styles.TextDimmed : s.TextColor;
             ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
             if (ImGui.Selectable($"{quest.Name}###ov{quest.RowId}", false))
                 _questService.OpenQuestOnMap(quest.RowId);
             ImGui.PopStyleColor();
 
-            // Right-click to remove
             if (ImGui.BeginPopupContextItem($"ovctx###{quest.RowId}"))
             {
                 if (ImGui.MenuItem("Remove from list"))
@@ -137,7 +160,6 @@ internal sealed class OverlayWindow : Window
                 ImGui.EndPopup();
             }
 
-            // Missing prereqs indicator
             if (!quest.IsCompleted && quest.PrerequisiteIds.Length > 0)
             {
                 var missing = quest.PrerequisiteIds
@@ -148,20 +170,18 @@ internal sealed class OverlayWindow : Window
                 if (missing.Count > 0)
                 {
                     ImGui.SameLine();
-                    ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);
+                    ImGui.PushStyleColor(ImGuiCol.Text, s.WarningColor);
                     ImGui.Text($"\u26a0 {missing.Count} req");
                     ImGui.PopStyleColor();
 
                     if (ImGui.IsItemHovered())
                     {
                         ImGui.BeginTooltip();
-                        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextPrimary);
                         ImGui.Text("Missing requirements:");
-                        ImGui.PopStyleColor();
                         foreach (var (name, _, isBlue) in missing)
                         {
                             var tag = isBlue ? "" : " (MSQ/Side)";
-                            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);
+                            ImGui.PushStyleColor(ImGuiCol.Text, s.WarningColor);
                             ImGui.Text($"  \u2717 {name}{tag}");
                             ImGui.PopStyleColor();
                         }

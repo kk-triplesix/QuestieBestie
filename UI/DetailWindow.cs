@@ -130,7 +130,7 @@ internal sealed class DetailWindow : Window
         var icon = node.IsCompleted ? "\u2713" : "\u2717";
         var iconColor = node.IsCompleted ? Styles.TextGreen : Styles.TextRed;
         var nameColor = node.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
-        var typeTag = node.IsBlueQuest ? "" : " (MSQ/Side)";
+        var typeTag = node.IsMsq ? " (MSQ)" : node.IsBlueQuest ? "" : " (Side)";
 
         // Icon
         ImGui.PushStyleColor(ImGuiCol.Text, iconColor);

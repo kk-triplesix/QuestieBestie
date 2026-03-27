@@ -2,14 +2,16 @@
   "Author": "kk-triplesix",
   "Name": "QuestieBestie",
   "InternalName": "QuestieBestie",
-  "Description": "Your friendly quest companion for FFXIV.",
+  "Description": "Track all blue (feature unlock) quests in FFXIV. Shows prerequisites, completion status, map markers, and custom tracking lists with an in-game overlay.",
   "ApplicableVersion": "any",
   "DalamudApiLevel": 14,
   "TestingDalamudApiLevel": 14,
   "Tags": [
     "quest",
-    "companion",
-    "helper"
+    "tracker",
+    "unlock",
+    "blue quest",
+    "companion"
   ],
   "CategoryTags": [
     "other"
@@ -19,6 +21,6 @@
   "CanUnloadAsync": false,
   "LoadPriority": 0,
   "IsTestingExclusive": false,
-  "Punchline": "Your friendly quest companion.",
+  "Punchline": "Never miss a blue quest again. Track, filter, and conquer.",
   "AcceptsFeedback": true
 }

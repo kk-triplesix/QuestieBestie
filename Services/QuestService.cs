@@ -166,7 +166,9 @@ public sealed class QuestService
             if (name == "Unknown")
                 continue;
 
-            var children = BuildPrerequisiteTree(prereqId, visited, depth - 1);
+            // Check if this prereq is an MSQ — show it but don't recurse deeper
+            var isMsq = IsMsqQuest(prereqId);
+            var children = isMsq ? [] : BuildPrerequisiteTree(prereqId, visited, depth - 1);
 
             nodes.Add(new PrerequisiteNode
             {
@@ -174,11 +176,22 @@ public sealed class QuestService
                 Name = name,
                 IsCompleted = isCompleted,
                 IsBlueQuest = isBlueQuest,
+                IsMsq = isMsq,
                 Children = children,
             });
         }
 
         return nodes;
+    }
+
+    public bool IsMsqQuest(uint rowId)
+    {
+        var questSheet = Svc.Data.GetExcelSheet<Quest>();
+        if (questSheet == null)
+            return false;
+
+        var quest = questSheet.GetRowOrDefault(rowId);
+        return quest != null && quest.Value.EventIconType.RowId == 3;
     }
 
     public bool ArePrerequisitesMet(QuestData quest)

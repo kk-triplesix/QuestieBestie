@@ -6,5 +6,6 @@ public sealed class PrerequisiteNode
     public string Name { get; init; } = string.Empty;
     public bool IsCompleted { get; init; }
     public bool IsBlueQuest { get; init; }
+    public bool IsMsq { get; init; }
     public List<PrerequisiteNode> Children { get; init; } = [];
 }

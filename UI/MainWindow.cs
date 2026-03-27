@@ -10,6 +10,8 @@ internal sealed class MainWindow : Window
     private readonly QuestService _questService;
     private readonly DetailWindow _detailWindow;
     private readonly TrackingService _trackingService;
+    private readonly OverlayWindow _overlayWindow;
+    private readonly SettingsWindow _settingsWindow;
 
     private string _searchText = string.Empty;
     private int _filterMode = 1; // 0 = All, 1 = Available, 2 = Incomplete, 3 = Complete
@@ -20,12 +22,14 @@ internal sealed class MainWindow : Window
     private bool _dirty = true;
     private string _newListName = string.Empty;
 
-    public MainWindow(QuestService questService, DetailWindow detailWindow, TrackingService trackingService)
+    public MainWindow(QuestService questService, DetailWindow detailWindow, TrackingService trackingService, OverlayWindow overlayWindow, SettingsWindow settingsWindow)
         : base("QuestieBestie###QuestieBestieMain", ImGuiWindowFlags.None)
     {
         _questService = questService;
         _detailWindow = detailWindow;
         _trackingService = trackingService;
+        _overlayWindow = overlayWindow;
+        _settingsWindow = settingsWindow;
         SizeConstraints = new WindowSizeConstraints
         {
             MinimumSize = new Vector2(620, 420),
@@ -66,6 +70,31 @@ internal sealed class MainWindow : Window
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
         ImGui.Text("— Blue Quest Tracker");
         ImGui.PopStyleColor();
+
+        // Tracking lists section
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 280);
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+        ImGui.Text("List:");
+        ImGui.PopStyleColor();
+
+        ImGui.SameLine();
+        ImGui.PushItemWidth(120);
+        var lists = _trackingService.Lists;
+        var activeIdx = _trackingService.ActiveListIndex;
+        var listNames = lists.Select(l => l.Name).ToArray();
+        if (ImGui.Combo("##listselect", ref activeIdx, listNames, listNames.Length))
+            _trackingService.ActiveListIndex = activeIdx;
+        ImGui.PopItemWidth();
+
+        ImGui.SameLine();
+        var overlayLabel = _overlayWindow.IsOpen ? "Hide Overlay" : "Show Overlay";
+        if (ImGui.Button(overlayLabel))
+            _overlayWindow.Toggle();
+
+        ImGui.SameLine();
+        if (ImGui.Button("Settings"))
+            _settingsWindow.Toggle();
 
         ImGui.Separator();
     }
