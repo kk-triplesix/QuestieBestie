@@ -15,6 +15,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     private readonly OverlayWindow _overlayWindow;
     private readonly DetailWindow _detailWindow;
     private readonly QuestService _questService;
+    private readonly TrackingService _trackingService;
     private readonly IDtrBarEntry _dtrEntry;
 
     public QuestieBestiePlugin(IDalamudPluginInterface pluginInterface)
@@ -22,9 +23,10 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         ECommonsMain.Init(pluginInterface, this);
 
         _questService = new QuestService();
+        _trackingService = new TrackingService();
         _detailWindow = new DetailWindow(_questService);
-        _mainWindow = new MainWindow(_questService, _detailWindow);
-        _overlayWindow = new OverlayWindow(_questService);
+        _mainWindow = new MainWindow(_questService, _detailWindow, _trackingService);
+        _overlayWindow = new OverlayWindow(_questService, _trackingService);
 
         _windowSystem = new WindowSystem("QuestieBestie");
         _windowSystem.AddWindow(_mainWindow);

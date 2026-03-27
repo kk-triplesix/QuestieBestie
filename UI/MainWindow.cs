@@ -9,6 +9,7 @@ internal sealed class MainWindow : Window
 {
     private readonly QuestService _questService;
     private readonly DetailWindow _detailWindow;
+    private readonly TrackingService _trackingService;
 
     private string _searchText = string.Empty;
     private int _filterMode = 1; // 0 = All, 1 = Available, 2 = Incomplete, 3 = Complete
@@ -17,12 +18,14 @@ internal sealed class MainWindow : Window
     private bool _hideClassQuests = true;
     private List<QuestData> _filtered = [];
     private bool _dirty = true;
+    private string _newListName = string.Empty;
 
-    public MainWindow(QuestService questService, DetailWindow detailWindow)
+    public MainWindow(QuestService questService, DetailWindow detailWindow, TrackingService trackingService)
         : base("QuestieBestie###QuestieBestieMain", ImGuiWindowFlags.None)
     {
         _questService = questService;
         _detailWindow = detailWindow;
+        _trackingService = trackingService;
         SizeConstraints = new WindowSizeConstraints
         {
             MinimumSize = new Vector2(620, 420),
@@ -179,13 +182,17 @@ internal sealed class MainWindow : Window
             {
                 ImGui.BeginTooltip();
                 ImGui.Text("Click: Show on map + details");
-                if (quest.PrerequisiteIds.Length > 0)
-                {
-                    ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-                    ImGui.Text($"{quest.PrerequisiteIds.Length} prerequisite(s)");
-                    ImGui.PopStyleColor();
-                }
+                ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+                ImGui.Text("Right-click: Add to tracking list");
+                ImGui.PopStyleColor();
                 ImGui.EndTooltip();
+            }
+
+            // Right-click context menu
+            if (ImGui.BeginPopupContextItem($"ctx###{quest.RowId}"))
+            {
+                DrawQuestContextMenu(quest);
+                ImGui.EndPopup();
             }
 
             // Level column
@@ -203,6 +210,51 @@ internal sealed class MainWindow : Window
         }
 
         ImGui.EndTable();
+    }
+
+    private void DrawQuestContextMenu(QuestData quest)
+    {
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
+        ImGui.Text(quest.Name);
+        ImGui.PopStyleColor();
+        ImGui.Separator();
+
+        // Add to existing lists
+        for (var i = 0; i < _trackingService.Lists.Count; i++)
+        {
+            var list = _trackingService.Lists[i];
+            var isTracked = _trackingService.IsTracked(quest.RowId, i);
+
+            if (isTracked)
+            {
+                if (ImGui.MenuItem($"\u2713 {list.Name}"))
+                    _trackingService.RemoveQuest(quest.RowId, i);
+            }
+            else
+            {
+                if (ImGui.MenuItem($"Add to {list.Name}"))
+                    _trackingService.AddQuest(quest.RowId, i);
+            }
+        }
+
+        ImGui.Separator();
+
+        // Create new list
+        ImGui.PushItemWidth(140);
+        ImGui.InputTextWithHint("##newlist", "New list name...", ref _newListName, 64);
+        ImGui.PopItemWidth();
+
+        ImGui.SameLine();
+        var canCreate = _newListName.Trim().Length > 0;
+        if (!canCreate) ImGui.BeginDisabled();
+        if (ImGui.Button("Create"))
+        {
+            _trackingService.CreateList(_newListName);
+            _trackingService.AddQuest(quest.RowId, _trackingService.Lists.Count - 1);
+            _newListName = string.Empty;
+            ImGui.CloseCurrentPopup();
+        }
+        if (!canCreate) ImGui.EndDisabled();
     }
 
     private void HandleSorting()
