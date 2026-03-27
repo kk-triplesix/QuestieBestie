@@ -308,7 +308,7 @@ internal sealed class MainWindow : Window
                 }
 
                 // Hide class quests
-                if (_hideClassQuests && q.IsClassQuest) return false;
+                if (_hideClassQuests && !q.RequiredClassJob.Contains("All Classes", StringComparison.OrdinalIgnoreCase)) return false;
 
                 // Level range
                 if (q.RequiredLevel < _levelMin || q.RequiredLevel > _levelMax) return false;
