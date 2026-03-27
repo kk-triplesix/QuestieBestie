@@ -7,8 +7,7 @@ namespace QuestieBestie.Services;
 
 public sealed class QuestService
 {
-    private static readonly HashSet<uint> BlueQuestIcons =
-        [71201, 71221, 71241, 71261, 71281, 71301, 71321, 71341];
+    private static readonly HashSet<uint> BlueQuestEventIconTypes = [8, 10];
 
     public List<QuestData> BlueQuests { get; } = [];
     public Dictionary<uint, QuestData> BlueQuestLookup { get; } = [];
@@ -28,7 +27,7 @@ public sealed class QuestService
 
         foreach (var quest in questSheet)
         {
-            if (!BlueQuestIcons.Contains(quest.Icon))
+            if (!BlueQuestEventIconTypes.Contains(quest.EventIconType.RowId))
                 continue;
 
             var name = quest.Name.ExtractText();
