@@ -502,51 +502,53 @@ internal sealed class MainWindow : Window
 
     private void DrawDutyUnlocks()
     {
-        var dutyQuests = _questService.BlueQuests
-            .Where(q => q.Category is QuestCategory.Dungeon or QuestCategory.Trial or QuestCategory.Raid)
+        // All quests that unlock ANY content (not just dungeons/trials/raids)
+        var contentQuests = _questService.BlueQuests
+            .Where(q => !string.IsNullOrEmpty(q.Unlocks))
             .OrderBy(q => q.ExpansionId)
             .ThenBy(q => q.RequiredLevel)
             .ToList();
 
-        // Info box
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.TextWrapped("Shows blue quest unlocks only. MSQ dungeons, Savage (NPC dialog), and individual Extreme/Ultimate fights (Minstrel dialog) are not listed as they have no quest data.");
+        ImGui.TextWrapped("All blue quests that unlock content. MSQ dungeons and Savage/individual Extreme fights (NPC dialog) are not listed.");
         ImGui.PopStyleColor();
         ImGui.Spacing();
 
-        if (dutyQuests.Count == 0)
-        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed); ImGui.Text("No duty unlock quests found."); ImGui.PopStyleColor(); return; }
+        if (contentQuests.Count == 0)
+        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed); ImGui.Text("No content unlock quests found."); ImGui.PopStyleColor(); return; }
 
-        var categories = new[] { QuestCategory.Dungeon, QuestCategory.Trial, QuestCategory.Raid };
-        foreach (var cat in categories)
+        // Group by category, show all
+        var groups = contentQuests.GroupBy(q => q.Category).OrderBy(g => g.Key).ToList();
+
+        foreach (var group in groups)
         {
-            var quests = dutyQuests.Where(q => q.Category == cat).ToList();
-            if (quests.Count == 0) continue;
-
+            var quests = group.ToList();
             var done = quests.Count(q => q.IsCompleted);
+
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
-            ImGui.Text($"{cat}s ({done}/{quests.Count})");
+            ImGui.Text($"{group.Key} ({done}/{quests.Count})");
             ImGui.PopStyleColor();
             ImGui.Separator();
 
             foreach (var quest in quests)
             {
-                ImGui.Text(" "); ImGui.SameLine();
                 Icons.DrawCheck(quest.IsCompleted); ImGui.SameLine();
 
-                var expColor = quest.IsCompleted ? Styles.TextDimmed : Styles.GetExpansionColor(quest.ExpansionId);
                 var expAbbrev = quest.ExpansionId switch { 0 => "ARR", 1 => "HW", 2 => "SB", 3 => "ShB", 4 => "EW", 5 => "DT", _ => "?" };
-                ImGui.PushStyleColor(ImGuiCol.Text, expColor); ImGui.Text($"[{expAbbrev}]"); ImGui.PopStyleColor();
+                ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.GetExpansionColor(quest.ExpansionId));
+                ImGui.Text($"[{expAbbrev}]");
+                ImGui.PopStyleColor();
                 ImGui.SameLine();
 
-                var nameColor = quest.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
-                ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
+                ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary);
                 if (ImGui.Selectable($"Lv.{quest.RequiredLevel} {quest.Name}###du{quest.RowId}", false))
                 { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
                 ImGui.PopStyleColor();
 
-                if (!string.IsNullOrEmpty(quest.Unlocks))
-                { ImGui.SameLine(); ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.AccentCyan); ImGui.Text($"-> {quest.Unlocks}"); ImGui.PopStyleColor(); }
+                ImGui.SameLine();
+                ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.AccentCyan);
+                ImGui.Text($"-> {quest.Unlocks}");
+                ImGui.PopStyleColor();
             }
             ImGui.Spacing();
         }
