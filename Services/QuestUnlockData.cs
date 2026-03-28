@@ -146,6 +146,96 @@ public static class QuestUnlockData
         // ── Hildibrand ──────────────────────────────────────────────
         ("The Rise and Fall of Gentlemen", QuestCategory.Feature, "Unlocks Hildibrand Adventures"),
 
+        // ── Crafting/Gathering Classes ──────────────────────────────
+        ("Way of the Carpenter", QuestCategory.JobUnlock, "Unlocks Carpenter"),
+        ("Way of the Blacksmith", QuestCategory.JobUnlock, "Unlocks Blacksmith"),
+        ("Way of the Armorer", QuestCategory.JobUnlock, "Unlocks Armorer"),
+        ("Way of the Goldsmith", QuestCategory.JobUnlock, "Unlocks Goldsmith"),
+        ("Way of the Leatherworker", QuestCategory.JobUnlock, "Unlocks Leatherworker"),
+        ("Way of the Weaver", QuestCategory.JobUnlock, "Unlocks Weaver"),
+        ("Way of the Alchemist", QuestCategory.JobUnlock, "Unlocks Alchemist"),
+        ("Way of the Culinarian", QuestCategory.JobUnlock, "Unlocks Culinarian"),
+        ("Way of the Miner", QuestCategory.JobUnlock, "Unlocks Miner"),
+        ("Way of the Botanist", QuestCategory.JobUnlock, "Unlocks Botanist"),
+        ("Way of the Fisher", QuestCategory.JobUnlock, "Unlocks Fisher"),
+
+        // ── Levequests per Expansion ────────────────────────────────
+        ("Leves of", QuestCategory.Feature, "Unlocks Levequests"),
+        ("Ishgardian Leves", QuestCategory.Feature, "Unlocks HW Levequests"),
+        ("Leves of Kugane", QuestCategory.Feature, "Unlocks SB Levequests"),
+        ("Leves of the Crystarium", QuestCategory.Feature, "Unlocks ShB Levequests"),
+        ("Leves of Tuliyollal", QuestCategory.Feature, "Unlocks DT Levequests"),
+
+        // ── Triple Triad Tournaments ────────────────────────────────
+        ("Triple Triad Tournament", QuestCategory.Feature, "Unlocks Triple Triad Tournaments"),
+
+        // ── Orchestrion / Duty Recorder ─────────────────────────────
+        ("Completion", QuestCategory.Feature, "Unlocks Duty Completion mode"),
+
+        // ── Sightseeing per Expansion (alternate names) ─────────────
+        ("Sightsee", QuestCategory.Feature, "Unlocks Sightseeing Log"),
+
+        // ── New Game+ ───────────────────────────────────────────────
+        ("Reviving the Past", QuestCategory.Feature, "Unlocks New Game+"),
+
+        // ── Collectables (per expansion) ────────────────────────────
+        ("Rowena's House of Splendors", QuestCategory.Feature, "Unlocks Collectables (SB)"),
+        ("The Boutique Always Wins", QuestCategory.Feature, "Unlocks Collectables (ShB)"),
+        ("Collecting Collegium", QuestCategory.Feature, "Unlocks Collectables (EW)"),
+        ("Expanding House of Splendors", QuestCategory.Feature, "Unlocks Collectables (DT)"),
+
+        // ── Dwarf/Pixie/Qitari Beast Tribes (ShB) ──────────────────
+        ("A Sulky Sylph", QuestCategory.Feature, "Unlocks Sylph Beast Tribe"),
+        ("You Have Selected Regicide", QuestCategory.Feature, "Unlocks Amalj'aa Beast Tribe"),
+        ("A Bad Bladder", QuestCategory.Feature, "Unlocks Kobold Beast Tribe"),
+        ("They Came from the Deep", QuestCategory.Feature, "Unlocks Sahagin Beast Tribe"),
+        ("Ixali Imbroglio", QuestCategory.Feature, "Unlocks Ixal Beast Tribe"),
+        ("The Bittersweet", QuestCategory.Feature, "Unlocks Pixie Beast Tribe"),
+        ("A Pact with the Pack", QuestCategory.Feature, "Unlocks Vath Beast Tribe"),
+        ("Moogles Moved In", QuestCategory.Feature, "Unlocks Moogle Beast Tribe"),
+        ("Peace for Thanalan", QuestCategory.Feature, "Unlocks Amalj'aa crafting"),
+        ("A Sundrop Dance", QuestCategory.Feature, "Unlocks Qitari Beast Tribe"),
+        ("It's Dwarfin' Time", QuestCategory.Feature, "Unlocks Dwarf Beast Tribe"),
+        ("Allies Beyond the Rift", QuestCategory.Feature, "Unlocks Arkasodara Beast Tribe"),
+        ("The Gift of Worship", QuestCategory.Feature, "Unlocks Omicron Beast Tribe"),
+        ("Loporrit Love", QuestCategory.Feature, "Unlocks Loporrit Beast Tribe"),
+        ("The Pelupelu Way", QuestCategory.Feature, "Unlocks Pelupelu Beast Tribe"),
+
+        // ── YoRHa/Nier Raids ────────────────────────────────────────
+        ("Word about Komra", QuestCategory.Raid, "Unlocks Copied Factory (YoRHa)"),
+        ("A Beacon for the Black", QuestCategory.Raid, "Unlocks Puppets' Bunker (YoRHa)"),
+        ("Konogg the Road Less Traveled", QuestCategory.Raid, "Unlocks Tower at Paradigm's Breach (YoRHa)"),
+
+        // ── Ivalice Raids ───────────────────────────────────────────
+        ("Dramatis Personae", QuestCategory.Raid, "Unlocks Royal City of Rabanastre"),
+        ("A City Fallen", QuestCategory.Raid, "Unlocks Ridorana Lighthouse"),
+        ("The City of Lost Angels", QuestCategory.Raid, "Unlocks Orbonne Monastery"),
+
+        // ── Myths of the Realm ──────────────────────────────────────
+        ("A Mission in Mor Dhona", QuestCategory.Raid, "Unlocks Aglaia"),
+        ("An Alliance of Equals", QuestCategory.Raid, "Unlocks Euphrosyne"),
+        ("A Pact Most Dire", QuestCategory.Raid, "Unlocks Thaleia"),
+
+        // ── Echoes of Vana'diel ─────────────────────────────────────
+        ("Vana'diel", QuestCategory.Raid, "Unlocks Jeuno: The First Walk"),
+
+        // ── Void Ark / Shadow of Mhach ──────────────────────────────
+        ("Sky Pirates", QuestCategory.Raid, "Unlocks Void Ark"),
+
+        // ── NieR: Automata Robots (DT) ──────────────────────────────
+        ("Arcadion", QuestCategory.Raid, "Unlocks Arcadion raid"),
+
+        // ── DT Content ──────────────────────────────────────────────
+        ("Lost Twin", QuestCategory.Feature, "Unlocks DT content"),
+        ("Rhodina", QuestCategory.Feature, "Unlocks DT Custom Deliveries"),
+
+        // ── Occult Crescent ─────────────────────────────────────────
+        ("Occult", QuestCategory.Feature, "Unlocks Occult Crescent"),
+
+        // ── Bozja ───────────────────────────────────────────────────
+        ("The Bozja Incident", QuestCategory.Feature, "Unlocks Save the Queen storyline"),
+        ("In the Field", QuestCategory.Feature, "Unlocks Field Notes"),
+
         // ── Duty Roulettes ──────────────────────────────────────────
         ("Duty Roulette", QuestCategory.Feature, "Unlocks Duty Roulette"),
         ("A Trial for What It's Worth", QuestCategory.Feature, "Unlocks Trial Roulette"),

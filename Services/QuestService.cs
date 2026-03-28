@@ -523,7 +523,19 @@ public sealed class QuestService
         }
 
         // Known umbrella quests — Wandering Minstrel / NPC unlock quests that have no instance data
+        // Try umbrella check in all languages
         var umbrellaResult = CheckUmbrellaQuest(quest);
+        if (!umbrellaResult.HasValue)
+        {
+            foreach (var lang in new[] { Dalamud.Game.ClientLanguage.English, Dalamud.Game.ClientLanguage.German, Dalamud.Game.ClientLanguage.French, Dalamud.Game.ClientLanguage.Japanese })
+            {
+                var langSheet = Svc.Data.GetExcelSheet<Quest>(lang);
+                var langQ = langSheet?.GetRowOrDefault(quest.RowId);
+                if (langQ == null) continue;
+                umbrellaResult = CheckUmbrellaQuestByName(langQ.Value.Name.ExtractText());
+                if (umbrellaResult.HasValue) break;
+            }
+        }
         if (umbrellaResult.HasValue)
             return umbrellaResult.Value;
 
@@ -559,10 +571,24 @@ public sealed class QuestService
         if (hasUnlockInstruction)
             return (QuestCategory.Dungeon, "Unlocks content");
 
-        // Manual lookup fallback for quests with no structured unlock data
-        var manual = QuestUnlockData.Lookup(quest.Name.ExtractText());
+        // Manual lookup fallback — try all languages (lookup uses English patterns)
+        var localName = quest.Name.ExtractText();
+        var manual = QuestUnlockData.Lookup(localName);
         if (manual.HasValue)
             return manual.Value;
+
+        foreach (var lang in new[] { Dalamud.Game.ClientLanguage.English, Dalamud.Game.ClientLanguage.German, Dalamud.Game.ClientLanguage.French, Dalamud.Game.ClientLanguage.Japanese })
+        {
+            var langSheet = Svc.Data.GetExcelSheet<Quest>(lang);
+            if (langSheet == null) continue;
+            var langQuest = langSheet.GetRowOrDefault(quest.RowId);
+            if (langQuest == null) continue;
+            var langName = langQuest.Value.Name.ExtractText();
+            if (langName == localName) continue;
+            var langManual = QuestUnlockData.Lookup(langName);
+            if (langManual.HasValue)
+                return langManual.Value;
+        }
 
         // Smart fallback — use context to generate a meaningful description
         return DetermineFromContext(quest);
@@ -655,10 +681,10 @@ public sealed class QuestService
     }
 
     private static (QuestCategory Category, string Unlocks)? CheckUmbrellaQuest(Quest quest)
+        => CheckUmbrellaQuestByName(quest.Name.ExtractText());
+
+    private static (QuestCategory Category, string Unlocks)? CheckUmbrellaQuestByName(string name)
     {
-        // Known umbrella quest mappings — quests whose unlock data is NOT in the Quest sheet
-        // These use NPC dialogue (Wandering Minstrel etc.) to unlock content
-        var name = quest.Name.ExtractText();
 
         // Wandering Minstrel — Extreme Trials + Ultimates per expansion
         if (name.Contains("Songs in the Key of Kugane", StringComparison.OrdinalIgnoreCase))
