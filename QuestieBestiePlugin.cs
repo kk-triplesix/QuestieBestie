@@ -61,6 +61,9 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         Svc.PluginInterface.UiBuilder.Draw += OnDraw;
         Svc.Framework.Update += OnFrameworkUpdate;
 
+        // Chat message handler — detect quest names in chat and offer to open detail
+        Svc.Chat.ChatMessage += OnChatMessage;
+
         Svc.Commands.AddHandler("/questie", new Dalamud.Game.Command.CommandInfo(OnCommand)
         {
             HelpMessage = "/questie — Toggle main window | /questie overlay — Toggle overlay | /questie widget — Toggle widget | /questie search <name> — Search quest"
@@ -124,6 +127,18 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
     private void OnOpenMainUi() => _mainWindow.Toggle();
     private void OnDtrClick(DtrInteractionEvent e) => _mainWindow.Toggle();
+
+    private void OnChatMessage(Dalamud.Game.Text.XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    {
+        // Detect [QuestieBestie] tagged messages and auto-open detail for the quest
+        var text = message.TextValue;
+        if (!text.Contains("[QuestieBestie]"))
+            return;
+
+        var match = _questService.BlueQuests.FirstOrDefault(q => text.Contains(q.Name));
+        if (match != null)
+            _detailWindow.ShowQuest(match);
+    }
 
     private void OnDraw()
     {
@@ -218,6 +233,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
     public void Dispose()
     {
+        Svc.Chat.ChatMessage -= OnChatMessage;
         Svc.Framework.Update -= OnFrameworkUpdate;
         Svc.Commands.RemoveHandler("/questie");
         Svc.PluginInterface.UiBuilder.OpenMainUi -= OnOpenMainUi;

@@ -696,6 +696,9 @@ public sealed class QuestService
 
     public void SendQuestChatLink(uint rowId)
     {
+        if (!BlueQuestLookup.TryGetValue(rowId, out var questData))
+            return;
+
         var questSheet = Svc.Data.GetExcelSheet<Quest>();
         if (questSheet == null) return;
         var quest = questSheet.GetRowOrDefault(rowId);
@@ -713,8 +716,11 @@ public sealed class QuestService
         var payload = new MapLinkPayload(territory.Value.RowId, map.Value.RowId, mapCoords.X, mapCoords.Y);
 
         var name = quest.Value.Name.ExtractText();
+        var unlockInfo = !string.IsNullOrEmpty(questData.Unlocks) ? $" - {questData.Unlocks}" : "";
         var msg = new Dalamud.Game.Text.SeStringHandling.SeStringBuilder()
-            .AddText($"{name}: ")
+            .AddUiForeground("[QuestieBestie] ", 35)
+            .AddUiForeground(name, 34)
+            .AddText($" (Lv.{questData.RequiredLevel}){unlockInfo} ")
             .Add(payload)
             .AddText($"{payload.PlaceName} ({mapCoords.X:F1}, {mapCoords.Y:F1})")
             .Add(RawPayload.LinkTerminator)
