@@ -125,17 +125,27 @@ public sealed class QuestService
         }
 
         // Remove duplicates: keep the quest with the highest RowId (newest version)
-        var dupeNames = BlueQuests
-            .GroupBy(q => q.Name)
-            .Where(g => g.Count() > 1)
-            .SelectMany(g => g.OrderByDescending(q => q.RowId).Skip(1))
-            .Select(q => q.RowId)
-            .ToHashSet();
+        var toRemove = new HashSet<uint>();
 
-        if (dupeNames.Count > 0)
+        // 1. Same name → keep newest
+        foreach (var group in BlueQuests.GroupBy(q => q.Name).Where(g => g.Count() > 1))
+            foreach (var old in group.OrderByDescending(q => q.RowId).Skip(1))
+                toRemove.Add(old.RowId);
+
+        // 2. Same unlock target (e.g. multiple quests unlocking same job/dungeon) → keep newest
+        foreach (var group in BlueQuests
+            .Where(q => !string.IsNullOrEmpty(q.Unlocks) && q.Category is QuestCategory.JobUnlock or QuestCategory.Dungeon or QuestCategory.Trial or QuestCategory.Raid)
+            .GroupBy(q => q.Unlocks)
+            .Where(g => g.Count() > 1))
         {
-            BlueQuests.RemoveAll(q => dupeNames.Contains(q.RowId));
-            foreach (var id in dupeNames)
+            foreach (var old in group.OrderByDescending(q => q.RowId).Skip(1))
+                toRemove.Add(old.RowId);
+        }
+
+        if (toRemove.Count > 0)
+        {
+            BlueQuests.RemoveAll(q => toRemove.Contains(q.RowId));
+            foreach (var id in toRemove)
                 BlueQuestLookup.Remove(id);
         }
 
