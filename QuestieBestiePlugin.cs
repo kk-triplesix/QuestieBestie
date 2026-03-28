@@ -53,6 +53,10 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         _windowSystem.AddWindow(_settingsWindow);
         _windowSystem.AddWindow(_widgetWindow);
 
+        // Ensure detail/settings don't persist open state from previous session
+        _detailWindow.IsOpen = false;
+        _settingsWindow.IsOpen = false;
+
         _dtrEntry = Svc.DtrBar.Get("QuestieBestie");
         _dtrEntry.OnClick += OnDtrClick;
         UpdateDtrText();

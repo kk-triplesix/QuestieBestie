@@ -22,6 +22,13 @@ internal sealed class DetailWindow : Window
         _questService = questService;
         SizeConstraints = new WindowSizeConstraints { MinimumSize = new Vector2(380, 320), MaximumSize = new Vector2(650, 900) };
         IsOpen = false;
+        AllowClickthrough = false;
+        AllowPinning = false;
+    }
+
+    public override void OnClose()
+    {
+        _quest = null;
     }
 
     public void SetTrackingService(TrackingService ts) => _trackingService = ts;
@@ -42,7 +49,7 @@ internal sealed class DetailWindow : Window
 
     public override void Draw()
     {
-        if (_quest == null) { IsOpen = false; return; }
+        if (_quest == null) { ImGui.Text("No quest selected."); return; }
         _questService.RefreshCompletionStatus();
 
         DrawQuestHeader();
