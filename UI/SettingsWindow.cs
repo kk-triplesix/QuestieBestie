@@ -73,6 +73,18 @@ internal sealed class SettingsWindow : Window
         ImGui.Separator();
         ImGui.Spacing();
 
+        // Behavior
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+        ImGui.Text("Behavior");
+        ImGui.PopStyleColor();
+
+        changed |= ImGui.Checkbox("Auto-remove completed quests from lists", ref s.AutoRemoveCompleted);
+        changed |= ImGui.Checkbox("Chat notifications for newly available quests", ref s.ChatNotifications);
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+
         if (ImGui.Button("Reset to Defaults"))
         {
             var defaults = new OverlaySettings();

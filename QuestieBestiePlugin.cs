@@ -1,4 +1,6 @@
 using Dalamud.Game.Gui.Dtr;
+using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using ECommons;
@@ -18,6 +20,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     private readonly QuestService _questService;
     private readonly TrackingService _trackingService;
     private readonly IDtrBarEntry _dtrEntry;
+    private DateTime _lastNotificationCheck = DateTime.MinValue;
 
     public QuestieBestiePlugin(IDalamudPluginInterface pluginInterface)
     {
@@ -37,7 +40,6 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         _windowSystem.AddWindow(_detailWindow);
         _windowSystem.AddWindow(_settingsWindow);
 
-        // DTR bar entry
         _dtrEntry = Svc.DtrBar.Get("QuestieBestie");
         _dtrEntry.OnClick += OnDtrClick;
         UpdateDtrText();
@@ -50,6 +52,9 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         {
             HelpMessage = "Open QuestieBestie window"
         });
+
+        // Initialize available quest tracking
+        _questService.CheckNewlyAvailable();
     }
 
     private void OnCommand(string command, string args)
@@ -59,27 +64,25 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
             case "overlay":
                 _overlayWindow.Toggle();
                 break;
+            case "stats":
+                _mainWindow.IsOpen = true;
+                break;
             default:
                 _mainWindow.Toggle();
                 break;
         }
     }
 
-    private void OnOpenMainUi()
-    {
-        _mainWindow.Toggle();
-    }
-
-    private void OnDtrClick(DtrInteractionEvent e)
-    {
-        _mainWindow.Toggle();
-    }
+    private void OnOpenMainUi() => _mainWindow.Toggle();
+    private void OnDtrClick(DtrInteractionEvent e) => _mainWindow.Toggle();
 
     private void OnDraw()
     {
         if (Svc.GameGui.GameUiHidden) return;
         _windowSystem.Draw();
         UpdateDtrText();
+        CheckNotifications();
+        AutoRemoveCompleted();
     }
 
     private void UpdateDtrText()
@@ -88,6 +91,49 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         var percent = _questService.CompletionPercent;
         _dtrEntry.Text = $"QB {percent:F0}%";
         _dtrEntry.Tooltip = "QuestieBestie — Click to toggle";
+    }
+
+    private void CheckNotifications()
+    {
+        if (!_trackingService.OverlaySettings.ChatNotifications)
+            return;
+
+        if ((DateTime.Now - _lastNotificationCheck).TotalSeconds < 10)
+            return;
+
+        _lastNotificationCheck = DateTime.Now;
+
+        var newQuests = _questService.CheckNewlyAvailable();
+        foreach (var quest in newQuests)
+        {
+            var msg = new SeStringBuilder()
+                .AddUiForeground("[QuestieBestie] ", 35)
+                .AddText($"New quest available: ")
+                .AddUiForeground(quest.Name, 34)
+                .AddText($" (Lv.{quest.RequiredLevel})")
+                .Build();
+
+            Svc.Chat.Print(new XivChatEntry { Message = msg, Type = XivChatType.Echo });
+        }
+    }
+
+    private void AutoRemoveCompleted()
+    {
+        if (!_trackingService.OverlaySettings.AutoRemoveCompleted)
+            return;
+
+        foreach (var list in _trackingService.Lists)
+        {
+            var toRemove = list.QuestRowIds
+                .Where(id => _questService.BlueQuestLookup.TryGetValue(id, out var q) && q.IsCompleted)
+                .ToList();
+
+            foreach (var id in toRemove)
+                list.QuestRowIds.Remove(id);
+
+            if (toRemove.Count > 0)
+                _trackingService.SaveOverlaySettings();
+        }
     }
 
     public void Dispose()

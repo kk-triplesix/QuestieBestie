@@ -54,6 +54,18 @@ public sealed class QuestService
             if (string.IsNullOrWhiteSpace(location))
                 location = quest.IssuerLocation.ValueNullable?.Territory.ValueNullable?.PlaceName.ValueNullable?.Name.ExtractText() ?? "";
 
+            // Expansion
+            var expansionId = quest.Expansion.RowId;
+            var expansion = quest.Expansion.ValueNullable?.Name.ExtractText() ?? "";
+            if (string.IsNullOrWhiteSpace(expansion))
+                expansion = expansionId == 0 ? "A Realm Reborn" : $"Expansion {expansionId}";
+
+            // Issuer coordinates for distance sorting
+            var issuerLoc = quest.IssuerLocation.ValueNullable;
+            var issuerX = issuerLoc?.X ?? 0f;
+            var issuerZ = issuerLoc?.Z ?? 0f;
+            var territoryId = issuerLoc?.Territory.RowId ?? 0u;
+
             // Determine category and unlock description
             var (category, unlocks) = DetermineQuestCategory(quest);
 
@@ -68,6 +80,11 @@ public sealed class QuestService
                 PrerequisiteIds = prereqs.ToArray(),
                 IsClassQuest = isClassQuest,
                 Location = location,
+                Expansion = expansion,
+                ExpansionId = expansionId,
+                IssuerX = issuerX,
+                IssuerZ = issuerZ,
+                TerritoryId = territoryId,
                 Category = category,
                 Unlocks = unlocks,
             };
@@ -323,7 +340,75 @@ public sealed class QuestService
         return true;
     }
 
+    public float GetDistanceToPlayer(QuestData quest)
+    {
+        #pragma warning disable CS0618
+        var player = Svc.ClientState.LocalPlayer;
+        #pragma warning restore CS0618
+        if (player == null)
+            return float.MaxValue;
+
+        var playerTerritory = Svc.ClientState.TerritoryType;
+        if (quest.TerritoryId != playerTerritory)
+            return float.MaxValue;
+
+        var dx = quest.IssuerX - player.Position.X;
+        var dz = quest.IssuerZ - player.Position.Z;
+        return MathF.Sqrt(dx * dx + dz * dz);
+    }
+
     public int CompletedCount => BlueQuests.Count(q => q.IsCompleted);
     public int TotalCount => BlueQuests.Count;
     public float CompletionPercent => TotalCount > 0 ? (float)CompletedCount / TotalCount * 100f : 0f;
+
+    public record ExpansionStats(string Name, int Total, int Completed)
+    {
+        public float Percent => Total > 0 ? (float)Completed / Total * 100f : 0f;
+    }
+
+    public record CategoryStats(string Name, int Total, int Completed)
+    {
+        public float Percent => Total > 0 ? (float)Completed / Total * 100f : 0f;
+    }
+
+    public List<ExpansionStats> GetExpansionStats()
+    {
+        return BlueQuests
+            .GroupBy(q => q.Expansion)
+            .OrderBy(g => g.First().ExpansionId)
+            .Select(g => new ExpansionStats(g.Key, g.Count(), g.Count(q => q.IsCompleted)))
+            .ToList();
+    }
+
+    public List<CategoryStats> GetCategoryStats()
+    {
+        return BlueQuests
+            .GroupBy(q => q.Category)
+            .OrderBy(g => g.Key)
+            .Select(g => new CategoryStats(g.Key.ToString(), g.Count(), g.Count(q => q.IsCompleted)))
+            .ToList();
+    }
+
+    private HashSet<uint> _previouslyAvailable = [];
+
+    public List<QuestData> CheckNewlyAvailable()
+    {
+        var nowAvailable = BlueQuests
+            .Where(q => !q.IsCompleted && ArePrerequisitesMet(q))
+            .Select(q => q.RowId)
+            .ToHashSet();
+
+        var newQuests = new List<QuestData>();
+        if (_previouslyAvailable.Count > 0)
+        {
+            foreach (var id in nowAvailable)
+            {
+                if (!_previouslyAvailable.Contains(id) && BlueQuestLookup.TryGetValue(id, out var q))
+                    newQuests.Add(q);
+            }
+        }
+
+        _previouslyAvailable = nowAvailable;
+        return newQuests;
+    }
 }

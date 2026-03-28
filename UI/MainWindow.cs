@@ -14,17 +14,20 @@ internal sealed class MainWindow : Window
     private readonly SettingsWindow _settingsWindow;
 
     private string _searchText = string.Empty;
-    private int _filterMode = 1; // 0 = All, 1 = Available, 2 = Incomplete, 3 = Complete
+    private int _filterMode = 1; // 0=All, 1=Available, 2=Incomplete, 3=Complete
     private int _levelMin;
     private int _levelMax = 100;
-    private int _classJobFilter; // 0 = All Classes
-    private int _locationFilter; // 0 = All Locations
-    private int _categoryFilter; // 0 = All Types
+    private int _classJobFilter;
+    private int _locationFilter;
+    private int _categoryFilter;
+    private int _expansionFilter;
     private string[] _classJobOptions = [];
     private string[] _locationOptions = [];
     private string[] _categoryOptions = [];
+    private string[] _expansionOptions = [];
     private string _classJobSearch = string.Empty;
     private string _locationSearch = string.Empty;
+    private string _expansionSearch = string.Empty;
     private List<QuestData> _filtered = [];
     private bool _dirty = true;
     private string _newListName = string.Empty;
@@ -39,83 +42,83 @@ internal sealed class MainWindow : Window
         _settingsWindow = settingsWindow;
         SizeConstraints = new WindowSizeConstraints
         {
-            MinimumSize = new Vector2(620, 420),
+            MinimumSize = new Vector2(700, 480),
             MaximumSize = new Vector2(9999, 9999),
         };
 
-        _classJobOptions = ["All Classes", .. _questService.BlueQuests
-            .Select(q => q.RequiredClassJob)
-            .Where(c => !string.IsNullOrWhiteSpace(c))
-            .Distinct()
-            .OrderBy(c => c)];
-
-        _locationOptions = ["All Locations", .. _questService.BlueQuests
-            .Select(q => q.Location)
-            .Where(l => !string.IsNullOrWhiteSpace(l))
-            .Distinct()
-            .OrderBy(l => l)];
-
+        _classJobOptions = ["All Classes", .. questService.BlueQuests
+            .Select(q => q.RequiredClassJob).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().OrderBy(c => c)];
+        _locationOptions = ["All Locations", .. questService.BlueQuests
+            .Select(q => q.Location).Where(l => !string.IsNullOrWhiteSpace(l)).Distinct().OrderBy(l => l)];
+        _expansionOptions = ["All Expansions", .. questService.BlueQuests
+            .Select(q => q.Expansion).Where(e => !string.IsNullOrWhiteSpace(e)).Distinct()
+            .OrderBy(e => questService.BlueQuests.First(q => q.Expansion == e).ExpansionId)];
         _categoryOptions = ["All Types", "Feature", "Job Unlock", "Dungeon", "Trial", "Raid", "Other"];
     }
 
-    public override void PreDraw()
-    {
-        Styles.PushMainStyle();
-    }
-
-    public override void PostDraw()
-    {
-        Styles.PopMainStyle();
-    }
+    public override void PreDraw() => Styles.PushMainStyle();
+    public override void PostDraw() => Styles.PopMainStyle();
 
     public override void Draw()
     {
         _questService.RefreshCompletionStatus();
-
         DrawHeader();
         ImGui.Spacing();
-        DrawFilterBar();
-        ImGui.Spacing();
-        DrawQuestTable();
-        ImGui.Spacing();
-        DrawStatusBar();
+
+        // Tabs
+        if (ImGui.BeginTabBar("##mainTabs"))
+        {
+            if (ImGui.BeginTabItem("Quests"))
+            {
+                // Quests tab
+                ImGui.Spacing();
+                DrawFilterBar();
+                ImGui.Spacing();
+                DrawQuestTable();
+                ImGui.Spacing();
+                DrawStatusBar();
+                ImGui.EndTabItem();
+            }
+            if (ImGui.BeginTabItem("Statistics"))
+            {
+                // Stats tab
+                ImGui.Spacing();
+                DrawStatistics();
+                ImGui.EndTabItem();
+            }
+            ImGui.EndTabBar();
+        }
     }
+
+    // ── Header ──────────────────────────────────────────────────────────
 
     private void DrawHeader()
     {
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
         ImGui.Text("QuestieBestie");
         ImGui.PopStyleColor();
-
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
         ImGui.Text("— Blue Quest Tracker");
         ImGui.PopStyleColor();
 
-        // Right-aligned buttons
-        var settingsWidth = ImGui.CalcTextSize("Settings").X + 16;
+        var settingsW = ImGui.CalcTextSize("Settings").X + 16;
         var overlayLabel = _overlayWindow.IsOpen ? "Hide Overlay" : "Show Overlay";
-        var overlayWidth = ImGui.CalcTextSize(overlayLabel).X + 16;
+        var overlayW = ImGui.CalcTextSize(overlayLabel).X + 16;
         ImGui.SameLine();
-        ImGui.SetCursorPosX(ImGui.GetWindowWidth() - settingsWidth - overlayWidth - 24);
-
-        if (ImGui.Button(overlayLabel))
-            _overlayWindow.Toggle();
-
+        ImGui.SetCursorPosX(ImGui.GetWindowWidth() - settingsW - overlayW - 24);
+        if (ImGui.Button(overlayLabel)) _overlayWindow.Toggle();
         ImGui.SameLine();
-        if (ImGui.Button("Settings"))
-            _settingsWindow.Toggle();
+        if (ImGui.Button("Settings")) _settingsWindow.Toggle();
 
-        // Second row: list selector
+        // List selector
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
         ImGui.Text("List:");
         ImGui.PopStyleColor();
-
         ImGui.SameLine();
         ImGui.PushItemWidth(160);
-        var lists = _trackingService.Lists;
         var activeIdx = _trackingService.ActiveListIndex;
-        var listNames = lists.Select(l => l.Name).ToArray();
+        var listNames = _trackingService.Lists.Select(l => l.Name).ToArray();
         if (ImGui.Combo("##listselect", ref activeIdx, listNames, listNames.Length))
             _trackingService.ActiveListIndex = activeIdx;
         ImGui.PopItemWidth();
@@ -123,58 +126,47 @@ internal sealed class MainWindow : Window
         ImGui.Separator();
     }
 
+    // ── Filter Bar ──────────────────────────────────────────────────────
+
     private void DrawFilterBar()
     {
-        ImGui.PushItemWidth(200);
+        // Row 1: search, status, level
+        ImGui.PushItemWidth(180);
         if (ImGui.InputTextWithHint("##search", "Search quests...", ref _searchText, 256))
             _dirty = true;
         ImGui.PopItemWidth();
 
         ImGui.SameLine();
-        ImGui.PushItemWidth(120);
+        ImGui.PushItemWidth(110);
         var filterLabels = new[] { "All", "Available", "Incomplete", "Complete" };
         if (ImGui.Combo("##filter", ref _filterMode, filterLabels, filterLabels.Length))
             _dirty = true;
         ImGui.PopItemWidth();
 
         ImGui.SameLine();
-        ImGui.PushItemWidth(60);
-        if (ImGui.InputInt("##lvlMin", ref _levelMin, 0, 0))
-        {
-            _levelMin = Math.Clamp(_levelMin, 0, 100);
-            _dirty = true;
-        }
+        ImGui.PushItemWidth(50);
+        if (ImGui.InputInt("##lvlMin", ref _levelMin, 0, 0)) { _levelMin = Math.Clamp(_levelMin, 0, 100); _dirty = true; }
         ImGui.PopItemWidth();
-
         ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text("-");
-        ImGui.PopStyleColor();
-
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("-"); ImGui.PopStyleColor();
         ImGui.SameLine();
-        ImGui.PushItemWidth(60);
-        if (ImGui.InputInt("##lvlMax", ref _levelMax, 0, 0))
-        {
-            _levelMax = Math.Clamp(_levelMax, 0, 100);
-            _dirty = true;
-        }
+        ImGui.PushItemWidth(50);
+        if (ImGui.InputInt("##lvlMax", ref _levelMax, 0, 0)) { _levelMax = Math.Clamp(_levelMax, 0, 100); _dirty = true; }
         ImGui.PopItemWidth();
-
         ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text("Lv.");
-        ImGui.PopStyleColor();
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("Lv."); ImGui.PopStyleColor();
 
-        // Second filter row: class/job, location, category
-        if (DrawSearchableCombo("##classjob", ref _classJobFilter, _classJobOptions, ref _classJobSearch, 150))
+        // Row 2: expansion, class/job, location, category
+        if (DrawSearchableCombo("##expansion", ref _expansionFilter, _expansionOptions, ref _expansionSearch, 140))
             _dirty = true;
-
         ImGui.SameLine();
-        if (DrawSearchableCombo("##location", ref _locationFilter, _locationOptions, ref _locationSearch, 150))
+        if (DrawSearchableCombo("##classjob", ref _classJobFilter, _classJobOptions, ref _classJobSearch, 140))
             _dirty = true;
-
         ImGui.SameLine();
-        ImGui.PushItemWidth(120);
+        if (DrawSearchableCombo("##location", ref _locationFilter, _locationOptions, ref _locationSearch, 140))
+            _dirty = true;
+        ImGui.SameLine();
+        ImGui.PushItemWidth(110);
         if (ImGui.Combo("##category", ref _categoryFilter, _categoryOptions, _categoryOptions.Length))
             _dirty = true;
         ImGui.PopItemWidth();
@@ -189,44 +181,29 @@ internal sealed class MainWindow : Window
             ImGui.PushItemWidth(width - 16);
             ImGui.InputTextWithHint($"{id}Search", "Search...", ref search, 128);
             ImGui.PopItemWidth();
-
             var filter = search.Trim();
             for (var i = 0; i < options.Length; i++)
             {
                 if (filter.Length > 0 && i > 0 && !options[i].Contains(filter, StringComparison.OrdinalIgnoreCase))
                     continue;
-
                 if (ImGui.Selectable(options[i], i == selected))
-                {
-                    selected = i;
-                    changed = true;
-                    search = string.Empty;
-                }
+                { selected = i; changed = true; search = string.Empty; }
             }
-
             ImGui.EndCombo();
         }
         ImGui.PopItemWidth();
         return changed;
     }
 
+    // ── Quest Table ─────────────────────────────────────────────────────
+
     private void DrawQuestTable()
     {
-        if (_dirty)
-        {
-            ApplyFilters();
-            _dirty = false;
-        }
+        if (_dirty) { ApplyFilters(); _dirty = false; }
 
-        var flags = ImGuiTableFlags.Borders
-                    | ImGuiTableFlags.RowBg
-                    | ImGuiTableFlags.Resizable
-                    | ImGuiTableFlags.ScrollY
-                    | ImGuiTableFlags.Sortable
-                    | ImGuiTableFlags.SizingStretchProp;
-
-        var avail = ImGui.GetContentRegionAvail();
-        var tableHeight = avail.Y - 30;
+        var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable
+                    | ImGuiTableFlags.ScrollY | ImGuiTableFlags.Sortable | ImGuiTableFlags.SizingStretchProp;
+        var tableHeight = ImGui.GetContentRegionAvail().Y - 30;
 
         if (!ImGui.BeginTable("##quests", 6, flags, new Vector2(0, tableHeight)))
             return;
@@ -234,34 +211,26 @@ internal sealed class MainWindow : Window
         ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableSetupColumn("Done", ImGuiTableColumnFlags.WidthFixed, 36);
         ImGui.TableSetupColumn("Quest", ImGuiTableColumnFlags.WidthStretch | ImGuiTableColumnFlags.DefaultSort, 0);
-        ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 36);
-        ImGui.TableSetupColumn("Location", ImGuiTableColumnFlags.WidthFixed, 120);
-        ImGui.TableSetupColumn("Class/Job", ImGuiTableColumnFlags.WidthFixed, 120);
-        ImGui.TableSetupColumn("Unlocks", ImGuiTableColumnFlags.WidthFixed, 200);
+        ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 30);
+        ImGui.TableSetupColumn("Location", ImGuiTableColumnFlags.WidthFixed, 110);
+        ImGui.TableSetupColumn("Class/Job", ImGuiTableColumnFlags.WidthFixed, 110);
+        ImGui.TableSetupColumn("Unlocks", ImGuiTableColumnFlags.WidthFixed, 180);
         ImGui.TableHeadersRow();
-
         HandleSorting();
 
         foreach (var quest in _filtered)
         {
             ImGui.TableNextRow();
 
-            // Status column
+            // Status
             ImGui.TableNextColumn();
-            if (quest.IsCompleted)
-            {
-                ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextGreen);
-                ImGui.Text(" \u2713");
-                ImGui.PopStyleColor();
-            }
-            else
-            {
-                ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-                ImGui.Text(" \u2022");
-                ImGui.PopStyleColor();
-            }
+            var statusIcon = quest.IsCompleted ? " \u2713" : " \u2022";
+            var statusColor = quest.IsCompleted ? Styles.TextGreen : Styles.TextSecondary;
+            ImGui.PushStyleColor(ImGuiCol.Text, statusColor);
+            ImGui.Text(statusIcon);
+            ImGui.PopStyleColor();
 
-            // Name column — clickable to open map + details
+            // Name (clickable)
             ImGui.TableNextColumn();
             var nameColor = quest.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
             ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
@@ -272,48 +241,52 @@ internal sealed class MainWindow : Window
             }
             ImGui.PopStyleColor();
 
+            // Tooltip
             if (ImGui.IsItemHovered())
             {
                 ImGui.BeginTooltip();
-                ImGui.Text("Click: Show on map + details");
+                ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
+                ImGui.Text(quest.Name);
+                ImGui.PopStyleColor();
+                ImGui.Separator();
+                ImGui.Text($"Expansion:  {quest.Expansion}");
+                ImGui.Text($"Level:      {quest.RequiredLevel}");
+                ImGui.Text($"Location:   {quest.Location}");
+                ImGui.Text($"Class/Job:  {quest.RequiredClassJob}");
+                ImGui.Text($"Type:       {quest.Category}");
+                if (!string.IsNullOrEmpty(quest.Unlocks))
+                    ImGui.Text($"Unlocks:    {quest.Unlocks}");
+                if (quest.PrerequisiteIds.Length > 0)
+                {
+                    ImGui.Text($"Prereqs:    {quest.PrerequisiteIds.Length}");
+                }
+                ImGui.Separator();
                 ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-                ImGui.Text("Right-click: Add to tracking list");
+                ImGui.Text("Click: map + details | Right-click: track");
                 ImGui.PopStyleColor();
                 ImGui.EndTooltip();
             }
 
-            // Right-click context menu
+            // Context menu
             if (ImGui.BeginPopupContextItem($"ctx###{quest.RowId}"))
-            {
-                DrawQuestContextMenu(quest);
-                ImGui.EndPopup();
-            }
+            { DrawQuestContextMenu(quest); ImGui.EndPopup(); }
 
-            // Level column
+            // Remaining columns
+            var dim = quest.IsCompleted ? Styles.TextDimmed : Styles.TextSecondary;
+
             ImGui.TableNextColumn();
-            var lvlColor = quest.IsCompleted ? Styles.TextDimmed : Styles.TextSecondary;
-            ImGui.PushStyleColor(ImGuiCol.Text, lvlColor);
-            ImGui.Text($"{quest.RequiredLevel}");
-            ImGui.PopStyleColor();
+            ImGui.PushStyleColor(ImGuiCol.Text, dim); ImGui.Text($"{quest.RequiredLevel}"); ImGui.PopStyleColor();
 
-            // Location column
             ImGui.TableNextColumn();
-            ImGui.PushStyleColor(ImGuiCol.Text, lvlColor);
-            ImGui.Text(quest.Location);
-            ImGui.PopStyleColor();
+            ImGui.PushStyleColor(ImGuiCol.Text, dim); ImGui.Text(quest.Location); ImGui.PopStyleColor();
 
-            // Class/Job column
             ImGui.TableNextColumn();
-            ImGui.PushStyleColor(ImGuiCol.Text, lvlColor);
-            ImGui.Text(quest.RequiredClassJob);
-            ImGui.PopStyleColor();
+            ImGui.PushStyleColor(ImGuiCol.Text, dim); ImGui.Text(quest.RequiredClassJob); ImGui.PopStyleColor();
 
-            // Unlocks column
             ImGui.TableNextColumn();
             if (!string.IsNullOrEmpty(quest.Unlocks))
             {
-                var unlockColor = quest.IsCompleted ? Styles.TextDimmed : Styles.AccentCyan;
-                ImGui.PushStyleColor(ImGuiCol.Text, unlockColor);
+                ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.AccentCyan);
                 ImGui.Text(quest.Unlocks);
                 ImGui.PopStyleColor();
             }
@@ -322,6 +295,8 @@ internal sealed class MainWindow : Window
         ImGui.EndTable();
     }
 
+    // ── Context Menu ────────────────────────────────────────────────────
+
     private void DrawQuestContextMenu(QuestData quest)
     {
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
@@ -329,34 +304,23 @@ internal sealed class MainWindow : Window
         ImGui.PopStyleColor();
         ImGui.Separator();
 
-        // Add to existing lists
         for (var i = 0; i < _trackingService.Lists.Count; i++)
         {
             var list = _trackingService.Lists[i];
-            var isTracked = _trackingService.IsTracked(quest.RowId, i);
-
-            if (isTracked)
-            {
-                if (ImGui.MenuItem($"\u2713 {list.Name}"))
-                    _trackingService.RemoveQuest(quest.RowId, i);
-            }
+            var tracked = _trackingService.IsTracked(quest.RowId, i);
+            if (tracked)
+            { if (ImGui.MenuItem($"\u2713 {list.Name}")) _trackingService.RemoveQuest(quest.RowId, i); }
             else
-            {
-                if (ImGui.MenuItem($"Add to {list.Name}"))
-                    _trackingService.AddQuest(quest.RowId, i);
-            }
+            { if (ImGui.MenuItem($"Add to {list.Name}")) _trackingService.AddQuest(quest.RowId, i); }
         }
 
         ImGui.Separator();
-
-        // Create new list
         ImGui.PushItemWidth(140);
         ImGui.InputTextWithHint("##newlist", "New list name...", ref _newListName, 64);
         ImGui.PopItemWidth();
-
         ImGui.SameLine();
-        var canCreate = _newListName.Trim().Length > 0;
-        if (!canCreate) ImGui.BeginDisabled();
+        var ok = _newListName.Trim().Length > 0;
+        if (!ok) ImGui.BeginDisabled();
         if (ImGui.Button("Create"))
         {
             _trackingService.CreateList(_newListName);
@@ -364,104 +328,64 @@ internal sealed class MainWindow : Window
             _newListName = string.Empty;
             ImGui.CloseCurrentPopup();
         }
-        if (!canCreate) ImGui.EndDisabled();
+        if (!ok) ImGui.EndDisabled();
     }
+
+    // ── Sorting ─────────────────────────────────────────────────────────
 
     private void HandleSorting()
     {
         var sortSpecs = ImGui.TableGetSortSpecs();
-        if (!sortSpecs.SpecsDirty)
-            return;
-
+        if (!sortSpecs.SpecsDirty) return;
         var specs = sortSpecs.Specs;
-        var ascending = specs.SortDirection == ImGuiSortDirection.Ascending;
-
+        var asc = specs.SortDirection == ImGuiSortDirection.Ascending;
         _filtered = specs.ColumnIndex switch
         {
-            0 => ascending
-                ? [.. _filtered.OrderBy(q => q.IsCompleted)]
-                : [.. _filtered.OrderByDescending(q => q.IsCompleted)],
-            1 => ascending
-                ? [.. _filtered.OrderBy(q => q.Name)]
-                : [.. _filtered.OrderByDescending(q => q.Name)],
-            2 => ascending
-                ? [.. _filtered.OrderBy(q => q.RequiredLevel)]
-                : [.. _filtered.OrderByDescending(q => q.RequiredLevel)],
-            3 => ascending
-                ? [.. _filtered.OrderBy(q => q.Location)]
-                : [.. _filtered.OrderByDescending(q => q.Location)],
-            4 => ascending
-                ? [.. _filtered.OrderBy(q => q.RequiredClassJob)]
-                : [.. _filtered.OrderByDescending(q => q.RequiredClassJob)],
-            5 => ascending
-                ? [.. _filtered.OrderBy(q => q.Unlocks)]
-                : [.. _filtered.OrderByDescending(q => q.Unlocks)],
+            0 => asc ? [.. _filtered.OrderBy(q => q.IsCompleted)] : [.. _filtered.OrderByDescending(q => q.IsCompleted)],
+            1 => asc ? [.. _filtered.OrderBy(q => q.Name)] : [.. _filtered.OrderByDescending(q => q.Name)],
+            2 => asc ? [.. _filtered.OrderBy(q => q.RequiredLevel)] : [.. _filtered.OrderByDescending(q => q.RequiredLevel)],
+            3 => asc ? [.. _filtered.OrderBy(q => q.Location)] : [.. _filtered.OrderByDescending(q => q.Location)],
+            4 => asc ? [.. _filtered.OrderBy(q => q.RequiredClassJob)] : [.. _filtered.OrderByDescending(q => q.RequiredClassJob)],
+            5 => asc ? [.. _filtered.OrderBy(q => q.Unlocks)] : [.. _filtered.OrderByDescending(q => q.Unlocks)],
             _ => _filtered
         };
-
         sortSpecs.SpecsDirty = false;
     }
+
+    // ── Filters ─────────────────────────────────────────────────────────
 
     private void ApplyFilters()
     {
         var search = _searchText.Trim();
-
-        _filtered = _questService.BlueQuests
-            .Where(q =>
+        _filtered = _questService.BlueQuests.Where(q =>
+        {
+            switch (_filterMode)
             {
-                // Status filter
-                switch (_filterMode)
-                {
-                    case 1: // Available: not completed + all prereqs met
-                        if (q.IsCompleted || !_questService.ArePrerequisitesMet(q)) return false;
-                        break;
-                    case 2: // Incomplete
-                        if (q.IsCompleted) return false;
-                        break;
-                    case 3: // Complete
-                        if (!q.IsCompleted) return false;
-                        break;
-                }
-
-                // Class/Job filter
-                if (_classJobFilter > 0 && !q.RequiredClassJob.Equals(_classJobOptions[_classJobFilter], StringComparison.OrdinalIgnoreCase)) return false;
-
-                // Location filter
-                if (_locationFilter > 0 && !q.Location.Equals(_locationOptions[_locationFilter], StringComparison.OrdinalIgnoreCase)) return false;
-
-                // Category filter
-                if (_categoryFilter > 0)
-                {
-                    var targetCategory = _categoryFilter switch
-                    {
-                        1 => QuestCategory.Feature,
-                        2 => QuestCategory.JobUnlock,
-                        3 => QuestCategory.Dungeon,
-                        4 => QuestCategory.Trial,
-                        5 => QuestCategory.Raid,
-                        6 => QuestCategory.Other,
-                        _ => (QuestCategory?)null,
-                    };
-                    if (targetCategory != null && q.Category != targetCategory) return false;
-                }
-
-                // Level range
-                if (q.RequiredLevel < _levelMin || q.RequiredLevel > _levelMax) return false;
-
-                // Text search across all columns
-                if (search.Length > 0
-                    && !q.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
-                    && !q.RequiredClassJob.Contains(search, StringComparison.OrdinalIgnoreCase)
-                    && !q.Location.Contains(search, StringComparison.OrdinalIgnoreCase)
-                    && !q.Unlocks.Contains(search, StringComparison.OrdinalIgnoreCase)
-                    && !q.RequiredLevel.ToString().Contains(search, StringComparison.Ordinal)) return false;
-
-                return true;
-            })
-            .OrderBy(q => q.RequiredLevel)
-            .ThenBy(q => q.Name)
-            .ToList();
+                case 1: if (q.IsCompleted || !_questService.ArePrerequisitesMet(q)) return false; break;
+                case 2: if (q.IsCompleted) return false; break;
+                case 3: if (!q.IsCompleted) return false; break;
+            }
+            if (_classJobFilter > 0 && !q.RequiredClassJob.Equals(_classJobOptions[_classJobFilter], StringComparison.OrdinalIgnoreCase)) return false;
+            if (_locationFilter > 0 && !q.Location.Equals(_locationOptions[_locationFilter], StringComparison.OrdinalIgnoreCase)) return false;
+            if (_expansionFilter > 0 && !q.Expansion.Equals(_expansionOptions[_expansionFilter], StringComparison.OrdinalIgnoreCase)) return false;
+            if (_categoryFilter > 0)
+            {
+                QuestCategory? t = _categoryFilter switch { 1 => QuestCategory.Feature, 2 => QuestCategory.JobUnlock, 3 => QuestCategory.Dungeon, 4 => QuestCategory.Trial, 5 => QuestCategory.Raid, 6 => QuestCategory.Other, _ => null };
+                if (t != null && q.Category != t) return false;
+            }
+            if (q.RequiredLevel < _levelMin || q.RequiredLevel > _levelMax) return false;
+            if (search.Length > 0
+                && !q.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
+                && !q.RequiredClassJob.Contains(search, StringComparison.OrdinalIgnoreCase)
+                && !q.Location.Contains(search, StringComparison.OrdinalIgnoreCase)
+                && !q.Expansion.Contains(search, StringComparison.OrdinalIgnoreCase)
+                && !q.Unlocks.Contains(search, StringComparison.OrdinalIgnoreCase)
+                && !q.RequiredLevel.ToString().Contains(search, StringComparison.Ordinal)) return false;
+            return true;
+        }).OrderBy(q => q.RequiredLevel).ThenBy(q => q.Name).ToList();
     }
+
+    // ── Status Bar ──────────────────────────────────────────────────────
 
     private void DrawStatusBar()
     {
@@ -474,11 +398,71 @@ internal sealed class MainWindow : Window
         ImGui.PopStyleColor();
 
         ImGui.SameLine();
-        var progressText = $"{completed}/{total} complete ({percent:F1}%)";
-        var textWidth = ImGui.CalcTextSize(progressText).X;
-        ImGui.SetCursorPosX(ImGui.GetWindowWidth() - textWidth - 20);
+        var text = $"{completed}/{total} complete ({percent:F1}%)";
+        ImGui.SetCursorPosX(ImGui.GetWindowWidth() - ImGui.CalcTextSize(text).X - 20);
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentGreen);
-        ImGui.Text(progressText);
+        ImGui.Text(text);
+        ImGui.PopStyleColor();
+    }
+
+    // ── Statistics Tab ──────────────────────────────────────────────────
+
+    private void DrawStatistics()
+    {
+        var expansionStats = _questService.GetExpansionStats();
+        var categoryStats = _questService.GetCategoryStats();
+
+        // Overall progress
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
+        ImGui.Text("Overall Progress");
+        ImGui.PopStyleColor();
+        ImGui.Spacing();
+        DrawProgressBar("Total", _questService.CompletedCount, _questService.TotalCount, Styles.AccentGreen);
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+
+        // Per expansion
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
+        ImGui.Text("By Expansion");
+        ImGui.PopStyleColor();
+        ImGui.Spacing();
+        foreach (var stat in expansionStats)
+            DrawProgressBar(stat.Name, stat.Completed, stat.Total, Styles.AccentCyan);
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+
+        // Per category
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
+        ImGui.Text("By Type");
+        ImGui.PopStyleColor();
+        ImGui.Spacing();
+        foreach (var stat in categoryStats)
+            DrawProgressBar(stat.Name, stat.Completed, stat.Total, Styles.AccentGreen);
+    }
+
+    private static void DrawProgressBar(string label, int completed, int total, Vector4 color)
+    {
+        var fraction = total > 0 ? (float)completed / total : 0f;
+        var percent = fraction * 100f;
+
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextPrimary);
+        ImGui.Text($"{label}");
+        ImGui.PopStyleColor();
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(200);
+
+        ImGui.PushStyleColor(ImGuiCol.PlotHistogram, color);
+        ImGui.PushStyleColor(ImGuiCol.FrameBg, Styles.BgLight);
+        ImGui.ProgressBar(fraction, new Vector2(250, 18), "");
+        ImGui.PopStyleColor(2);
+
+        ImGui.SameLine();
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+        ImGui.Text($"{completed}/{total} ({percent:F0}%)");
         ImGui.PopStyleColor();
     }
 }

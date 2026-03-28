@@ -22,6 +22,11 @@ public sealed class QuestData
     public bool IsCompleted { get; set; }
     public bool IsClassQuest { get; init; }
     public string Location { get; init; } = string.Empty;
+    public string Expansion { get; init; } = string.Empty;
+    public uint ExpansionId { get; init; }
     public QuestCategory Category { get; init; }
     public string Unlocks { get; init; } = string.Empty;
+    public float IssuerX { get; init; }
+    public float IssuerZ { get; init; }
+    public uint TerritoryId { get; init; }
 }
