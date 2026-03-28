@@ -78,30 +78,33 @@ internal sealed class MainWindow : Window
         ImGui.Text("— Blue Quest Tracker");
         ImGui.PopStyleColor();
 
-        // Tracking lists section
-        ImGui.SameLine();
-        ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 280);
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text("List:");
-        ImGui.PopStyleColor();
-
-        ImGui.SameLine();
-        ImGui.PushItemWidth(120);
-        var lists = _trackingService.Lists;
-        var activeIdx = _trackingService.ActiveListIndex;
-        var listNames = lists.Select(l => l.Name).ToArray();
-        if (ImGui.Combo("##listselect", ref activeIdx, listNames, listNames.Length))
-            _trackingService.ActiveListIndex = activeIdx;
-        ImGui.PopItemWidth();
-
-        ImGui.SameLine();
+        // Right-aligned buttons
+        var settingsWidth = ImGui.CalcTextSize("Settings").X + 16;
         var overlayLabel = _overlayWindow.IsOpen ? "Hide Overlay" : "Show Overlay";
+        var overlayWidth = ImGui.CalcTextSize(overlayLabel).X + 16;
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(ImGui.GetWindowWidth() - settingsWidth - overlayWidth - 24);
+
         if (ImGui.Button(overlayLabel))
             _overlayWindow.Toggle();
 
         ImGui.SameLine();
         if (ImGui.Button("Settings"))
             _settingsWindow.Toggle();
+
+        // Second row: list selector
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+        ImGui.Text("List:");
+        ImGui.PopStyleColor();
+
+        ImGui.SameLine();
+        ImGui.PushItemWidth(160);
+        var lists = _trackingService.Lists;
+        var activeIdx = _trackingService.ActiveListIndex;
+        var listNames = lists.Select(l => l.Name).ToArray();
+        if (ImGui.Combo("##listselect", ref activeIdx, listNames, listNames.Length))
+            _trackingService.ActiveListIndex = activeIdx;
+        ImGui.PopItemWidth();
 
         ImGui.Separator();
     }
