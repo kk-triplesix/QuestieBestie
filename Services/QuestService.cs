@@ -517,6 +517,56 @@ public sealed class QuestService
                 return (QuestCategory.Feature, $"Unlocks {tribeName} tribe");
         }
 
+        // ScriptInstruction fallback — catches dungeon/trial/raid unlocks not in InstanceContentUnlock
+        var hasUnlockInstruction = false;
+        uint scriptInstanceId = 0;
+        for (var i = 0; i < 50; i++)
+        {
+            try
+            {
+                var instruction = quest.QuestParams[i].ScriptInstruction.ExtractText();
+                if (string.IsNullOrEmpty(instruction))
+                    continue;
+
+                if (instruction.StartsWith("INSTANCEDUNGEON") && quest.QuestParams[i].ScriptArg != 0)
+                    scriptInstanceId = quest.QuestParams[i].ScriptArg;
+
+                if (instruction is "UNLOCK_ADD_NEW_CONTENT_TO_CF" or "UNLOCK_DUNGEON"
+                    || instruction.StartsWith("UNLOCK_ADD_NEW_CONTENT") || instruction.StartsWith("UNLOCK_DUNGEON"))
+                    hasUnlockInstruction = true;
+            }
+            catch { break; }
+        }
+
+        if (hasUnlockInstruction && scriptInstanceId != 0)
+        {
+            var cfcSheet = Svc.Data.GetExcelSheet<ContentFinderCondition>();
+            if (cfcSheet != null)
+            {
+                foreach (var cfc in cfcSheet)
+                {
+                    if (cfc.Content.RowId == scriptInstanceId && cfc.ContentLinkType == 1)
+                    {
+                        var contentName = cfc.Name.ExtractText();
+                        if (!string.IsNullOrWhiteSpace(contentName))
+                        {
+                            return cfc.ContentType.RowId switch
+                            {
+                                2 => (QuestCategory.Dungeon, $"Unlocks {contentName}"),
+                                4 => (QuestCategory.Trial, $"Unlocks {contentName}"),
+                                5 or 28 or 37 => (QuestCategory.Raid, $"Unlocks {contentName}"),
+                                _ => (QuestCategory.Other, $"Unlocks {contentName}"),
+                            };
+                        }
+                    }
+                }
+            }
+        }
+
+        // Even without instance ID, if UNLOCK instructions exist, mark as content unlock
+        if (hasUnlockInstruction)
+            return (QuestCategory.Dungeon, "Unlocks content");
+
         return (QuestCategory.Feature, "");
     }
 
