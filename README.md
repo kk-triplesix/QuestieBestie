@@ -91,6 +91,15 @@
 - **Per-expansion** progress bars with expansion colors
 - **Per-type** progress bars (Feature, Job Unlock, Dungeon, Trial, Raid)
 
+### Quest Journal Integration
+- When you **click a quest link in chat**, QuestieBestie automatically opens its detail window
+- Works seamlessly alongside the normal quest journal
+- Only triggers for blue quests
+
+### Rich Tooltips
+- Hover over any quest for a **detailed tooltip** with all info at a glance
+- Expansion (color-coded), Level, Location, Class/Job, Type, Unlocks, Prerequisites, Chain, Notes
+
 ### Notifications
 - **Chat notifications** when a new blue quest becomes available
 - Colored messages in the Echo channel
@@ -108,7 +117,9 @@
 |---------|-------------|
 | `/questie` | Toggle the main window |
 | `/questie overlay` | Toggle the in-game overlay |
+| `/questie widget` | Toggle the progress widget |
 | `/questie stats` | Open the main window |
+| `/questie search <name>` | Search for a quest and open details + map |
 
 ---
 
