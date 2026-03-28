@@ -80,6 +80,7 @@ internal sealed class SettingsWindow : Window
 
         changed |= ImGui.Checkbox("Auto-remove completed quests from lists", ref s.AutoRemoveCompleted);
         changed |= ImGui.Checkbox("Chat notifications for newly available quests", ref s.ChatNotifications);
+        changed |= ImGui.Checkbox("Sound notification for newly available quests", ref s.SoundNotifications);
 
         ImGui.Spacing();
         ImGui.Separator();

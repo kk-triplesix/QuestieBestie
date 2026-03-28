@@ -21,6 +21,31 @@ public static class Styles
     public static readonly Vector4 TextGreen = new(0.31f, 0.80f, 0.64f, 1.00f);     // #4ecca3
     public static readonly Vector4 TextRed = new(0.90f, 0.35f, 0.40f, 1.00f);       // #e65966
 
+    // Expansion colors
+    public static readonly Vector4 ExpArr = new(0.35f, 0.55f, 0.90f, 1.00f);      // ARR blue
+    public static readonly Vector4 ExpHw = new(0.40f, 0.80f, 0.90f, 1.00f);       // HW cyan
+    public static readonly Vector4 ExpSb = new(0.90f, 0.40f, 0.40f, 1.00f);       // SB red
+    public static readonly Vector4 ExpShb = new(0.70f, 0.45f, 0.85f, 1.00f);      // ShB purple
+    public static readonly Vector4 ExpEw = new(0.90f, 0.80f, 0.35f, 1.00f);       // EW gold
+    public static readonly Vector4 ExpDt = new(0.40f, 0.85f, 0.50f, 1.00f);       // DT green
+    public static readonly Vector4 ExpOther = new(0.60f, 0.63f, 0.70f, 1.00f);    // fallback
+
+    public static readonly Vector4 FavoriteStar = new(1.00f, 0.85f, 0.20f, 1.00f); // gold star
+
+    public static Vector4 GetExpansionColor(uint expansionId)
+    {
+        return expansionId switch
+        {
+            0 => ExpArr,
+            1 => ExpHw,
+            2 => ExpSb,
+            3 => ExpShb,
+            4 => ExpEw,
+            5 => ExpDt,
+            _ => ExpOther,
+        };
+    }
+
     // UI element colors
     public static readonly Vector4 BorderColor = new(0.18f, 0.22f, 0.34f, 1.00f);   // #2e3857
     public static readonly Vector4 HeaderBg = new(0.08f, 0.11f, 0.20f, 1.00f);      // #141c33

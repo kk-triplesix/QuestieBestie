@@ -15,6 +15,9 @@ public sealed class TrackingService
     }
 
     public OverlaySettings OverlaySettings => _config.Overlay;
+    public HashSet<uint> Favorites => _config.Favorites;
+    public Dictionary<uint, string> Notes => _config.Notes;
+    public uint LastKnownMaxRowId { get => _config.LastKnownMaxRowId; set { _config.LastKnownMaxRowId = value; Save(); } }
     public IReadOnlyList<TrackingList> Lists => _config.Lists;
     public int ActiveListIndex
     {
@@ -85,6 +88,26 @@ public sealed class TrackingService
     {
         return _config.Lists.Any(l => l.QuestRowIds.Contains(rowId));
     }
+
+    public void ToggleFavorite(uint rowId)
+    {
+        if (!_config.Favorites.Remove(rowId))
+            _config.Favorites.Add(rowId);
+        Save();
+    }
+
+    public bool IsFavorite(uint rowId) => _config.Favorites.Contains(rowId);
+
+    public void SetNote(uint rowId, string note)
+    {
+        if (string.IsNullOrWhiteSpace(note))
+            _config.Notes.Remove(rowId);
+        else
+            _config.Notes[rowId] = note.Trim();
+        Save();
+    }
+
+    public string GetNote(uint rowId) => _config.Notes.GetValueOrDefault(rowId, string.Empty);
 
     public string ExportList(int? listIndex = null)
     {

@@ -29,10 +29,16 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         _questService = new QuestService();
         _trackingService = new TrackingService();
         _detailWindow = new DetailWindow(_questService);
+        _detailWindow.SetTrackingService(_trackingService);
         _overlayWindow = new OverlayWindow(_questService, _trackingService);
         _settingsWindow = new SettingsWindow(_trackingService);
         _overlayWindow.SetSettingsWindow(_settingsWindow);
         _mainWindow = new MainWindow(_questService, _detailWindow, _trackingService, _overlayWindow, _settingsWindow);
+
+        // Track "What's New" — update max RowId on first load
+        var currentMax = _questService.BlueQuests.Count > 0 ? _questService.BlueQuests.Max(q => q.RowId) : 0u;
+        if (_trackingService.LastKnownMaxRowId == 0)
+            _trackingService.LastKnownMaxRowId = currentMax;
 
         _windowSystem = new WindowSystem("QuestieBestie");
         _windowSystem.AddWindow(_mainWindow);
@@ -114,6 +120,8 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
                 .Build();
 
             Svc.Chat.Print(new XivChatEntry { Message = msg, Type = XivChatType.Echo });
+
+            // Sound notification placeholder — sound API varies by Dalamud version
         }
     }
 

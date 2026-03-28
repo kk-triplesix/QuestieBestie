@@ -10,6 +10,9 @@ public sealed class TrackingConfig : IPluginConfiguration
     public List<TrackingList> Lists { get; set; } = [];
     public int ActiveListIndex { get; set; }
     public OverlaySettings Overlay { get; set; } = new();
+    public HashSet<uint> Favorites { get; set; } = [];
+    public Dictionary<uint, string> Notes { get; set; } = [];
+    public uint LastKnownMaxRowId { get; set; }
 }
 
 [Serializable]
@@ -35,4 +38,5 @@ public sealed class OverlaySettings
     public Vector4 BorderColor = new(0.33f, 0.79f, 0.79f, 1.00f);
     public bool AutoRemoveCompleted;
     public bool ChatNotifications = true;
+    public bool SoundNotifications;
 }
