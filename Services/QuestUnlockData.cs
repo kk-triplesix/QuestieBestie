@@ -303,37 +303,28 @@ public static class QuestUnlockData
         // ── NieR: Automata Robots (DT) ──────────────────────────────
         ("Arcadion", QuestCategory.Raid, "Unlocks Arcadion raid"),
 
-        // ── ShB Optional Dungeons ────────────────────────────────────
+        // ── Optional Dungeons (exact EN quest names) ────────────────
+        // HW
         ("Completion Complex", QuestCategory.Dungeon, "Unlocks The Twinning"),
-        ("Akademeia", QuestCategory.Dungeon, "Unlocks Akadaemia Anyder"),
-        ("Akadaemia", QuestCategory.Dungeon, "Unlocks Akadaemia Anyder"),
-        ("Twinning", QuestCategory.Dungeon, "Unlocks The Twinning"),
-
-        // ── EW Optional Dungeons ────────────────────────────────────
+        ("Brave New Companions", QuestCategory.Dungeon, "Unlocks Neverreap"),
+        ("The Fractal Continuum", QuestCategory.Dungeon, "Unlocks The Fractal Continuum"),
+        ("For Keep's Sake", QuestCategory.Dungeon, "Unlocks Saint Mocianne's Arboretum"),
+        // SB
+        ("An Auspicious Encounter", QuestCategory.Dungeon, "Unlocks Kugane Castle"),
+        ("Temple of the Fist", QuestCategory.Dungeon, "Unlocks Temple of the Fist"),
+        ("Not without Incident", QuestCategory.Dungeon, "Unlocks Hells' Lid"),
+        ("The Swallow's Compass", QuestCategory.Dungeon, "Unlocks The Swallow's Compass"),
+        // ShB
+        ("By the Time You Hear This", QuestCategory.Dungeon, "Unlocks The Twinning"),
+        ("Where All Roads Lead", QuestCategory.Dungeon, "Unlocks Akadaemia Anyder"),
+        // EW
         ("Cutting the Cheese", QuestCategory.Dungeon, "Unlocks Smileton"),
         ("Where No Loporrit Has Gone Before", QuestCategory.Dungeon, "Unlocks Stigma Dreamscape"),
-        ("Smileton", QuestCategory.Dungeon, "Unlocks Smileton"),
-        ("Stigma Dreamscape", QuestCategory.Dungeon, "Unlocks Stigma Dreamscape"),
-        ("Alzadaal", QuestCategory.Dungeon, "Unlocks Alzadaal's Legacy"),
-        ("Lapis Manalis", QuestCategory.Dungeon, "Unlocks The Fell Court of Troia"),
-        ("Fell Court", QuestCategory.Dungeon, "Unlocks The Fell Court of Troia"),
-
-        // ── DT Optional Dungeons ────────────────────────────────────
+        ("Alzadaal's Legacy", QuestCategory.Dungeon, "Unlocks Alzadaal's Legacy"),
+        ("In the Shadow of the Warring Triad", QuestCategory.Dungeon, "Unlocks The Fell Court of Troia"),
+        // DT
         ("Something Stray in the Neighborhood", QuestCategory.Dungeon, "Unlocks The Strayborough Deadwalk"),
         ("It Belongs in a Museum", QuestCategory.Dungeon, "Unlocks Tender Valley"),
-        ("Strayborough", QuestCategory.Dungeon, "Unlocks The Strayborough Deadwalk"),
-        ("Tender Valley", QuestCategory.Dungeon, "Unlocks Tender Valley"),
-
-        // ── SB Optional Dungeons ────────────────────────────────────
-        ("Hells' Lid", QuestCategory.Dungeon, "Unlocks Hells' Lid"),
-        ("Fractal Continuum (Hard)", QuestCategory.Dungeon, "Unlocks The Fractal Continuum (Hard)"),
-        ("Swallow's Compass", QuestCategory.Dungeon, "Unlocks The Swallow's Compass"),
-        ("Saint Mocianne", QuestCategory.Dungeon, "Unlocks Saint Mocianne's Arboretum (Hard)"),
-
-        // ── HW Optional Dungeons ────────────────────────────────────
-        ("Neverreap", QuestCategory.Dungeon, "Unlocks Neverreap"),
-        ("Fractal Continuum", QuestCategory.Dungeon, "Unlocks The Fractal Continuum"),
-        ("Saint Mocianne's Arboretum", QuestCategory.Dungeon, "Unlocks Saint Mocianne's Arboretum"),
 
         // ── DT Content ──────────────────────────────────────────────
         ("Lost Twin", QuestCategory.Feature, "Unlocks DT content"),

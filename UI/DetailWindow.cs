@@ -26,8 +26,11 @@ internal sealed class DetailWindow : Window
 
     public void SetTrackingService(TrackingService ts) => _trackingService = ts;
 
-    public void ShowQuest(QuestData quest)
+    public void ShowQuest(QuestData? quest)
     {
+        if (quest == null || string.IsNullOrEmpty(quest.Name))
+            return;
+
         _quest = quest;
         _prereqTree = _questService.GetPrerequisiteTree(quest.RowId);
         _noteText = _trackingService?.GetNote(quest.RowId) ?? string.Empty;
