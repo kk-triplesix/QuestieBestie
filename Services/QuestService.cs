@@ -71,6 +71,21 @@ public sealed class QuestService
             // Determine category and unlock description
             var (category, unlocks) = DetermineQuestCategory(quest);
 
+            // NPC name — IssuerStart is untyped RowRef, try to resolve as ENpcResident
+            var npcName = "";
+            try
+            {
+                var npcSheet = Svc.Data.GetExcelSheet<Lumina.Excel.Sheets.ENpcResident>();
+                var npcRow = npcSheet?.GetRowOrDefault(quest.IssuerStart.RowId);
+                if (npcRow != null)
+                    npcName = npcRow.Value.Singular.ExtractText();
+            }
+            catch { }
+
+            // Rewards
+            var rewardGil = quest.GilReward;
+            uint rewardExp = 0;
+
             var questData = new QuestData
             {
                 RowId = quest.RowId,
@@ -89,6 +104,9 @@ public sealed class QuestService
                 TerritoryId = territoryId,
                 Category = category,
                 Unlocks = unlocks,
+                NpcName = npcName,
+                RewardGil = rewardGil,
+                RewardExp = rewardExp,
             };
 
             BlueQuests.Add(questData);

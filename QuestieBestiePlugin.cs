@@ -28,6 +28,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     public QuestieBestiePlugin(IDalamudPluginInterface pluginInterface)
     {
         ECommonsMain.Init(pluginInterface, this);
+        Loc.Init();
 
         _questService = new QuestService();
         _trackingService = new TrackingService();

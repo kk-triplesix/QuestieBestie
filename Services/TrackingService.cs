@@ -71,11 +71,43 @@ public sealed class TrackingService
         }
     }
 
+    private (int ListIndex, uint QuestRowId)? _lastRemoved;
+
     public void RemoveQuest(uint rowId, int? listIndex = null)
     {
-        var list = _config.Lists[listIndex ?? ActiveListIndex];
+        var idx = listIndex ?? ActiveListIndex;
+        var list = _config.Lists[idx];
         if (list.QuestRowIds.Remove(rowId))
+        {
+            _lastRemoved = (idx, rowId);
             Save();
+        }
+    }
+
+    public bool UndoRemove()
+    {
+        if (_lastRemoved == null) return false;
+        var (idx, rowId) = _lastRemoved.Value;
+        if (idx < _config.Lists.Count && !_config.Lists[idx].QuestRowIds.Contains(rowId))
+        {
+            _config.Lists[idx].QuestRowIds.Add(rowId);
+            Save();
+        }
+        _lastRemoved = null;
+        return true;
+    }
+
+    public bool HasUndo => _lastRemoved != null;
+
+    private readonly List<uint> _recentQuests = [];
+    public IReadOnlyList<uint> RecentQuests => _recentQuests;
+
+    public void AddRecent(uint rowId)
+    {
+        _recentQuests.Remove(rowId);
+        _recentQuests.Insert(0, rowId);
+        if (_recentQuests.Count > 20)
+            _recentQuests.RemoveAt(20);
     }
 
     public bool IsTracked(uint rowId, int? listIndex = null)

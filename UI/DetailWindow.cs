@@ -76,15 +76,26 @@ internal sealed class DetailWindow : Window
     private void DrawQuestInfo()
     {
         var q = _quest!;
-        DrawInfoLine("Expansion", q.Expansion, Styles.GetExpansionColor(q.ExpansionId));
-        DrawInfoLine("Level", $"{q.RequiredLevel}");
-        DrawInfoLine("Location", q.Location);
-        DrawInfoLine("Class/Job", q.RequiredClassJob);
-        DrawInfoLine("Type", q.Category.ToString());
+        DrawInfoLine(Loc.Get("detail.expansion"), q.Expansion, Styles.GetExpansionColor(q.ExpansionId));
+        DrawInfoLine(Loc.Get("detail.level"), $"{q.RequiredLevel}");
+        DrawInfoLine(Loc.Get("detail.location"), q.Location);
+        if (!string.IsNullOrEmpty(q.NpcName))
+            DrawInfoLine(Loc.Get("detail.npc"), q.NpcName);
+        DrawInfoLine(Loc.Get("detail.classjob"), q.RequiredClassJob);
+        DrawInfoLine(Loc.Get("detail.type"), $"{q.CategoryIcon} {q.Category}");
         if (!string.IsNullOrEmpty(q.Unlocks))
-            DrawInfoLine("Unlocks", q.Unlocks, Styles.AccentCyan);
+            DrawInfoLine(Loc.Get("detail.unlocks"), q.Unlocks, Styles.AccentCyan);
         if (!string.IsNullOrEmpty(q.ChainName))
-            DrawInfoLine("Chain", $"{q.ChainName} (Step {q.ChainIndex})");
+        {
+            var chainQuests = _questService.BlueQuests.Where(bq => bq.ChainName == q.ChainName).ToList();
+            var chainDone = chainQuests.Count(bq => bq.IsCompleted);
+            DrawInfoLine(Loc.Get("detail.chain"), $"{q.ChainName} ({Loc.Get("misc.step")} {q.ChainIndex}, {chainDone}/{chainQuests.Count})");
+        }
+        if (q.RewardGil > 0 || q.RewardExp > 0)
+        {
+            var rewards = $"{(q.RewardGil > 0 ? $"{q.RewardGil} Gil" : "")} {(q.RewardExp > 0 ? $"{q.RewardExp} EXP" : "")}".Trim();
+            DrawInfoLine(Loc.Get("detail.rewards"), rewards);
+        }
     }
 
     private static void DrawInfoLine(string label, string value, Vector4? valueColor = null)

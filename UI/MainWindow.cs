@@ -53,15 +53,17 @@ internal sealed class MainWindow : Window
 
         if (ImGui.BeginTabBar("##mainTabs"))
         {
-            if (ImGui.BeginTabItem("Quests"))
+            if (ImGui.BeginTabItem(Loc.Get("tab.quests")))
             { ImGui.Spacing(); DrawFilterBar(); ImGui.Spacing(); DrawQuestTable(); ImGui.Spacing(); DrawStatusBar(); ImGui.EndTabItem(); }
-            if (ImGui.BeginTabItem("Aether Currents"))
+            if (ImGui.BeginTabItem(Loc.Get("tab.aether")))
             { ImGui.Spacing(); DrawAetherCurrents(); ImGui.EndTabItem(); }
-            if (ImGui.BeginTabItem("Duty Unlocks"))
+            if (ImGui.BeginTabItem(Loc.Get("tab.duties")))
             { ImGui.Spacing(); DrawDutyUnlocks(); ImGui.EndTabItem(); }
-            if (ImGui.BeginTabItem("Side Quests"))
+            if (ImGui.BeginTabItem(Loc.Get("tab.side")))
             { ImGui.Spacing(); DrawSideQuests(); ImGui.EndTabItem(); }
-            if (ImGui.BeginTabItem("Statistics"))
+            if (ImGui.BeginTabItem("Recent"))
+            { ImGui.Spacing(); DrawRecent(); ImGui.EndTabItem(); }
+            if (ImGui.BeginTabItem(Loc.Get("tab.stats")))
             { ImGui.Spacing(); DrawStatistics(); ImGui.EndTabItem(); }
             ImGui.EndTabBar();
         }
@@ -99,11 +101,35 @@ internal sealed class MainWindow : Window
             _trackingService.ActiveListIndex = activeIdx;
         ImGui.PopItemWidth();
         ImGui.SameLine();
-        if (ImGui.Button("Export")) ImGui.SetClipboardText(_trackingService.ExportList());
-        if (ImGui.IsItemHovered()) { ImGui.BeginTooltip(); ImGui.Text("Copy list to clipboard"); ImGui.EndTooltip(); }
+        if (ImGui.Button(Loc.Get("header.export"))) ImGui.SetClipboardText(_trackingService.ExportList());
         ImGui.SameLine();
-        if (ImGui.Button("Import")) { var c = ImGui.GetClipboardText(); if (!string.IsNullOrWhiteSpace(c)) _trackingService.ImportList(c); }
-        if (ImGui.IsItemHovered()) { ImGui.BeginTooltip(); ImGui.Text("Import list from clipboard"); ImGui.EndTooltip(); }
+        if (ImGui.Button(Loc.Get("header.import"))) { var c = ImGui.GetClipboardText(); if (!string.IsNullOrWhiteSpace(c)) _trackingService.ImportList(c); }
+
+        // List management context menu
+        ImGui.SameLine();
+        if (ImGui.BeginPopup("##listMgmt"))
+        {
+            ImGui.PushItemWidth(140);
+            ImGui.InputTextWithHint("##renameList", Loc.Get("ctx.rename"), ref _newListName, 64);
+            ImGui.PopItemWidth();
+            ImGui.SameLine();
+            if (_newListName.Trim().Length > 0 && ImGui.Button(Loc.Get("ctx.rename")))
+            { _trackingService.RenameList(_trackingService.ActiveListIndex, _newListName); _newListName = string.Empty; ImGui.CloseCurrentPopup(); }
+            if (_trackingService.Lists.Count > 1 && ImGui.MenuItem(Loc.Get("ctx.delete")))
+                _trackingService.DeleteList(_trackingService.ActiveListIndex);
+            ImGui.EndPopup();
+        }
+        if (ImGui.Button("\u270e")) ImGui.OpenPopup("##listMgmt");
+        if (ImGui.IsItemHovered()) { ImGui.BeginTooltip(); ImGui.Text(Loc.Get("ctx.rename") + " / " + Loc.Get("ctx.delete")); ImGui.EndTooltip(); }
+
+        // Undo button
+        if (_trackingService.HasUndo)
+        {
+            ImGui.SameLine();
+            if (ImGui.Button(Loc.Get("ctx.undo")))
+                _trackingService.UndoRemove();
+        }
+
         ImGui.Separator();
     }
 
@@ -215,35 +241,38 @@ internal sealed class MainWindow : Window
             { ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar); ImGui.Text("NEW"); ImGui.PopStyleColor(); ImGui.SameLine(); }
 
             ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
-            if (ImGui.Selectable($"{quest.Name}###{quest.RowId}", false, ImGuiSelectableFlags.SpanAllColumns))
-            { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
+            if (ImGui.Selectable($"{quest.CategoryIcon} {quest.Name}###{quest.RowId}", false, ImGuiSelectableFlags.SpanAllColumns))
+            { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); _trackingService.AddRecent(quest.RowId); }
             ImGui.PopStyleColor();
 
             // Tooltip
             if (ImGui.IsItemHovered())
             {
                 ImGui.BeginTooltip();
-                ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text(quest.Name); ImGui.PopStyleColor();
+                ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text($"{quest.CategoryIcon} {quest.Name}"); ImGui.PopStyleColor();
                 ImGui.Separator();
                 ImGui.PushStyleColor(ImGuiCol.Text, Styles.GetExpansionColor(quest.ExpansionId));
-                ImGui.Text($"Expansion:  {quest.Expansion}");
+                ImGui.Text($"{Loc.Get("detail.expansion")}:  {quest.Expansion}");
                 ImGui.PopStyleColor();
-                ImGui.Text($"Level:      {quest.RequiredLevel}");
-                ImGui.Text($"Location:   {quest.Location}");
-                ImGui.Text($"Class/Job:  {quest.RequiredClassJob}");
-                ImGui.Text($"Type:       {quest.Category}");
-                if (!string.IsNullOrEmpty(quest.Unlocks)) ImGui.Text($"Unlocks:    {quest.Unlocks}");
-                if (quest.PrerequisiteIds.Length > 0) ImGui.Text($"Prereqs:    {quest.PrerequisiteIds.Length}");
+                ImGui.Text($"{Loc.Get("detail.level")}:      {quest.RequiredLevel}");
+                ImGui.Text($"{Loc.Get("detail.location")}:   {quest.Location}");
+                if (!string.IsNullOrEmpty(quest.NpcName)) ImGui.Text($"{Loc.Get("detail.npc")}:  {quest.NpcName}");
+                ImGui.Text($"{Loc.Get("detail.classjob")}:  {quest.RequiredClassJob}");
+                ImGui.Text($"{Loc.Get("detail.type")}:       {quest.CategoryIcon} {quest.Category}");
+                if (!string.IsNullOrEmpty(quest.Unlocks)) ImGui.Text($"{Loc.Get("detail.unlocks")}:    {quest.Unlocks}");
+                if (quest.RewardGil > 0 || quest.RewardExp > 0)
+                { ImGui.Text($"{Loc.Get("detail.rewards")}:    {(quest.RewardGil > 0 ? $"{quest.RewardGil} Gil" : "")} {(quest.RewardExp > 0 ? $"{quest.RewardExp} EXP" : "")}"); }
+                if (quest.PrerequisiteIds.Length > 0) ImGui.Text($"{Loc.Get("detail.prereqs")}:    {quest.PrerequisiteIds.Length}");
                 if (!string.IsNullOrEmpty(quest.ChainName))
                 {
                     var chainQuests = _questService.BlueQuests.Where(q => q.ChainName == quest.ChainName).ToList();
                     var chainDone = chainQuests.Count(q => q.IsCompleted);
-                    ImGui.Text($"Chain:      {quest.ChainName} (Step {quest.ChainIndex}, {chainDone}/{chainQuests.Count})");
+                    ImGui.Text($"{Loc.Get("detail.chain")}:      {quest.ChainName} ({Loc.Get("misc.step")} {quest.ChainIndex}, {chainDone}/{chainQuests.Count})");
                 }
                 var note = _trackingService.GetNote(quest.RowId);
-                if (!string.IsNullOrEmpty(note)) { ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar); ImGui.Text($"Note:       {note}"); ImGui.PopStyleColor(); }
+                if (!string.IsNullOrEmpty(note)) { ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar); ImGui.Text($"{Loc.Get("detail.notes")}:       {note}"); ImGui.PopStyleColor(); }
                 ImGui.Separator();
-                ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("Click: map + details | Right-click: more"); ImGui.PopStyleColor();
+                ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text(Loc.Get("misc.clickMap")); ImGui.PopStyleColor();
                 ImGui.EndTooltip();
             }
 
@@ -470,6 +499,53 @@ internal sealed class MainWindow : Window
     private string _sideSearch = string.Empty;
     private int _sideFilter; // 0=All, 1=Special Only, 2=Incomplete, 3=Complete
     private int _sideExpansion;
+
+    // ── Recent Quests Tab ──────────────────────────────────────────────
+
+    private void DrawRecent()
+    {
+        var recent = _trackingService.RecentQuests;
+        if (recent.Count == 0)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed);
+            ImGui.Text("No recently viewed quests.");
+            ImGui.PopStyleColor();
+            return;
+        }
+
+        foreach (var rowId in recent)
+        {
+            QuestData? quest = null;
+            if (_questService.BlueQuestLookup.TryGetValue(rowId, out var bq))
+                quest = bq;
+            else
+                quest = _questService.SideQuests.FirstOrDefault(q => q.RowId == rowId);
+
+            if (quest == null) continue;
+
+            var icon = quest.IsCompleted ? "\u2713" : "\u2022";
+            var iconColor = quest.IsCompleted ? Styles.TextGreen : Styles.TextSecondary;
+            ImGui.PushStyleColor(ImGuiCol.Text, iconColor); ImGui.Text(icon); ImGui.PopStyleColor();
+            ImGui.SameLine();
+
+            var nameColor = quest.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
+            ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
+            if (ImGui.Selectable($"{quest.CategoryIcon} {quest.Name} (Lv.{quest.RequiredLevel})###rec{quest.RowId}", false))
+            { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
+            ImGui.PopStyleColor();
+
+            ImGui.SameLine();
+            var expAbbrev = quest.ExpansionId switch { 0 => "ARR", 1 => "HW", 2 => "SB", 3 => "ShB", 4 => "EW", 5 => "DT", _ => "?" };
+            ImGui.PushStyleColor(ImGuiCol.Text, Styles.GetExpansionColor(quest.ExpansionId));
+            ImGui.Text($"[{expAbbrev}]");
+            ImGui.PopStyleColor();
+
+            if (!string.IsNullOrEmpty(quest.Unlocks))
+            { ImGui.SameLine(); ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text($"-> {quest.Unlocks}"); ImGui.PopStyleColor(); }
+        }
+    }
+
+    // ── Side Quests Tab ─────────────────────────────────────────────────
 
     private void DrawSideQuests()
     {

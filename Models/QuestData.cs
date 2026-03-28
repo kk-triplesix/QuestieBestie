@@ -33,4 +33,17 @@ public sealed class QuestData
     public int ChainIndex { get; set; }
     public bool IsSpecial { get; init; }
     public string SpecialTag { get; init; } = string.Empty;
+    public string NpcName { get; init; } = string.Empty;
+    public uint RewardGil { get; init; }
+    public uint RewardExp { get; init; }
+    public string CategoryIcon => Category switch
+    {
+        QuestCategory.Dungeon => "\u2694",
+        QuestCategory.Trial => "\u2726",
+        QuestCategory.Raid => "\u2655",
+        QuestCategory.JobUnlock => "\u2606",
+        QuestCategory.Feature => "\u2699",
+        QuestCategory.Other => "\u25cb",
+        _ => "",
+    };
 }
