@@ -164,6 +164,27 @@ internal sealed class OverlayWindow : Window
             return;
         }
 
+        // Plan Route button
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Route, "Plan Route"))
+        {
+            var quests = activeList.QuestRowIds
+                .Where(id => _questService.BlueQuestLookup.TryGetValue(id, out var q) && !q.IsCompleted)
+                .Select(id => _questService.BlueQuestLookup[id])
+                .ToList();
+            var sorted = _questService.PlanRoute(quests);
+            activeList.QuestRowIds.Clear();
+            activeList.QuestRowIds.AddRange(sorted.Select(q => q.RowId));
+            // Re-add completed ones at the end
+            foreach (var id in activeList.QuestRowIds.ToList())
+                if (_questService.BlueQuestLookup.TryGetValue(id, out var q) && q.IsCompleted && !activeList.QuestRowIds.Contains(id))
+                    activeList.QuestRowIds.Add(id);
+            _trackingService.SaveOverlaySettings();
+        }
+        if (ImGui.IsItemHovered())
+        { ImGui.BeginTooltip(); ImGui.Text("Sort by optimal route (nearest zone first)"); ImGui.EndTooltip(); }
+
+        ImGui.Separator();
+
         foreach (var rowId in activeList.QuestRowIds.ToList())
         {
             if (!_questService.BlueQuestLookup.TryGetValue(rowId, out var quest))
