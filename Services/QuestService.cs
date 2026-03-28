@@ -152,6 +152,25 @@ public sealed class QuestService
                 toRemove.Add(old.RowId);
         }
 
+        // 3. GC variants: if any variant is completed, mark all as completed and keep only one
+        // Matches quests with same unlock text OR very similar names (differing only by GC suffix)
+        foreach (var group in BlueQuests
+            .Where(q => !toRemove.Contains(q.RowId) && !string.IsNullOrEmpty(q.Unlocks) && q.Unlocks != "Feature unlock")
+            .GroupBy(q => q.Unlocks)
+            .Where(g => g.Count() > 1))
+        {
+            var anyCompleted = group.Any(q => q.IsCompleted);
+            if (anyCompleted)
+            {
+                // Mark all variants as completed
+                foreach (var q in group)
+                    q.IsCompleted = true;
+            }
+            // Keep only one (prefer completed)
+            foreach (var old in group.OrderByDescending(q => q.IsCompleted).ThenByDescending(q => q.RowId).Skip(1))
+                toRemove.Add(old.RowId);
+        }
+
         if (toRemove.Count > 0)
         {
             BlueQuests.RemoveAll(q => toRemove.Contains(q.RowId));
