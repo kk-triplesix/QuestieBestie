@@ -36,14 +36,4 @@ public sealed class QuestData
     public string NpcName { get; init; } = string.Empty;
     public uint RewardGil { get; init; }
     public uint RewardExp { get; init; }
-    public string CategoryIcon => Category switch
-    {
-        QuestCategory.Dungeon => "[D]",
-        QuestCategory.Trial => "[T]",
-        QuestCategory.Raid => "[R]",
-        QuestCategory.JobUnlock => "[J]",
-        QuestCategory.Feature => "[F]",
-        QuestCategory.Other => "[?]",
-        _ => "",
-    };
 }

@@ -1,4 +1,6 @@
 using System.Numerics;
+using Dalamud.Interface;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
 using QuestieBestie.Models;
 using QuestieBestie.Services;
@@ -54,9 +56,9 @@ internal sealed class DetailWindow : Window
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text(_quest!.Name); ImGui.PopStyleColor();
         ImGui.SameLine();
         if (_quest.IsCompleted)
-        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextGreen); ImGui.Text("v Complete"); ImGui.PopStyleColor(); }
+        { Icons.DrawIcon(FontAwesomeIcon.CheckCircle, Styles.TextGreen); ImGui.SameLine(); ImGui.Text(Loc.Get("detail.complete")); }
         else
-        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("- Incomplete"); ImGui.PopStyleColor(); }
+        { Icons.DrawIcon(FontAwesomeIcon.TimesCircle, Styles.TextSecondary); ImGui.SameLine(); ImGui.Text(Loc.Get("detail.incomplete")); }
 
         if (ImGui.Button("Show on Map"))
             _questService.OpenQuestOnMap(_quest.RowId);
@@ -67,7 +69,7 @@ internal sealed class DetailWindow : Window
             ImGui.SameLine();
             var isFav = _trackingService.IsFavorite(_quest.RowId);
             ImGui.PushStyleColor(ImGuiCol.Text, isFav ? Styles.FavoriteStar : Styles.TextDimmed);
-            if (ImGui.Button(isFav ? "* Favorited" : "o Favorite"))
+            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Star, isFav ? "Favorited" : "Favorite"))
                 _trackingService.ToggleFavorite(_quest.RowId);
             ImGui.PopStyleColor();
         }
@@ -82,7 +84,7 @@ internal sealed class DetailWindow : Window
         if (!string.IsNullOrEmpty(q.NpcName))
             DrawInfoLine(Loc.Get("detail.npc"), q.NpcName);
         DrawInfoLine(Loc.Get("detail.classjob"), q.RequiredClassJob);
-        DrawInfoLine(Loc.Get("detail.type"), $"{q.CategoryIcon} {q.Category}");
+        DrawInfoLine(Loc.Get("detail.type"), $"{q.Category}");
         if (!string.IsNullOrEmpty(q.Unlocks))
             DrawInfoLine(Loc.Get("detail.unlocks"), q.Unlocks, Styles.AccentCyan);
         if (!string.IsNullOrEmpty(q.ChainName))
@@ -155,13 +157,10 @@ internal sealed class DetailWindow : Window
 
     private void DrawNode(PrerequisiteNode node, int indent)
     {
-        var prefix = new string(' ', indent * 2);
-        var icon = node.IsCompleted ? "v" : "x";
-        var iconColor = node.IsCompleted ? Styles.TextGreen : Styles.TextRed;
+        if (indent > 0) { ImGui.Text(new string(' ', indent * 3)); ImGui.SameLine(); }
+        Icons.DrawCheck(node.IsCompleted);
         var nameColor = node.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
         var typeTag = node.IsMsq ? " (MSQ)" : node.IsBlueQuest ? "" : " (Side)";
-
-        ImGui.PushStyleColor(ImGuiCol.Text, iconColor); ImGui.Text($"{prefix}{icon}"); ImGui.PopStyleColor();
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
         if (ImGui.Selectable($"{node.Name}{typeTag}###{node.RowId}", false, ImGuiSelectableFlags.None, new Vector2(0, 0)))

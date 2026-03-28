@@ -1,4 +1,7 @@
 using System.Numerics;
+using Dalamud.Interface;
+using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using QuestieBestie.Models;
 using QuestieBestie.Services;
@@ -242,10 +245,9 @@ internal sealed class MainWindow : Window
             // Favorite star
             ImGui.TableNextColumn();
             var isFav = _trackingService.IsFavorite(quest.RowId);
-            ImGui.PushStyleColor(ImGuiCol.Text, isFav ? Styles.FavoriteStar : Styles.TextDimmed);
-            if (ImGui.Selectable($"{(isFav ? "*" : "o")}###fav{quest.RowId}", false, ImGuiSelectableFlags.None, new Vector2(20, 0)))
+            if (Icons.IconButton(isFav ? FontAwesomeIcon.Star : FontAwesomeIcon.Star, $"fav{quest.RowId}",
+                isFav ? Styles.FavoriteStar : Styles.TextDimmed))
                 _trackingService.ToggleFavorite(quest.RowId);
-            ImGui.PopStyleColor();
 
             // Name with status icon, expansion color tag, "NEW" badge
             ImGui.TableNextColumn();
@@ -257,22 +259,24 @@ internal sealed class MainWindow : Window
             if (isChainChild)
             {
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 16);
-                ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed);
-                ImGui.Text("|_");
-                ImGui.PopStyleColor();
+                Icons.DrawIcon(FontAwesomeIcon.LongArrowAltRight, Styles.TextDimmed);
                 ImGui.SameLine();
             }
 
             if (quest.IsCompleted)
-            { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextGreen); ImGui.Text("v"); ImGui.PopStyleColor(); ImGui.SameLine(); }
+            { Icons.DrawIcon(FontAwesomeIcon.Check, Styles.TextGreen); ImGui.SameLine(); }
 
             // "NEW" badge
             if (maxRowId > 0 && quest.RowId > maxRowId && !quest.IsCompleted)
             { ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar); ImGui.Text("NEW"); ImGui.PopStyleColor(); ImGui.SameLine(); }
 
+            // Category icon
+            Icons.DrawIcon(Icons.GetCategoryIcon(quest.Category), quest.IsCompleted ? Styles.TextDimmed : Styles.TextSecondary);
+            ImGui.SameLine();
+
             var isSelected = _selected.Contains(quest.RowId);
             ImGui.PushStyleColor(ImGuiCol.Text, isSelected ? Styles.AccentCyan : nameColor);
-            if (ImGui.Selectable($"{quest.CategoryIcon} {quest.Name}###{quest.RowId}", isSelected, ImGuiSelectableFlags.SpanAllColumns))
+            if (ImGui.Selectable($"{quest.Name}###{quest.RowId}", isSelected, ImGuiSelectableFlags.SpanAllColumns))
             {
                 if (ImGui.GetIO().KeyCtrl)
                 { if (!_selected.Remove(quest.RowId)) _selected.Add(quest.RowId); }
@@ -285,7 +289,7 @@ internal sealed class MainWindow : Window
             if (ImGui.IsItemHovered())
             {
                 ImGui.BeginTooltip();
-                ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text($"{quest.CategoryIcon} {quest.Name}"); ImGui.PopStyleColor();
+                ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text($"{quest.Category} {quest.Name}"); ImGui.PopStyleColor();
                 ImGui.Separator();
                 ImGui.PushStyleColor(ImGuiCol.Text, Styles.GetExpansionColor(quest.ExpansionId));
                 ImGui.Text($"{Loc.Get("detail.expansion")}:  {quest.Expansion}");
@@ -294,7 +298,7 @@ internal sealed class MainWindow : Window
                 ImGui.Text($"{Loc.Get("detail.location")}:   {quest.Location}");
                 if (!string.IsNullOrEmpty(quest.NpcName)) ImGui.Text($"{Loc.Get("detail.npc")}:  {quest.NpcName}");
                 ImGui.Text($"{Loc.Get("detail.classjob")}:  {quest.RequiredClassJob}");
-                ImGui.Text($"{Loc.Get("detail.type")}:       {quest.CategoryIcon} {quest.Category}");
+                ImGui.Text($"{Loc.Get("detail.type")}:       {quest.Category} {quest.Category}");
                 if (!string.IsNullOrEmpty(quest.Unlocks)) ImGui.Text($"{Loc.Get("detail.unlocks")}:    {quest.Unlocks}");
                 if (quest.RewardGil > 0 || quest.RewardExp > 0)
                 { ImGui.Text($"{Loc.Get("detail.rewards")}:    {(quest.RewardGil > 0 ? $"{quest.RewardGil} Gil" : "")} {(quest.RewardExp > 0 ? $"{quest.RewardExp} EXP" : "")}"); }
@@ -346,7 +350,7 @@ internal sealed class MainWindow : Window
 
         // Favorite toggle
         var isFav = _trackingService.IsFavorite(quest.RowId);
-        if (ImGui.MenuItem(isFav ? "\u2605 Remove Favorite" : "\u2606 Add Favorite"))
+        if (ImGui.MenuItem(isFav ? "Remove Favorite" : "Add Favorite"))
             _trackingService.ToggleFavorite(quest.RowId);
 
         // Map + Chat
@@ -476,10 +480,8 @@ internal sealed class MainWindow : Window
             // Show individual quests
             foreach (var quest in group.OrderBy(q => q.RequiredLevel))
             {
-                var icon = quest.IsCompleted ? "v" : "-";
-                var color = quest.IsCompleted ? Styles.TextGreen : Styles.TextSecondary;
-                ImGui.PushStyleColor(ImGuiCol.Text, color); ImGui.Text($"    {icon}"); ImGui.PopStyleColor();
-                ImGui.SameLine();
+                ImGui.Text("   "); ImGui.SameLine();
+                Icons.DrawCheck(quest.IsCompleted); ImGui.SameLine();
                 var nameColor = quest.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
                 ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
                 if (ImGui.Selectable($"{quest.Name} (Lv.{quest.RequiredLevel})###ac{quest.RowId}", false))
@@ -517,10 +519,8 @@ internal sealed class MainWindow : Window
 
             foreach (var quest in quests)
             {
-                var icon = quest.IsCompleted ? "v" : "-";
-                var iconColor = quest.IsCompleted ? Styles.TextGreen : Styles.TextSecondary;
-                ImGui.PushStyleColor(ImGuiCol.Text, iconColor); ImGui.Text($"  {icon}"); ImGui.PopStyleColor();
-                ImGui.SameLine();
+                ImGui.Text(" "); ImGui.SameLine();
+                Icons.DrawCheck(quest.IsCompleted); ImGui.SameLine();
 
                 var expColor = quest.IsCompleted ? Styles.TextDimmed : Styles.GetExpansionColor(quest.ExpansionId);
                 var expAbbrev = quest.ExpansionId switch { 0 => "ARR", 1 => "HW", 2 => "SB", 3 => "ShB", 4 => "EW", 5 => "DT", _ => "?" };
@@ -571,14 +571,11 @@ internal sealed class MainWindow : Window
 
             if (quest == null) continue;
 
-            var icon = quest.IsCompleted ? "v" : "-";
-            var iconColor = quest.IsCompleted ? Styles.TextGreen : Styles.TextSecondary;
-            ImGui.PushStyleColor(ImGuiCol.Text, iconColor); ImGui.Text(icon); ImGui.PopStyleColor();
-            ImGui.SameLine();
+            Icons.DrawCheck(quest.IsCompleted); ImGui.SameLine();
 
             var nameColor = quest.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
             ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
-            if (ImGui.Selectable($"{quest.CategoryIcon} {quest.Name} (Lv.{quest.RequiredLevel})###rec{quest.RowId}", false))
+            if (ImGui.Selectable($"{quest.Name} (Lv.{quest.RequiredLevel})###rec{quest.RowId}", false))
             { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
             ImGui.PopStyleColor();
 
@@ -653,9 +650,7 @@ internal sealed class MainWindow : Window
 
             // Status
             ImGui.TableNextColumn();
-            ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextGreen : Styles.TextSecondary);
-            ImGui.Text(quest.IsCompleted ? "v" : "-");
-            ImGui.PopStyleColor();
+            Icons.DrawCheck(quest.IsCompleted);
 
             // Name
             ImGui.TableNextColumn();

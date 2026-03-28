@@ -1,4 +1,6 @@
 using System.Numerics;
+using Dalamud.Interface;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
 using QuestieBestie.Models;
 using QuestieBestie.Services;
@@ -105,20 +107,18 @@ internal sealed class OverlayWindow : Window
             var btnW = ImGui.CalcTextSize("[S]").X + ImGui.CalcTextSize("[X]").X + 40;
             ImGui.SetCursorPosX(ImGui.GetWindowWidth() - btnW - 8);
 
-            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(4, 1));
-            if (ImGui.Button("[S]###ovSettings"))
+            if (ImGuiComponents.IconButton("ovSettings", FontAwesomeIcon.Cog))
                 _settingsWindow?.Toggle();
             if (ImGui.IsItemHovered())
             { ImGui.BeginTooltip(); ImGui.Text("Settings"); ImGui.EndTooltip(); }
 
             ImGui.SameLine();
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);
-            if (ImGui.Button("[X]###ovClose"))
+            if (ImGuiComponents.IconButton("ovClose", FontAwesomeIcon.Times))
                 IsOpen = false;
             ImGui.PopStyleColor();
             if (ImGui.IsItemHovered())
             { ImGui.BeginTooltip(); ImGui.Text("Close"); ImGui.EndTooltip(); }
-            ImGui.PopStyleVar();
         }
     }
 
@@ -169,9 +169,7 @@ internal sealed class OverlayWindow : Window
 
             if (quest.IsCompleted)
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, s.CompletedColor);
-                ImGui.Text("v");
-                ImGui.PopStyleColor();
+                Icons.DrawIcon(FontAwesomeIcon.Check, s.CompletedColor);
             }
             else
             {
