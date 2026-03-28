@@ -564,7 +564,8 @@ public sealed class QuestService
         if (manual.HasValue)
             return manual.Value;
 
-        return (QuestCategory.Feature, "");
+        // Every blue quest unlocks SOMETHING by definition — give generic description
+        return (QuestCategory.Feature, "Feature unlock");
     }
 
     private (QuestCategory Category, string Unlocks)? LookupInstanceContent(uint instanceContentId)
