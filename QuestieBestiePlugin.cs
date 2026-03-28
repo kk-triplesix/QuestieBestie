@@ -5,6 +5,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using ECommons;
 using ECommons.DalamudServices;
+using FFXIVClientStructs.FFXIV.Component.GUI;
 using QuestieBestie.Services;
 using QuestieBestie.UI;
 
@@ -22,6 +23,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     private readonly TrackingService _trackingService;
     private readonly IDtrBarEntry _dtrEntry;
     private DateTime _lastNotificationCheck = DateTime.MinValue;
+    private bool _wasJournalOpen;
 
     public QuestieBestiePlugin(IDalamudPluginInterface pluginInterface)
     {
@@ -37,7 +39,6 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         _widgetWindow = new WidgetWindow(_questService, _trackingService);
         _mainWindow = new MainWindow(_questService, _detailWindow, _trackingService, _overlayWindow, _settingsWindow, _widgetWindow);
 
-        // Track "What's New" — update max RowId on first load
         var currentMax = _questService.BlueQuests.Count > 0 ? _questService.BlueQuests.Max(q => q.RowId) : 0u;
         if (_trackingService.LastKnownMaxRowId == 0)
             _trackingService.LastKnownMaxRowId = currentMax;
@@ -56,29 +57,66 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         Svc.PluginInterface.UiBuilder.OpenMainUi += OnOpenMainUi;
         Svc.PluginInterface.UiBuilder.OpenConfigUi += OnOpenMainUi;
         Svc.PluginInterface.UiBuilder.Draw += OnDraw;
+        Svc.Framework.Update += OnFrameworkUpdate;
 
         Svc.Commands.AddHandler("/questie", new Dalamud.Game.Command.CommandInfo(OnCommand)
         {
-            HelpMessage = "Open QuestieBestie window"
+            HelpMessage = "/questie — Toggle main window | /questie overlay — Toggle overlay | /questie widget — Toggle widget | /questie search <name> — Search quest"
         });
 
-        // Initialize available quest tracking
         _questService.CheckNewlyAvailable();
     }
 
     private void OnCommand(string command, string args)
     {
-        switch (args.Trim().ToLowerInvariant())
+        var trimmed = args.Trim();
+        var lower = trimmed.ToLowerInvariant();
+
+        switch (lower)
         {
             case "overlay":
                 _overlayWindow.Toggle();
+                break;
+            case "widget":
+                _widgetWindow.Toggle();
                 break;
             case "stats":
                 _mainWindow.IsOpen = true;
                 break;
             default:
-                _mainWindow.Toggle();
+                if (lower.StartsWith("search "))
+                {
+                    var searchTerm = trimmed[7..].Trim();
+                    SearchAndOpenQuest(searchTerm);
+                }
+                else
+                {
+                    _mainWindow.Toggle();
+                }
                 break;
+        }
+    }
+
+    private void SearchAndOpenQuest(string searchTerm)
+    {
+        var match = _questService.BlueQuests.FirstOrDefault(q =>
+            q.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+        if (match != null)
+        {
+            _detailWindow.ShowQuest(match);
+            _questService.OpenQuestOnMap(match.RowId);
+        }
+        else
+        {
+            Svc.Chat.Print(new XivChatEntry
+            {
+                Message = new SeStringBuilder()
+                    .AddUiForeground("[QuestieBestie] ", 35)
+                    .AddText($"No blue quest found matching \"{searchTerm}\"")
+                    .Build(),
+                Type = XivChatType.Echo
+            });
         }
     }
 
@@ -94,61 +132,91 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         AutoRemoveCompleted();
     }
 
+    private unsafe void OnFrameworkUpdate(object framework)
+    {
+        var addon = Svc.GameGui.GetAddonByName("JournalDetail");
+        var isOpen = !addon.IsNull && addon.IsVisible;
+
+        if (isOpen && !_wasJournalOpen)
+        {
+            try
+            {
+                var atkUnit = (AtkUnitBase*)addon.Address;
+                for (uint nodeId = 2; nodeId <= 10; nodeId++)
+                {
+                    var node = atkUnit->GetNodeById(nodeId);
+                    if (node == null || node->Type != NodeType.Text)
+                        continue;
+
+                    var textNode = (AtkTextNode*)node;
+                    var text = textNode->NodeText.ToString();
+                    if (string.IsNullOrWhiteSpace(text) || text.Length <= 2 || text.Length >= 200)
+                        continue;
+
+                    var match = _questService.BlueQuests.FirstOrDefault(q =>
+                        q.Name.Equals(text, StringComparison.OrdinalIgnoreCase));
+
+                    if (match != null)
+                    {
+                        _detailWindow.ShowQuest(match);
+                        break;
+                    }
+                }
+            }
+            catch
+            {
+                // Silently ignore addon reading errors
+            }
+        }
+
+        _wasJournalOpen = isOpen;
+    }
+
     private void UpdateDtrText()
     {
         _questService.RefreshCompletionStatus();
-        var percent = _questService.CompletionPercent;
-        _dtrEntry.Text = $"QB {percent:F0}%";
+        _dtrEntry.Text = $"QB {_questService.CompletionPercent:F0}%";
         _dtrEntry.Tooltip = "QuestieBestie — Click to toggle";
     }
 
     private void CheckNotifications()
     {
-        if (!_trackingService.OverlaySettings.ChatNotifications)
-            return;
-
-        if ((DateTime.Now - _lastNotificationCheck).TotalSeconds < 10)
-            return;
-
+        if (!_trackingService.OverlaySettings.ChatNotifications) return;
+        if ((DateTime.Now - _lastNotificationCheck).TotalSeconds < 10) return;
         _lastNotificationCheck = DateTime.Now;
 
-        var newQuests = _questService.CheckNewlyAvailable();
-        foreach (var quest in newQuests)
+        foreach (var quest in _questService.CheckNewlyAvailable())
         {
-            var msg = new SeStringBuilder()
-                .AddUiForeground("[QuestieBestie] ", 35)
-                .AddText($"New quest available: ")
-                .AddUiForeground(quest.Name, 34)
-                .AddText($" (Lv.{quest.RequiredLevel})")
-                .Build();
-
-            Svc.Chat.Print(new XivChatEntry { Message = msg, Type = XivChatType.Echo });
-
-            // Sound notification placeholder — sound API varies by Dalamud version
+            Svc.Chat.Print(new XivChatEntry
+            {
+                Message = new SeStringBuilder()
+                    .AddUiForeground("[QuestieBestie] ", 35)
+                    .AddText("New quest available: ")
+                    .AddUiForeground(quest.Name, 34)
+                    .AddText($" (Lv.{quest.RequiredLevel})")
+                    .Build(),
+                Type = XivChatType.Echo
+            });
         }
     }
 
     private void AutoRemoveCompleted()
     {
-        if (!_trackingService.OverlaySettings.AutoRemoveCompleted)
-            return;
+        if (!_trackingService.OverlaySettings.AutoRemoveCompleted) return;
 
         foreach (var list in _trackingService.Lists)
         {
             var toRemove = list.QuestRowIds
                 .Where(id => _questService.BlueQuestLookup.TryGetValue(id, out var q) && q.IsCompleted)
                 .ToList();
-
-            foreach (var id in toRemove)
-                list.QuestRowIds.Remove(id);
-
-            if (toRemove.Count > 0)
-                _trackingService.SaveOverlaySettings();
+            foreach (var id in toRemove) list.QuestRowIds.Remove(id);
+            if (toRemove.Count > 0) _trackingService.SaveOverlaySettings();
         }
     }
 
     public void Dispose()
     {
+        Svc.Framework.Update -= OnFrameworkUpdate;
         Svc.Commands.RemoveHandler("/questie");
         Svc.PluginInterface.UiBuilder.OpenMainUi -= OnOpenMainUi;
         Svc.PluginInterface.UiBuilder.OpenConfigUi -= OnOpenMainUi;
