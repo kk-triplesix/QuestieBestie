@@ -69,21 +69,6 @@ internal sealed class WidgetWindow : Window
             DrawBar(abbrev, stat.Completed, stat.Total, Styles.GetExpansionColor(expId), s);
         }
 
-        // Per-chain progress bars
-        var chains = _questService.BlueQuests
-            .Where(q => !string.IsNullOrEmpty(q.ChainName) && s.WidgetChains.Contains(q.ChainName))
-            .GroupBy(q => q.ChainName)
-            .OrderBy(g => g.First().ExpansionId);
-
-        foreach (var chain in chains)
-        {
-            var total = chain.Count();
-            var done = chain.Count(q => q.IsCompleted);
-            var expId = chain.First().ExpansionId;
-            var label = chain.Key.Length > 12 ? chain.Key[..12] + ".." : chain.Key;
-            DrawBar(label, done, total, Styles.GetExpansionColor(expId), s);
-        }
-
         // Direction arrow
         var activeList = _trackingService.ActiveList;
         var direction = _questService.GetNearestTrackedQuestDirection(activeList.QuestRowIds);
@@ -177,31 +162,6 @@ internal sealed class WidgetWindow : Window
             ImGui.PopStyleColor();
         }
 
-        // Chain toggles
-        var allChains = _questService.BlueQuests
-            .Where(q => !string.IsNullOrEmpty(q.ChainName))
-            .Select(q => q.ChainName)
-            .Distinct()
-            .OrderBy(n => n)
-            .ToList();
-
-        if (allChains.Count > 0)
-        {
-            ImGui.Separator();
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-            ImGui.Text("Quest Chains");
-            ImGui.PopStyleColor();
-
-            foreach (var chainName in allChains)
-            {
-                var enabled = s.WidgetChains.Contains(chainName);
-                if (ImGui.Checkbox($"{chainName}###wCh{chainName.GetHashCode()}", ref enabled))
-                {
-                    if (enabled) s.WidgetChains.Add(chainName); else s.WidgetChains.Remove(chainName);
-                    changed = true;
-                }
-            }
-        }
 
         if (changed)
             _trackingService.SaveOverlaySettings();

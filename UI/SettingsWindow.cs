@@ -92,32 +92,6 @@ internal sealed class SettingsWindow : Window
             ImGui.PopStyleColor();
         }
 
-        // Quest Chains
-        if (_questService != null)
-        {
-            var chains = _questService.BlueQuests
-                .Where(q => !string.IsNullOrEmpty(q.ChainName))
-                .Select(q => q.ChainName).Distinct().OrderBy(n => n).ToList();
-
-            if (chains.Count > 0)
-            {
-                ImGui.Spacing();
-                ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-                ImGui.Text("Widget Quest Chains");
-                ImGui.PopStyleColor();
-
-                foreach (var chainName in chains)
-                {
-                    var enabled = s.WidgetChains.Contains(chainName);
-                    if (ImGui.Checkbox($"{chainName}###sCh{chainName.GetHashCode()}", ref enabled))
-                    {
-                        if (enabled) s.WidgetChains.Add(chainName); else s.WidgetChains.Remove(chainName);
-                        changed = true;
-                    }
-                }
-            }
-        }
-
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();

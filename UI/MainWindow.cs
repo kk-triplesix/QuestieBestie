@@ -770,28 +770,6 @@ internal sealed class MainWindow : Window
         foreach (var stat in _questService.GetCategoryStats())
             DrawProgressBar(stat.Name, stat.Completed, stat.Total, Styles.AccentGreen);
 
-        // Quest chains progress
-        var chains = _questService.BlueQuests
-            .Where(q => !string.IsNullOrEmpty(q.ChainName))
-            .GroupBy(q => q.ChainName)
-            .OrderBy(g => g.First().ExpansionId)
-            .ThenBy(g => g.First().RequiredLevel)
-            .ToList();
-
-        if (chains.Count > 0)
-        {
-            ImGui.Spacing(); ImGui.Separator(); ImGui.Spacing();
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text("Quest Chains"); ImGui.PopStyleColor();
-            ImGui.Spacing();
-
-            foreach (var chain in chains)
-            {
-                var total = chain.Count();
-                var done = chain.Count(q => q.IsCompleted);
-                var expId = chain.First().ExpansionId;
-                DrawProgressBar(chain.Key, done, total, Styles.GetExpansionColor(expId));
-            }
-        }
     }
 
     private void DrawProgressBar(string label, int completed, int total, Vector4 color)
