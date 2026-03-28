@@ -361,7 +361,7 @@ internal sealed class MainWindow : Window
         // Map + Chat
         if (ImGui.MenuItem("Show on Map"))
         { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
-        if (ImGui.MenuItem("Send to Chat"))
+        if (ImGui.MenuItem("Copy & Show in Chat"))
             _questService.SendQuestChatLink(quest.RowId);
 
         ImGui.Separator();

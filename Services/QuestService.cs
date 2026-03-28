@@ -884,6 +884,8 @@ public sealed class QuestService
 
         var name = quest.Value.Name.ExtractText();
         var unlockInfo = !string.IsNullOrEmpty(questData.Unlocks) ? $" - {questData.Unlocks}" : "";
+
+        // Show locally with clickable map link
         var msg = new Dalamud.Game.Text.SeStringHandling.SeStringBuilder()
             .AddUiForeground("[QuestieBestie] ", 35)
             .AddUiForeground(name, 34)
@@ -892,8 +894,21 @@ public sealed class QuestService
             .AddText($"{payload.PlaceName} ({mapCoords.X:F1}, {mapCoords.Y:F1})")
             .Add(RawPayload.LinkTerminator)
             .Build();
-
         Svc.Chat.Print(new Dalamud.Game.Text.XivChatEntry { Message = msg });
+
+        // Also copy flag command to clipboard so user can paste in chat for others
+        var flagCmd = $"/flag {payload.PlaceName} ({mapCoords.X:F1}, {mapCoords.Y:F1})";
+        ImGui.SetClipboardText($"{name} (Lv.{questData.RequiredLevel}){unlockInfo} - {payload.PlaceName} ({mapCoords.X:F1}, {mapCoords.Y:F1})");
+
+        // Confirmation
+        Svc.Chat.Print(new Dalamud.Game.Text.XivChatEntry
+        {
+            Message = new Dalamud.Game.Text.SeStringHandling.SeStringBuilder()
+                .AddUiForeground("[QuestieBestie] ", 35)
+                .AddText("Quest info copied to clipboard. Paste in chat to share!")
+                .Build(),
+            Type = Dalamud.Game.Text.XivChatType.Echo,
+        });
     }
 
     public (float DirectionRad, float Distance, string QuestName)? GetNearestTrackedQuestDirection(List<uint> trackedIds)
