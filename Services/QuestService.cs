@@ -124,21 +124,31 @@ public sealed class QuestService
             BlueQuestLookup[quest.RowId] = questData;
         }
 
-        // Remove duplicates: keep the quest with the highest RowId (newest version)
+        // Pre-check completion for deduplication (need to know which version is completed)
+        unsafe
+        {
+            var qm = QuestManager.Instance();
+            if (qm != null)
+                foreach (var q in BlueQuests)
+                    q.IsCompleted = QuestManager.IsQuestComplete(q.QuestId);
+        }
+
+        // Remove duplicates: prefer completed quest, then highest RowId
         var toRemove = new HashSet<uint>();
 
-        // 1. Same name → keep newest
+        // 1. Same name → keep completed, or newest if none completed
         foreach (var group in BlueQuests.GroupBy(q => q.Name).Where(g => g.Count() > 1))
-            foreach (var old in group.OrderByDescending(q => q.RowId).Skip(1))
+            foreach (var old in group.OrderByDescending(q => q.IsCompleted).ThenByDescending(q => q.RowId).Skip(1))
                 toRemove.Add(old.RowId);
 
-        // 2. Same unlock target (e.g. multiple quests unlocking same job/dungeon) → keep newest
+        // 2. Same unlock target → keep completed, or newest
         foreach (var group in BlueQuests
-            .Where(q => !string.IsNullOrEmpty(q.Unlocks) && q.Category is QuestCategory.JobUnlock or QuestCategory.Dungeon or QuestCategory.Trial or QuestCategory.Raid)
+            .Where(q => !string.IsNullOrEmpty(q.Unlocks) && q.Unlocks != "Feature unlock"
+                && q.Category is QuestCategory.JobUnlock or QuestCategory.Dungeon or QuestCategory.Trial or QuestCategory.Raid)
             .GroupBy(q => q.Unlocks)
             .Where(g => g.Count() > 1))
         {
-            foreach (var old in group.OrderByDescending(q => q.RowId).Skip(1))
+            foreach (var old in group.OrderByDescending(q => q.IsCompleted).ThenByDescending(q => q.RowId).Skip(1))
                 toRemove.Add(old.RowId);
         }
 
