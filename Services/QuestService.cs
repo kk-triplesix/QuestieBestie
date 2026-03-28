@@ -32,11 +32,18 @@ public sealed class QuestService
 
         foreach (var quest in questSheet)
         {
+            if (quest.RowId == 65536)
+                continue;
+
             if (!BlueQuestEventIconTypes.Contains(quest.EventIconType.RowId))
                 continue;
 
             var name = quest.Name.ExtractText();
             if (string.IsNullOrWhiteSpace(name))
+                continue;
+
+            // Skip seasonal/event quests (Moonfire Faire, crossovers, etc.)
+            if (quest.Festival.RowId != 0)
                 continue;
 
             // Skip repeatable quests (daily beast tribe quests etc.)
