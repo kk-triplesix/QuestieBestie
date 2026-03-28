@@ -23,6 +23,8 @@ internal sealed class MainWindow : Window
     private string[] _classJobOptions = [];
     private string[] _locationOptions = [];
     private string[] _categoryOptions = [];
+    private string _classJobSearch = string.Empty;
+    private string _locationSearch = string.Empty;
     private List<QuestData> _filtered = [];
     private bool _dirty = true;
     private string _newListName = string.Empty;
@@ -163,24 +165,49 @@ internal sealed class MainWindow : Window
         ImGui.Text("Lv.");
         ImGui.PopStyleColor();
 
-        ImGui.SameLine();
-        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 10);
-        ImGui.PushItemWidth(160);
-        if (ImGui.Combo("##classjob", ref _classJobFilter, _classJobOptions, _classJobOptions.Length))
+        // Second filter row: class/job, location, category
+        if (DrawSearchableCombo("##classjob", ref _classJobFilter, _classJobOptions, ref _classJobSearch, 150))
             _dirty = true;
-        ImGui.PopItemWidth();
-
-        // Second filter row: location + category
-        ImGui.PushItemWidth(180);
-        if (ImGui.Combo("##location", ref _locationFilter, _locationOptions, _locationOptions.Length))
-            _dirty = true;
-        ImGui.PopItemWidth();
 
         ImGui.SameLine();
-        ImGui.PushItemWidth(140);
+        if (DrawSearchableCombo("##location", ref _locationFilter, _locationOptions, ref _locationSearch, 150))
+            _dirty = true;
+
+        ImGui.SameLine();
+        ImGui.PushItemWidth(120);
         if (ImGui.Combo("##category", ref _categoryFilter, _categoryOptions, _categoryOptions.Length))
             _dirty = true;
         ImGui.PopItemWidth();
+    }
+
+    private static bool DrawSearchableCombo(string id, ref int selected, string[] options, ref string search, float width)
+    {
+        var changed = false;
+        ImGui.PushItemWidth(width);
+        if (ImGui.BeginCombo(id, options[selected]))
+        {
+            ImGui.PushItemWidth(width - 16);
+            ImGui.InputTextWithHint($"{id}Search", "Search...", ref search, 128);
+            ImGui.PopItemWidth();
+
+            var filter = search.Trim();
+            for (var i = 0; i < options.Length; i++)
+            {
+                if (filter.Length > 0 && i > 0 && !options[i].Contains(filter, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (ImGui.Selectable(options[i], i == selected))
+                {
+                    selected = i;
+                    changed = true;
+                    search = string.Empty;
+                }
+            }
+
+            ImGui.EndCombo();
+        }
+        ImGui.PopItemWidth();
+        return changed;
     }
 
     private void DrawQuestTable()
