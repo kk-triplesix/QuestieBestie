@@ -96,13 +96,21 @@ internal sealed class WidgetWindow : Window
             ImGui.PopStyleColor();
         }
 
-        // Config button — only show on hover, but ALWAYS render popup
+        // Config + Close buttons — only show on hover, but ALWAYS render popup
         if (showBtn)
         {
             if (ImGuiComponents.IconButton("wCfg", FontAwesomeIcon.Cog))
                 ImGui.OpenPopup("##widgetCfg");
             if (ImGui.IsItemHovered())
             { ImGui.BeginTooltip(); ImGui.Text("Settings"); ImGui.EndTooltip(); }
+
+            ImGui.SameLine();
+            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);
+            if (ImGuiComponents.IconButton("wClose", FontAwesomeIcon.Times))
+                IsOpen = false;
+            ImGui.PopStyleColor();
+            if (ImGui.IsItemHovered())
+            { ImGui.BeginTooltip(); ImGui.Text("Close"); ImGui.EndTooltip(); }
         }
 
         // Popup must be rendered outside the hover check — ImGui manages its open state

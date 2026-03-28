@@ -103,10 +103,11 @@ internal sealed class OverlayWindow : Window
         ImGui.Text($"({_questService.CompletionPercent:F0}%)");
         ImGui.PopStyleColor();
 
-        // Settings + Close buttons (only on hover)
+        // Settings + Close buttons (right-aligned, only on hover)
         if (_showButtons)
         {
             ImGui.SameLine();
+            ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 64);
             if (ImGuiComponents.IconButton("ovSettings", FontAwesomeIcon.Cog))
                 _settingsWindow?.Toggle();
             if (ImGui.IsItemHovered())
