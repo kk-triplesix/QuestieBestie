@@ -64,7 +64,8 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         Svc.PluginInterface.UiBuilder.OpenMainUi += OnOpenMainUi;
         Svc.PluginInterface.UiBuilder.OpenConfigUi += OnOpenMainUi;
         Svc.PluginInterface.UiBuilder.Draw += OnDraw;
-        Svc.Framework.Update += OnFrameworkUpdate;
+        // Journal hook disabled — caused false triggers opening detail window
+        // Svc.Framework.Update += OnFrameworkUpdate;
 
         // Chat message handler — detect quest names in chat and offer to open detail
         Svc.Chat.ChatMessage += OnChatMessage;
@@ -237,7 +238,6 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     public void Dispose()
     {
         Svc.Chat.ChatMessage -= OnChatMessage;
-        Svc.Framework.Update -= OnFrameworkUpdate;
         Svc.Commands.RemoveHandler("/questie");
         Svc.PluginInterface.UiBuilder.OpenMainUi -= OnOpenMainUi;
         Svc.PluginInterface.UiBuilder.OpenConfigUi -= OnOpenMainUi;
