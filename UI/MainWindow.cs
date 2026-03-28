@@ -21,9 +21,9 @@ internal sealed class MainWindow : Window
     private int _filterMode = 1;
     private int _levelMin;
     private int _levelMax = 100;
-    private int _classJobFilter, _locationFilter, _categoryFilter, _expansionFilter;
-    private string[] _classJobOptions = [], _locationOptions = [], _categoryOptions = [], _expansionOptions = [];
-    private string _classJobSearch = string.Empty, _locationSearch = string.Empty, _expansionSearch = string.Empty;
+    private int _classJobFilter, _locationFilter, _categoryFilter, _expansionFilter, _unlockFilter;
+    private string[] _classJobOptions = [], _locationOptions = [], _categoryOptions = [], _expansionOptions = [], _unlockFilterOptions = [];
+    private string _classJobSearch = string.Empty, _locationSearch = string.Empty, _expansionSearch = string.Empty, _unlockSearch = string.Empty;
     private List<QuestData> _filtered = [];
     private bool _dirty = true;
     private string _newListName = string.Empty;
@@ -45,6 +45,8 @@ internal sealed class MainWindow : Window
         _locationOptions = ["All Locations", .. questService.BlueQuests.Select(q => q.Location).Where(l => !string.IsNullOrWhiteSpace(l)).Distinct().OrderBy(l => l)];
         _expansionOptions = ["All Expansions", .. questService.BlueQuests.Select(q => q.Expansion).Where(e => !string.IsNullOrWhiteSpace(e)).Distinct().OrderBy(e => questService.BlueQuests.First(q => q.Expansion == e).ExpansionId)];
         _categoryOptions = ["All Types", "Feature", "Job Unlock", "Dungeon", "Trial", "Raid", "Other"];
+        _unlockFilterOptions = ["All Unlocks", .. questService.BlueQuests
+            .Select(q => q.Unlocks).Where(u => !string.IsNullOrWhiteSpace(u)).Distinct().OrderBy(u => u)];
     }
 
     public override void PreDraw() => Styles.PushMainStyle();
@@ -172,6 +174,9 @@ internal sealed class MainWindow : Window
         ImGui.PushItemWidth(110);
         if (ImGui.Combo("##category", ref _categoryFilter, _categoryOptions, _categoryOptions.Length)) _dirty = true;
         ImGui.PopItemWidth();
+
+        // Row 3: unlock filter
+        if (DrawSearchableCombo("##unlock", ref _unlockFilter, _unlockFilterOptions, ref _unlockSearch, 250)) _dirty = true;
     }
 
     private static bool DrawSearchableCombo(string id, ref int selected, string[] options, ref string search, float width)
@@ -416,6 +421,7 @@ internal sealed class MainWindow : Window
             if (_locationFilter > 0 && !q.Location.Equals(_locationOptions[_locationFilter], StringComparison.OrdinalIgnoreCase)) return false;
             if (_expansionFilter > 0 && !q.Expansion.Equals(_expansionOptions[_expansionFilter], StringComparison.OrdinalIgnoreCase)) return false;
             if (_categoryFilter > 0) { QuestCategory? t = _categoryFilter switch { 1 => QuestCategory.Feature, 2 => QuestCategory.JobUnlock, 3 => QuestCategory.Dungeon, 4 => QuestCategory.Trial, 5 => QuestCategory.Raid, 6 => QuestCategory.Other, _ => null }; if (t != null && q.Category != t) return false; }
+            if (_unlockFilter > 0 && !q.Unlocks.Equals(_unlockFilterOptions[_unlockFilter], StringComparison.OrdinalIgnoreCase)) return false;
             if (q.RequiredLevel < _levelMin || q.RequiredLevel > _levelMax) return false;
             if (search.Length > 0 && !q.Name.Contains(search, StringComparison.OrdinalIgnoreCase) && !q.RequiredClassJob.Contains(search, StringComparison.OrdinalIgnoreCase) && !q.Location.Contains(search, StringComparison.OrdinalIgnoreCase) && !q.Expansion.Contains(search, StringComparison.OrdinalIgnoreCase) && !q.Unlocks.Contains(search, StringComparison.OrdinalIgnoreCase) && !q.RequiredLevel.ToString().Contains(search, StringComparison.Ordinal)) return false;
             return true;
@@ -552,6 +558,9 @@ internal sealed class MainWindow : Window
 
     private string _sideSearch = string.Empty;
     private int _sideFilter; // 0=All, 1=Special Only, 2=Incomplete, 3=Complete
+    private int _sideSpecialFilter;
+    private string[] _sideSpecialOptions = [];
+    private string _sideSpecialSearch = string.Empty;
     private int _sideExpansion;
 
     // ── Recent Quests Tab ──────────────────────────────────────────────
@@ -614,6 +623,15 @@ internal sealed class MainWindow : Window
         ImGui.Combo("##sideExp", ref _sideExpansion, _expansionOptions, _expansionOptions.Length);
         ImGui.PopItemWidth();
 
+        // Special tag filter
+        if (_sideSpecialOptions.Length == 0)
+        {
+            _sideSpecialOptions = ["All Specials", .. _questService.SideQuests
+                .Where(q => q.IsSpecial && !string.IsNullOrWhiteSpace(q.SpecialTag))
+                .Select(q => q.SpecialTag).Distinct().OrderBy(s => s)];
+        }
+        DrawSearchableCombo("##sideSpecial", ref _sideSpecialFilter, _sideSpecialOptions, ref _sideSpecialSearch, 250);
+
         // Filter
         var search = _sideSearch.Trim();
         var filtered = _questService.SideQuests.Where(q =>
@@ -625,6 +643,7 @@ internal sealed class MainWindow : Window
                 case 3: if (!q.IsCompleted) return false; break;
             }
             if (_sideExpansion > 0 && !q.Expansion.Equals(_expansionOptions[_sideExpansion], StringComparison.OrdinalIgnoreCase)) return false;
+            if (_sideSpecialFilter > 0 && !q.SpecialTag.Equals(_sideSpecialOptions[_sideSpecialFilter], StringComparison.OrdinalIgnoreCase)) return false;
             if (search.Length > 0 && !q.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
                 && !q.Location.Contains(search, StringComparison.OrdinalIgnoreCase)
                 && !q.SpecialTag.Contains(search, StringComparison.OrdinalIgnoreCase)) return false;
