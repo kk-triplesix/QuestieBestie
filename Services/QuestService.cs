@@ -581,59 +581,33 @@ public sealed class QuestService
         // These use NPC dialogue (Wandering Minstrel etc.) to unlock content
         var name = quest.Name.ExtractText();
 
-        // SB Extreme Trials + Ultimates (Wandering Minstrel in Kugane)
+        // Wandering Minstrel — Extreme Trials + Ultimates per expansion
         if (name.Contains("Songs in the Key of Kugane", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Trial, "Unlocks SB Extreme Trials + Ultimates");
+            return (QuestCategory.Trial, "Unlocks SB Extremes + UCoB/UWU/TEA Ultimates");
 
-        // ShB Extreme Trials (Wandering Minstrel in Crystarium)
         if (name.Contains("Minstrel from Another Mother", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Trial, "Unlocks ShB Extreme Trials");
+            return (QuestCategory.Trial, "Unlocks ShB Extreme Trials (Titania/Innocence/Hades/WoL)");
 
-        // ShB Weapon Extreme Trials
         if (name.Contains("Weapon of Choice", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Trial, "Unlocks ShB Weapon Extreme Trials");
+            return (QuestCategory.Trial, "Unlocks ShB Weapon Extremes (Ruby/Emerald/Diamond)");
 
-        // EW Extreme Trials (Wandering Minstrel in Sharlayan)
         if (name.Contains("I Wandered Sharlayan as a Minstrel", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Trial, "Unlocks EW Extreme Trials");
+            return (QuestCategory.Trial, "Unlocks EW Extremes + DSR/TOP Ultimates");
 
-        // DT Extreme Trials
         if (name.Contains("How the West Was Sung", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Trial, "Unlocks DT Extreme Trials");
+            return (QuestCategory.Trial, "Unlocks DT Extremes + FRU Ultimate");
 
-        // EW Unreal Trials
+        // Faux Hollows / Unreal
         if (name.Contains("Fantastic Mr. Faux", StringComparison.OrdinalIgnoreCase))
             return (QuestCategory.Trial, "Unlocks Faux Hollows / Unreal Trials");
 
-        // Savage raid unlock patterns — look for quests that are part of raid chains
-        // Eden Savage (ShB)
-        if (name.Contains("Life Finds a Way", StringComparison.OrdinalIgnoreCase)
-            || name.Contains("Away with the Faerie", StringComparison.OrdinalIgnoreCase)
-            || name.Contains("In the Garden of Sullen Delight", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Raid, "Unlocks Eden Savage");
-
-        // Pandaemonium Savage (EW)
-        if (name.Contains("Who Wards the Warders", StringComparison.OrdinalIgnoreCase)
-            || name.Contains("Ere Our Curtain Falls", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Raid, "Unlocks Pandaemonium Savage");
-
-        // Alexander Savage helper
-        if (name.Contains("A Song of Steam and Steel", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Raid, "Unlocks Alexander Savage");
-
-        // Alliance Raids that might be missed
-        // Crystal Tower (ARR)
+        // Alliance Raids
         if (name.Contains("Legacy of Allag", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Raid, "Unlocks Crystal Tower: Labyrinth of the Ancients");
+            return (QuestCategory.Raid, "Unlocks Labyrinth of the Ancients");
 
-        // Omega Savage (SB)
-        if (name.Contains("The Anomaly", StringComparison.OrdinalIgnoreCase)
-            || name.Contains("Test World of Ruin", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Raid, "Unlocks Omega Savage");
-
-        // Generic pattern: quest names containing "minstrel" often unlock extreme content
+        // Generic Minstrel fallback
         if (name.Contains("Minstrel", StringComparison.OrdinalIgnoreCase) && !name.Contains("Ballad", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Trial, "Unlocks Extreme Trials");
+            return (QuestCategory.Trial, "Unlocks Extreme Trials via Wandering Minstrel");
 
         return null;
     }

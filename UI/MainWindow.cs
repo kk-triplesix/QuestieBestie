@@ -502,6 +502,12 @@ internal sealed class MainWindow : Window
             .ThenBy(q => q.RequiredLevel)
             .ToList();
 
+        // Info box
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+        ImGui.TextWrapped("Shows blue quest unlocks only. MSQ dungeons, Savage (NPC dialog), and individual Extreme/Ultimate fights (Minstrel dialog) are not listed as they have no quest data.");
+        ImGui.PopStyleColor();
+        ImGui.Spacing();
+
         if (dutyQuests.Count == 0)
         { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed); ImGui.Text("No duty unlock quests found."); ImGui.PopStyleColor(); return; }
 
