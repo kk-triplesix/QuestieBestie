@@ -234,7 +234,12 @@ internal sealed class MainWindow : Window
                 ImGui.Text($"Type:       {quest.Category}");
                 if (!string.IsNullOrEmpty(quest.Unlocks)) ImGui.Text($"Unlocks:    {quest.Unlocks}");
                 if (quest.PrerequisiteIds.Length > 0) ImGui.Text($"Prereqs:    {quest.PrerequisiteIds.Length}");
-                if (!string.IsNullOrEmpty(quest.ChainName)) ImGui.Text($"Chain:      {quest.ChainName} ({quest.ChainIndex})");
+                if (!string.IsNullOrEmpty(quest.ChainName))
+                {
+                    var chainQuests = _questService.BlueQuests.Where(q => q.ChainName == quest.ChainName).ToList();
+                    var chainDone = chainQuests.Count(q => q.IsCompleted);
+                    ImGui.Text($"Chain:      {quest.ChainName} (Step {quest.ChainIndex}, {chainDone}/{chainQuests.Count})");
+                }
                 var note = _trackingService.GetNote(quest.RowId);
                 if (!string.IsNullOrEmpty(note)) { ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar); ImGui.Text($"Note:       {note}"); ImGui.PopStyleColor(); }
                 ImGui.Separator();
@@ -587,6 +592,29 @@ internal sealed class MainWindow : Window
         ImGui.Spacing();
         foreach (var stat in _questService.GetCategoryStats())
             DrawProgressBar(stat.Name, stat.Completed, stat.Total, Styles.AccentGreen);
+
+        // Quest chains progress
+        var chains = _questService.BlueQuests
+            .Where(q => !string.IsNullOrEmpty(q.ChainName))
+            .GroupBy(q => q.ChainName)
+            .OrderBy(g => g.First().ExpansionId)
+            .ThenBy(g => g.First().RequiredLevel)
+            .ToList();
+
+        if (chains.Count > 0)
+        {
+            ImGui.Spacing(); ImGui.Separator(); ImGui.Spacing();
+            ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text("Quest Chains"); ImGui.PopStyleColor();
+            ImGui.Spacing();
+
+            foreach (var chain in chains)
+            {
+                var total = chain.Count();
+                var done = chain.Count(q => q.IsCompleted);
+                var expId = chain.First().ExpansionId;
+                DrawProgressBar(chain.Key, done, total, Styles.GetExpansionColor(expId));
+            }
+        }
     }
 
     private static void DrawProgressBar(string label, int completed, int total, Vector4 color)
