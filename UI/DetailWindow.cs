@@ -42,7 +42,7 @@ internal sealed class DetailWindow : Window
 
     public override void Draw()
     {
-        if (_quest == null) { ImGui.Text("No quest selected."); return; }
+        if (_quest == null) { IsOpen = false; return; }
         _questService.RefreshCompletionStatus();
 
         DrawQuestHeader();
