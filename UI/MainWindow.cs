@@ -252,10 +252,21 @@ internal sealed class MainWindow : Window
             var statusIcon = quest.IsCompleted ? "\u2713 " : "";
             var nameColor = quest.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
 
+            // Chain indentation
+            var isChainChild = !string.IsNullOrEmpty(quest.ChainName) && quest.ChainIndex > 1;
+            if (isChainChild)
+            {
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 16);
+                ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed);
+                ImGui.Text("\u2514");
+                ImGui.PopStyleColor();
+                ImGui.SameLine();
+            }
+
             if (quest.IsCompleted)
             { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextGreen); ImGui.Text("\u2713"); ImGui.PopStyleColor(); ImGui.SameLine(); }
 
-            // "NEW" badge for quests added after last known max
+            // "NEW" badge
             if (maxRowId > 0 && quest.RowId > maxRowId && !quest.IsCompleted)
             { ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar); ImGui.Text("NEW"); ImGui.PopStyleColor(); ImGui.SameLine(); }
 
@@ -404,7 +415,19 @@ internal sealed class MainWindow : Window
             if (q.RequiredLevel < _levelMin || q.RequiredLevel > _levelMax) return false;
             if (search.Length > 0 && !q.Name.Contains(search, StringComparison.OrdinalIgnoreCase) && !q.RequiredClassJob.Contains(search, StringComparison.OrdinalIgnoreCase) && !q.Location.Contains(search, StringComparison.OrdinalIgnoreCase) && !q.Expansion.Contains(search, StringComparison.OrdinalIgnoreCase) && !q.Unlocks.Contains(search, StringComparison.OrdinalIgnoreCase) && !q.RequiredLevel.ToString().Contains(search, StringComparison.Ordinal)) return false;
             return true;
-        }).OrderByDescending(q => _trackingService.IsFavorite(q.RowId)).ThenBy(q => q.RequiredLevel).ThenBy(q => q.Name).ToList();
+        }).ToList();
+
+        // Sort: favorites first, then by level, but keep chain quests grouped together
+        // Chain quests sort by their first quest's level, then by ChainIndex within the chain
+        _filtered = _filtered
+            .OrderByDescending(q => _trackingService.IsFavorite(q.RowId))
+            .ThenBy(q => !string.IsNullOrEmpty(q.ChainName)
+                ? _filtered.Where(c => c.ChainName == q.ChainName).Min(c => c.RequiredLevel)
+                : q.RequiredLevel)
+            .ThenBy(q => q.ChainName)
+            .ThenBy(q => q.ChainIndex)
+            .ThenBy(q => q.Name)
+            .ToList();
     }
 
     // ── Status Bar ──────────────────────────────────────────────────────
