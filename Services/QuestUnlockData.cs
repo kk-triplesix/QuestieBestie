@@ -202,6 +202,48 @@ public static class QuestUnlockData
         ("Orden f\u00fcr deine Brust", QuestCategory.Feature, "Unlocks Zadnor Field Notes"),
         ("Traumwetter", QuestCategory.Feature, "Unlocks Shared FATE (ShB)"),
 
+        // ── German: Gold Saucer ─────────────────────────────────────
+        ("Kartenfieber", QuestCategory.Feature, "Unlocks Mini Cactpot"),
+        ("kleines St\u00fcck vom Gl\u00fcck", QuestCategory.Feature, "Unlocks Mini Cactpot (weekly)"),
+        ("gro\u00dfes St\u00fcck vom Gl\u00fcck", QuestCategory.Feature, "Unlocks Jumbo Cactpot"),
+
+        // ── German: Performance ─────────────────────────────────────
+        ("Wenn Herzen musizieren", QuestCategory.Feature, "Unlocks Performance Actions"),
+
+        // ── German: Squadrons ───────────────────────────────────────
+        ("neues Kommando", QuestCategory.Feature, "Unlocks Adventurer Squadrons"),
+
+        // ── German: Orchestrion ─────────────────────────────────────
+        ("Lieder sind Erinnerungen", QuestCategory.Feature, "Unlocks Duty Recorder"),
+
+        // ── German: Levequests ──────────────────────────────────────
+        ("Ishgarder Freibriefe", QuestCategory.Feature, "Unlocks HW Levequests"),
+        ("Freibriefe von Kugane", QuestCategory.Feature, "Unlocks SB Levequests"),
+        ("Freibriefe von Crystarium", QuestCategory.Feature, "Unlocks ShB Levequests"),
+        ("Freibriefe von Tuliyollal", QuestCategory.Feature, "Unlocks DT Levequests"),
+
+        // ── German: Sightseeing Logs ────────────────────────────────
+        ("Unbekannter Osten", QuestCategory.Feature, "Unlocks Sightseeing Log (SB)"),
+        ("Unbekanntes Norvrandt", QuestCategory.Feature, "Unlocks Sightseeing Log (ShB)"),
+        ("Unbekannte Welten", QuestCategory.Feature, "Unlocks Sightseeing Log (EW)"),
+        ("Unbekanntes Tural", QuestCategory.Feature, "Unlocks Sightseeing Log (DT)"),
+
+        // ── German: Facet/Deliveries ────────────────────────────────
+        ("Handwerker ist K\u00f6nig", QuestCategory.Feature, "Unlocks Facet Deliveries (ShB)"),
+        ("Klauber von Alt-Sharlayan", QuestCategory.Feature, "Unlocks Studium Deliveries (EW)"),
+        ("Expansion des Hauses der Wunder", QuestCategory.Feature, "Unlocks Radz-at-Han Deliveries"),
+        ("Handel mit Rhodina", QuestCategory.Feature, "Unlocks DT Custom Deliveries"),
+
+        // ── German: Misc ────────────────────────────────────────────
+        ("Milliths Cousin", QuestCategory.Feature, "Unlocks Clan Hunt Board (HW)"),
+        ("Klein, aber oho", QuestCategory.Feature, "Unlocks Pixie Beast Tribe"),
+        ("Musikalische Inspiration", QuestCategory.Feature, "Unlocks Performance Actions (EW)"),
+        ("Gelegenheitsauftr\u00e4ge", QuestCategory.Feature, "Unlocks Variant Dungeons"),
+        ("Poesie im fernen Westen", QuestCategory.Trial, "Unlocks DT Extremes + FRU Ultimate"),
+        ("Balladenk\u00e4nge in Kugane", QuestCategory.Trial, "Unlocks SB Extremes + UCoB/UWU/TEA Ultimates"),
+        ("Fahrende S\u00e4nger des ersten Splitters", QuestCategory.Trial, "Unlocks ShB Extreme Trials"),
+        ("Verschollene Zwillingsschwester", QuestCategory.Feature, "Unlocks DT side content"),
+
         // ── Triple Triad Tournaments ────────────────────────────────
         ("Triple Triad Tournament", QuestCategory.Feature, "Unlocks Triple Triad Tournaments"),
 
