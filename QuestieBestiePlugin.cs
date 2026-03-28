@@ -156,15 +156,15 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
     private unsafe void OnFrameworkUpdate(object framework)
     {
-        var addon = Svc.GameGui.GetAddonByName("JournalDetail");
-        var isOpen = !addon.IsNull && addon.IsVisible;
-
-        if (isOpen && !_wasJournalOpen)
+        try
         {
-            try
+            var addon = Svc.GameGui.GetAddonByName("JournalDetail");
+            var isOpen = !addon.IsNull && addon.IsVisible;
+
+            if (isOpen && !_wasJournalOpen)
             {
                 var atkUnit = (AtkUnitBase*)addon.Address;
-                for (uint nodeId = 2; nodeId <= 10; nodeId++)
+                for (uint nodeId = 3; nodeId <= 8; nodeId++)
                 {
                     var node = atkUnit->GetNodeById(nodeId);
                     if (node == null || node->Type != NodeType.Text)
@@ -172,9 +172,10 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
                     var textNode = (AtkTextNode*)node;
                     var text = textNode->NodeText.ToString();
-                    if (string.IsNullOrWhiteSpace(text) || text.Length <= 2 || text.Length >= 200)
+                    if (string.IsNullOrWhiteSpace(text) || text.Length <= 3 || text.Length >= 100)
                         continue;
 
+                    // Exact name match only
                     var match = _questService.BlueQuests.FirstOrDefault(q =>
                         q.Name.Equals(text, StringComparison.OrdinalIgnoreCase));
 
@@ -185,13 +186,10 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
                     }
                 }
             }
-            catch
-            {
-                // Silently ignore addon reading errors
-            }
-        }
 
-        _wasJournalOpen = isOpen;
+            _wasJournalOpen = isOpen;
+        }
+        catch { }
     }
 
     private void UpdateDtrText()

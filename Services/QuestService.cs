@@ -26,11 +26,13 @@ public sealed class QuestService
 
     private void LoadBlueQuests()
     {
-        var questSheet = Svc.Data.GetExcelSheet<Quest>();
-        if (questSheet == null)
+        // Use English sheet for categorization/dedup, client sheet for display names
+        var enSheet = Svc.Data.GetExcelSheet<Quest>(Dalamud.Game.ClientLanguage.English);
+        var localSheet = Svc.Data.GetExcelSheet<Quest>();
+        if (enSheet == null || localSheet == null)
             return;
 
-        foreach (var quest in questSheet)
+        foreach (var quest in enSheet)
         {
             if (quest.RowId == 65536)
                 continue;
@@ -38,9 +40,15 @@ public sealed class QuestService
             if (!BlueQuestEventIconTypes.Contains(quest.EventIconType.RowId))
                 continue;
 
-            var name = quest.Name.ExtractText();
-            if (string.IsNullOrWhiteSpace(name))
+            var enName = quest.Name.ExtractText();
+            if (string.IsNullOrWhiteSpace(enName))
                 continue;
+
+            // Display name from client language
+            var localQuest = localSheet.GetRowOrDefault(quest.RowId);
+            var name = localQuest?.Name.ExtractText() ?? enName;
+            if (string.IsNullOrWhiteSpace(name))
+                name = enName;
 
             // Skip seasonal/event quests (Moonfire Faire, crossovers, etc.)
             if (quest.Festival.RowId != 0)
@@ -608,20 +616,8 @@ public sealed class QuestService
                 return (QuestCategory.Feature, $"Unlocks {tribeName} tribe");
         }
 
-        // Known umbrella quests — Wandering Minstrel / NPC unlock quests that have no instance data
-        // Try umbrella check in all languages
+        // Known umbrella quests (quest is already English)
         var umbrellaResult = CheckUmbrellaQuest(quest);
-        if (!umbrellaResult.HasValue)
-        {
-            foreach (var lang in new[] { Dalamud.Game.ClientLanguage.English, Dalamud.Game.ClientLanguage.German, Dalamud.Game.ClientLanguage.French, Dalamud.Game.ClientLanguage.Japanese })
-            {
-                var langSheet = Svc.Data.GetExcelSheet<Quest>(lang);
-                var langQ = langSheet?.GetRowOrDefault(quest.RowId);
-                if (langQ == null) continue;
-                umbrellaResult = CheckUmbrellaQuestByName(langQ.Value.Name.ExtractText());
-                if (umbrellaResult.HasValue) break;
-            }
-        }
         if (umbrellaResult.HasValue)
             return umbrellaResult.Value;
 
@@ -657,24 +653,10 @@ public sealed class QuestService
         if (hasUnlockInstruction)
             return (QuestCategory.Dungeon, "Unlocks content");
 
-        // Manual lookup fallback — try all languages (lookup uses English patterns)
-        var localName = quest.Name.ExtractText();
-        var manual = QuestUnlockData.Lookup(localName);
+        // Manual lookup (quest is already English)
+        var manual = QuestUnlockData.Lookup(quest.Name.ExtractText());
         if (manual.HasValue)
             return manual.Value;
-
-        foreach (var lang in new[] { Dalamud.Game.ClientLanguage.English, Dalamud.Game.ClientLanguage.German, Dalamud.Game.ClientLanguage.French, Dalamud.Game.ClientLanguage.Japanese })
-        {
-            var langSheet = Svc.Data.GetExcelSheet<Quest>(lang);
-            if (langSheet == null) continue;
-            var langQuest = langSheet.GetRowOrDefault(quest.RowId);
-            if (langQuest == null) continue;
-            var langName = langQuest.Value.Name.ExtractText();
-            if (langName == localName) continue;
-            var langManual = QuestUnlockData.Lookup(langName);
-            if (langManual.HasValue)
-                return langManual.Value;
-        }
 
         // Smart fallback — use context to generate a meaningful description
         return DetermineFromContext(quest);
