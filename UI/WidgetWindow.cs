@@ -1,4 +1,6 @@
 using System.Numerics;
+using Dalamud.Interface;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
 using QuestieBestie.Services;
 
@@ -97,10 +99,8 @@ internal sealed class WidgetWindow : Window
         // Config button — only show on hover, but ALWAYS render popup
         if (showBtn)
         {
-            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(2, 2));
-            if (ImGui.Button("S###wCfg"))
+            if (ImGuiComponents.IconButton("wCfg", FontAwesomeIcon.Cog))
                 ImGui.OpenPopup("##widgetCfg");
-            ImGui.PopStyleVar();
             if (ImGui.IsItemHovered())
             { ImGui.BeginTooltip(); ImGui.Text("Settings"); ImGui.EndTooltip(); }
         }

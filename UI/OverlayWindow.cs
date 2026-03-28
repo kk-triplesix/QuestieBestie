@@ -107,19 +107,17 @@ internal sealed class OverlayWindow : Window
         if (_showButtons)
         {
             ImGui.SameLine();
-            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(2, 2));
-            if (ImGui.Button("S###ovSettings"))
+            if (ImGuiComponents.IconButton("ovSettings", FontAwesomeIcon.Cog))
                 _settingsWindow?.Toggle();
             if (ImGui.IsItemHovered())
             { ImGui.BeginTooltip(); ImGui.Text("Settings"); ImGui.EndTooltip(); }
             ImGui.SameLine();
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);
-            if (ImGui.Button("X###ovClose"))
+            if (ImGuiComponents.IconButton("ovClose", FontAwesomeIcon.Times))
                 IsOpen = false;
             ImGui.PopStyleColor();
             if (ImGui.IsItemHovered())
             { ImGui.BeginTooltip(); ImGui.Text("Close"); ImGui.EndTooltip(); }
-            ImGui.PopStyleVar();
         }
     }
 
