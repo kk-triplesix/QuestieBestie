@@ -31,4 +31,6 @@ public sealed class QuestData
     public uint TerritoryId { get; init; }
     public string ChainName { get; set; } = string.Empty;
     public int ChainIndex { get; set; }
+    public bool IsSpecial { get; init; }
+    public string SpecialTag { get; init; } = string.Empty;
 }

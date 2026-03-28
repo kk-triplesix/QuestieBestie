@@ -14,12 +14,14 @@ public sealed class QuestService
 
     public List<QuestData> BlueQuests { get; } = [];
     public Dictionary<uint, QuestData> BlueQuestLookup { get; } = [];
+    public List<QuestData> SideQuests { get; } = [];
 
     private DateTime _lastRefresh = DateTime.MinValue;
 
     public QuestService()
     {
         LoadBlueQuests();
+        LoadSideQuests();
     }
 
     private void LoadBlueQuests()
@@ -173,6 +175,121 @@ public sealed class QuestService
         }
     }
 
+    private void LoadSideQuests()
+    {
+        var questSheet = Svc.Data.GetExcelSheet<Quest>();
+        if (questSheet == null)
+            return;
+
+        // Collect all blue quest prerequisite IDs that are NOT blue quests themselves
+        var bluePrereqIds = BlueQuests
+            .SelectMany(q => q.PrerequisiteIds)
+            .Where(id => !BlueQuestLookup.ContainsKey(id))
+            .ToHashSet();
+
+        // Build reverse lookup: yellow quest RowId -> which blue quest(s) it unlocks
+        var unlocksBlueQuest = new Dictionary<uint, string>();
+        foreach (var bq in BlueQuests)
+        {
+            foreach (var prereqId in bq.PrerequisiteIds)
+            {
+                if (!BlueQuestLookup.ContainsKey(prereqId))
+                    unlocksBlueQuest.TryAdd(prereqId, bq.Name);
+            }
+        }
+
+        foreach (var quest in questSheet)
+        {
+            // Only yellow/side quests (EventIconType 1)
+            if (quest.EventIconType.RowId != 1)
+                continue;
+
+            var name = quest.Name.ExtractText();
+            if (string.IsNullOrWhiteSpace(name))
+                continue;
+
+            if (quest.IssuerLocation.RowId == 0)
+                continue;
+
+            // Determine if this quest is special
+            var isSpecial = false;
+            var specialTags = new List<string>();
+
+            // Is it a prerequisite for a blue quest?
+            if (unlocksBlueQuest.TryGetValue(quest.RowId, out var blueQuestName))
+            {
+                isSpecial = true;
+                specialTags.Add($"Required for: {blueQuestName}");
+            }
+
+            // Emote reward
+            var emote = quest.EmoteReward.ValueNullable;
+            if (emote != null)
+            {
+                var emoteName = emote.Value.Name.ExtractText();
+                if (!string.IsNullOrWhiteSpace(emoteName))
+                { isSpecial = true; specialTags.Add($"Emote: /{emoteName}"); }
+            }
+
+            // General action reward (mount, companion related)
+            for (var i = 0; i < 2; i++)
+            {
+                var ga = quest.GeneralActionReward[i].ValueNullable;
+                if (ga != null)
+                {
+                    var gaName = ga.Value.Name.ExtractText();
+                    if (!string.IsNullOrWhiteSpace(gaName))
+                    { isSpecial = true; specialTags.Add($"Unlocks: {gaName}"); }
+                }
+            }
+
+            // Beast tribe
+            if (quest.BeastTribe.RowId != 0)
+            {
+                var tribeName = quest.BeastTribe.ValueNullable?.Name.ExtractText();
+                if (!string.IsNullOrWhiteSpace(tribeName))
+                { isSpecial = true; specialTags.Add($"Tribe: {tribeName}"); }
+            }
+
+            var classJob = quest.ClassJobCategory0.ValueNullable?.Name.ExtractText() ?? "All Classes";
+            var location = quest.PlaceName.ValueNullable?.Name.ExtractText() ?? "";
+            if (string.IsNullOrWhiteSpace(location))
+                location = quest.IssuerLocation.ValueNullable?.Territory.ValueNullable?.PlaceName.ValueNullable?.Name.ExtractText() ?? "";
+
+            var expansionId = quest.Expansion.RowId;
+            var expansion = quest.Expansion.ValueNullable?.Name.ExtractText() ?? "";
+            if (string.IsNullOrWhiteSpace(expansion))
+                expansion = expansionId == 0 ? "A Realm Reborn" : $"Expansion {expansionId}";
+
+            var issuerLoc = quest.IssuerLocation.ValueNullable;
+
+            SideQuests.Add(new QuestData
+            {
+                RowId = quest.RowId,
+                QuestId = (ushort)(quest.RowId & 0xFFFF),
+                Name = name,
+                IconId = (ushort)quest.Icon,
+                RequiredLevel = (byte)quest.ClassJobLevel[0],
+                RequiredClassJob = classJob,
+                PrerequisiteIds = [],
+                Location = location,
+                Expansion = expansion,
+                ExpansionId = expansionId,
+                IssuerX = issuerLoc?.X ?? 0f,
+                IssuerZ = issuerLoc?.Z ?? 0f,
+                TerritoryId = issuerLoc?.Territory.RowId ?? 0u,
+                Category = QuestCategory.Other,
+                IsSpecial = isSpecial,
+                SpecialTag = string.Join(" | ", specialTags),
+            });
+        }
+
+        // Remove duplicates
+        var dupes = SideQuests.GroupBy(q => q.Name).Where(g => g.Count() > 1)
+            .SelectMany(g => g.OrderByDescending(q => q.RowId).Skip(1)).Select(q => q.RowId).ToHashSet();
+        if (dupes.Count > 0) SideQuests.RemoveAll(q => dupes.Contains(q.RowId));
+    }
+
     public void RefreshCompletionStatus()
     {
         if ((DateTime.Now - _lastRefresh).TotalSeconds < 1.0)
@@ -187,6 +304,8 @@ public sealed class QuestService
                 return;
 
             foreach (var quest in BlueQuests)
+                quest.IsCompleted = QuestManager.IsQuestComplete(quest.QuestId);
+            foreach (var quest in SideQuests)
                 quest.IsCompleted = QuestManager.IsQuestComplete(quest.QuestId);
         }
     }

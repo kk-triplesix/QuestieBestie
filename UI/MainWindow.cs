@@ -59,6 +59,8 @@ internal sealed class MainWindow : Window
             { ImGui.Spacing(); DrawAetherCurrents(); ImGui.EndTabItem(); }
             if (ImGui.BeginTabItem("Duty Unlocks"))
             { ImGui.Spacing(); DrawDutyUnlocks(); ImGui.EndTabItem(); }
+            if (ImGui.BeginTabItem("Side Quests"))
+            { ImGui.Spacing(); DrawSideQuests(); ImGui.EndTabItem(); }
             if (ImGui.BeginTabItem("Statistics"))
             { ImGui.Spacing(); DrawStatistics(); ImGui.EndTabItem(); }
             ImGui.EndTabBar();
@@ -454,6 +456,113 @@ internal sealed class MainWindow : Window
             }
             ImGui.Spacing();
         }
+    }
+
+    // ── Statistics Tab ──────────────────────────────────────────────────
+
+    // ── Side Quests Tab ───────────────────────────────────────────────
+
+    private string _sideSearch = string.Empty;
+    private int _sideFilter; // 0=All, 1=Special Only, 2=Incomplete, 3=Complete
+    private int _sideExpansion;
+
+    private void DrawSideQuests()
+    {
+        // Filters
+        ImGui.PushItemWidth(180);
+        ImGui.InputTextWithHint("##sideSearch", "Search side quests...", ref _sideSearch, 256);
+        ImGui.PopItemWidth();
+        ImGui.SameLine();
+        ImGui.PushItemWidth(120);
+        var sideLabels = new[] { "All", "Special Only", "Incomplete", "Complete" };
+        ImGui.Combo("##sideFilter", ref _sideFilter, sideLabels, sideLabels.Length);
+        ImGui.PopItemWidth();
+        ImGui.SameLine();
+        ImGui.PushItemWidth(140);
+        ImGui.Combo("##sideExp", ref _sideExpansion, _expansionOptions, _expansionOptions.Length);
+        ImGui.PopItemWidth();
+
+        // Filter
+        var search = _sideSearch.Trim();
+        var filtered = _questService.SideQuests.Where(q =>
+        {
+            switch (_sideFilter)
+            {
+                case 1: if (!q.IsSpecial) return false; break;
+                case 2: if (q.IsCompleted) return false; break;
+                case 3: if (!q.IsCompleted) return false; break;
+            }
+            if (_sideExpansion > 0 && !q.Expansion.Equals(_expansionOptions[_sideExpansion], StringComparison.OrdinalIgnoreCase)) return false;
+            if (search.Length > 0 && !q.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
+                && !q.Location.Contains(search, StringComparison.OrdinalIgnoreCase)
+                && !q.SpecialTag.Contains(search, StringComparison.OrdinalIgnoreCase)) return false;
+            return true;
+        }).OrderByDescending(q => q.IsSpecial).ThenBy(q => q.RequiredLevel).ThenBy(q => q.Name).ToList();
+
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+        ImGui.Text($"{filtered.Count} quests shown ({_questService.SideQuests.Count(q => q.IsSpecial)} special)");
+        ImGui.PopStyleColor();
+
+        var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable
+                    | ImGuiTableFlags.ScrollY | ImGuiTableFlags.SizingStretchProp;
+        var tableHeight = ImGui.GetContentRegionAvail().Y;
+
+        if (!ImGui.BeginTable("##sidequests", 5, flags, new Vector2(0, tableHeight)))
+            return;
+
+        ImGui.TableSetupScrollFreeze(0, 1);
+        ImGui.TableSetupColumn("Done", ImGuiTableColumnFlags.WidthFixed, 30);
+        ImGui.TableSetupColumn("Quest", ImGuiTableColumnFlags.WidthStretch, 0);
+        ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 28);
+        ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 45);
+        ImGui.TableSetupColumn("Special", ImGuiTableColumnFlags.WidthFixed, 250);
+        ImGui.TableHeadersRow();
+
+        foreach (var quest in filtered)
+        {
+            ImGui.TableNextRow();
+
+            // Status
+            ImGui.TableNextColumn();
+            ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextGreen : Styles.TextSecondary);
+            ImGui.Text(quest.IsCompleted ? "\u2713" : "\u2022");
+            ImGui.PopStyleColor();
+
+            // Name
+            ImGui.TableNextColumn();
+            var nameColor = quest.IsCompleted ? Styles.TextDimmed : quest.IsSpecial ? Styles.FavoriteStar : Styles.TextPrimary;
+            ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
+            if (ImGui.Selectable($"{quest.Name}###sq{quest.RowId}", false, ImGuiSelectableFlags.SpanAllColumns))
+                _questService.OpenQuestOnMap(quest.RowId);
+            ImGui.PopStyleColor();
+
+            if (ImGui.IsItemHovered() && !string.IsNullOrEmpty(quest.SpecialTag))
+            { ImGui.BeginTooltip(); ImGui.Text(quest.SpecialTag); ImGui.EndTooltip(); }
+
+            // Level
+            ImGui.TableNextColumn();
+            ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.TextSecondary);
+            ImGui.Text($"{quest.RequiredLevel}");
+            ImGui.PopStyleColor();
+
+            // Expansion
+            ImGui.TableNextColumn();
+            var expAbbrev = quest.ExpansionId switch { 0 => "ARR", 1 => "HW", 2 => "SB", 3 => "ShB", 4 => "EW", 5 => "DT", _ => "?" };
+            ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.GetExpansionColor(quest.ExpansionId));
+            ImGui.Text(expAbbrev);
+            ImGui.PopStyleColor();
+
+            // Special tag
+            ImGui.TableNextColumn();
+            if (quest.IsSpecial)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.FavoriteStar);
+                ImGui.Text(quest.SpecialTag);
+                ImGui.PopStyleColor();
+            }
+        }
+
+        ImGui.EndTable();
     }
 
     // ── Statistics Tab ──────────────────────────────────────────────────
