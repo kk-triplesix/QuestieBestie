@@ -150,6 +150,63 @@ public sealed class QuestService
         }
 
         BuildQuestChains();
+        PropagateChainUnlocks();
+    }
+
+    private void PropagateChainUnlocks()
+    {
+        // Group quests by chain name
+        var chains = BlueQuests
+            .Where(q => !string.IsNullOrEmpty(q.ChainName))
+            .GroupBy(q => q.ChainName)
+            .ToList();
+
+        foreach (var chain in chains)
+        {
+            // Find the best unlock description in the chain (most specific, not generic)
+            var bestUnlock = chain
+                .Where(q => !string.IsNullOrEmpty(q.Unlocks)
+                    && q.Unlocks != "Feature unlock"
+                    && !q.Unlocks.EndsWith("quest chain")
+                    && !q.Unlocks.EndsWith("(job ability)"))
+                .Select(q => (q.Category, q.Unlocks))
+                .FirstOrDefault();
+
+            if (bestUnlock == default || string.IsNullOrEmpty(bestUnlock.Unlocks))
+                continue;
+
+            // Propagate to all quests in the chain that have a generic description
+            foreach (var quest in chain)
+            {
+                if (quest.Unlocks is "Feature unlock" or "Content quest chain"
+                    || quest.Unlocks.EndsWith("quest chain"))
+                {
+                    quest.Unlocks = $"Chain: {bestUnlock.Unlocks}";
+                    if (bestUnlock.Category is QuestCategory.Dungeon or QuestCategory.Trial or QuestCategory.Raid)
+                        quest.Category = bestUnlock.Category;
+                }
+            }
+        }
+
+        // Also propagate for non-chain quests: if a blue quest's prerequisite chain leads to a dungeon unlock
+        foreach (var quest in BlueQuests)
+        {
+            if (quest.Unlocks != "Feature unlock" || quest.PrerequisiteIds.Length == 0)
+                continue;
+
+            // Check if any quest that has THIS quest as a prerequisite has a specific unlock
+            var dependent = BlueQuests.FirstOrDefault(q =>
+                q.PrerequisiteIds.Contains(quest.RowId)
+                && !string.IsNullOrEmpty(q.Unlocks)
+                && q.Unlocks != "Feature unlock");
+
+            if (dependent != null)
+            {
+                quest.Unlocks = $"Leads to: {dependent.Unlocks}";
+                if (dependent.Category is QuestCategory.Dungeon or QuestCategory.Trial or QuestCategory.Raid)
+                    quest.Category = dependent.Category;
+            }
+        }
     }
 
     private void BuildQuestChains()

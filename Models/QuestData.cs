@@ -24,8 +24,8 @@ public sealed class QuestData
     public string Location { get; init; } = string.Empty;
     public string Expansion { get; init; } = string.Empty;
     public uint ExpansionId { get; init; }
-    public QuestCategory Category { get; init; }
-    public string Unlocks { get; init; } = string.Empty;
+    public QuestCategory Category { get; set; }
+    public string Unlocks { get; set; } = string.Empty;
     public float IssuerX { get; init; }
     public float IssuerZ { get; init; }
     public uint TerritoryId { get; init; }
