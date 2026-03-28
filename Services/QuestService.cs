@@ -421,6 +421,120 @@ public sealed class QuestService
         return MathF.Sqrt(dx * dx + dz * dz);
     }
 
+    public List<QuestData> PlanRoute(List<QuestData> quests)
+    {
+        if (quests.Count <= 1)
+            return quests;
+
+        // Group by territory, sort groups by closest territory first, then nearest-neighbor within each group
+        #pragma warning disable CS0618
+        var player = Svc.ClientState.LocalPlayer;
+        #pragma warning restore CS0618
+        var playerTerritory = Svc.ClientState.TerritoryType;
+        var playerX = player?.Position.X ?? 0f;
+        var playerZ = player?.Position.Z ?? 0f;
+
+        var groups = quests.GroupBy(q => q.TerritoryId).ToList();
+
+        // Sort groups: current territory first, then by smallest distance in group
+        groups.Sort((a, b) =>
+        {
+            if (a.Key == playerTerritory && b.Key != playerTerritory) return -1;
+            if (b.Key == playerTerritory && a.Key != playerTerritory) return 1;
+            return 0;
+        });
+
+        var result = new List<QuestData>();
+        foreach (var group in groups)
+        {
+            var remaining = group.ToList();
+            var curX = group.Key == playerTerritory ? playerX : remaining[0].IssuerX;
+            var curZ = group.Key == playerTerritory ? playerZ : remaining[0].IssuerZ;
+
+            while (remaining.Count > 0)
+            {
+                var nearest = remaining.OrderBy(q =>
+                {
+                    var dx = q.IssuerX - curX;
+                    var dz = q.IssuerZ - curZ;
+                    return dx * dx + dz * dz;
+                }).First();
+
+                result.Add(nearest);
+                curX = nearest.IssuerX;
+                curZ = nearest.IssuerZ;
+                remaining.Remove(nearest);
+            }
+        }
+
+        return result;
+    }
+
+    public void SendQuestChatLink(uint rowId)
+    {
+        var questSheet = Svc.Data.GetExcelSheet<Quest>();
+        if (questSheet == null) return;
+        var quest = questSheet.GetRowOrDefault(rowId);
+        if (quest == null) return;
+
+        var issuerLocation = quest.Value.IssuerLocation.ValueNullable;
+        if (issuerLocation == null) return;
+
+        var level = issuerLocation.Value;
+        var map = level.Map.ValueNullable;
+        var territory = level.Territory.ValueNullable;
+        if (map == null || territory == null) return;
+
+        var mapCoords = MapUtil.WorldToMap(new Vector2(level.X, level.Z), map.Value);
+        var payload = new MapLinkPayload(territory.Value.RowId, map.Value.RowId, mapCoords.X, mapCoords.Y);
+
+        var name = quest.Value.Name.ExtractText();
+        var msg = new Dalamud.Game.Text.SeStringHandling.SeStringBuilder()
+            .AddText($"{name}: ")
+            .Add(payload)
+            .AddText($"{payload.PlaceName} ({mapCoords.X:F1}, {mapCoords.Y:F1})")
+            .Add(RawPayload.LinkTerminator)
+            .Build();
+
+        Svc.Chat.Print(new Dalamud.Game.Text.XivChatEntry { Message = msg });
+    }
+
+    public (float DirectionRad, float Distance, string QuestName)? GetNearestTrackedQuestDirection(List<uint> trackedIds)
+    {
+        #pragma warning disable CS0618
+        var player = Svc.ClientState.LocalPlayer;
+        #pragma warning restore CS0618
+        if (player == null || trackedIds.Count == 0)
+            return null;
+
+        var territory = Svc.ClientState.TerritoryType;
+        QuestData? nearest = null;
+        var minDist = float.MaxValue;
+
+        foreach (var id in trackedIds)
+        {
+            if (!BlueQuestLookup.TryGetValue(id, out var q) || q.IsCompleted || q.TerritoryId != territory)
+                continue;
+
+            var dx = q.IssuerX - player.Position.X;
+            var dz = q.IssuerZ - player.Position.Z;
+            var dist = MathF.Sqrt(dx * dx + dz * dz);
+            if (dist < minDist)
+            {
+                minDist = dist;
+                nearest = q;
+            }
+        }
+
+        if (nearest == null)
+            return null;
+
+        var dirX = nearest.IssuerX - player.Position.X;
+        var dirZ = nearest.IssuerZ - player.Position.Z;
+        var angle = MathF.Atan2(dirX, dirZ);
+        return (angle, minDist, nearest.Name);
+    }
+
     public int CompletedCount => BlueQuests.Count(q => q.IsCompleted);
     public int TotalCount => BlueQuests.Count;
     public float CompletionPercent => TotalCount > 0 ? (float)CompletedCount / TotalCount * 100f : 0f;

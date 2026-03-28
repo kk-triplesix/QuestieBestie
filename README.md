@@ -1,77 +1,100 @@
 # QuestieBestie
 
-**Never miss a blue quest again.** QuestieBestie is a Dalamud plugin for Final Fantasy XIV that tracks all blue (feature unlock) quests, shows their prerequisites, and helps you organize your quest journey with custom tracking lists and an in-game overlay.
+**The ultimate blue quest companion for FFXIV.** Track all feature unlock quests, see what they unlock, plan your route, and never miss a dungeon, trial, or feature again.
 
 ---
 
 ## Features
 
 ### Blue Quest Database
-- Browse **all blue (feature unlock) quests** in a sortable, searchable table
-- **6 columns**: Status, Quest Name, Level, Location, Class/Job, Unlocks
+- Browse **all blue (feature unlock) quests** in a 7-column sortable table
+- Columns: Favorite, Quest Name, Level, Expansion, Location, Class/Job, Unlocks
+- **Farbige Expansion-Tags**: ARR (blue), HW (cyan), SB (red), ShB (purple), EW (gold), DT (green)
 - Filter by **completion status**: All / Available / Incomplete / Complete
-- Filter by **expansion**: A Realm Reborn, Heavensward, Stormblood, Shadowbringers, Endwalker, Dawntrail
-- Filter by **class/job**, **location**, and **quest type** (Feature, Job Unlock, Dungeon, Trial, Raid)
-- All filter dropdowns have a **built-in search field** for quick selection
+- Filter by **expansion**, **class/job**, **location**, and **quest type** — all with built-in search fields
 - Filter by **level range** with min/max inputs
-- **Text search** across all columns (name, level, location, class/job, expansion, unlocks)
+- **Text search** across all columns
 - **"Nearest" button** to sort quests by distance to your current position
-- Click any column header to **sort** ascending/descending
 
-### Quest Details & Prerequisites
-- Click any quest to open a **detail window** with the full **recursive prerequisite tree**
-- Prerequisites shown at every depth level (Quest A > Quest B > Quest C)
-- Each prerequisite displays **completion status**, **type** (Blue / MSQ / Side), and is **clickable**
-- Prerequisite chains **stop at MSQ quests** to keep the tree readable
-- **Quest chains** are automatically detected and shown in tooltips
+### Favorites & Notes
+- **Star system** to mark favorite quests — favorites always sorted to top
+- **Personal notes** per quest (visible in detail window and tooltips)
+- Both saved persistently
+
+### What's New
+- **"NEW" badge** on quests added since your last login
+- Automatically detects new content after game patches
 
 ### Unlock Descriptions
-- Each quest shows **what it unlocks**: dungeons, trials, raids, jobs, features, emotes, actions, beast tribes
-- Detected via game data: InstanceContentUnlock, ClassJobUnlock, GeneralActionReward, EmoteReward, OtherReward
-- Covers glamour, dye, materia melding, desynthesis, treasure maps, Aether Currents, and more
+- Shows **what each quest unlocks**: dungeons, trials, raids, jobs, glamour, dye, materia, emotes, beast tribes, Aether Currents, and more
+- Detected via game data fields: InstanceContentUnlock, ClassJobUnlock, GeneralActionReward, EmoteReward, OtherReward
 
-### Rich Tooltips
-- Hover over any quest for a **detailed tooltip** showing:
-- Expansion, Level, Location, Class/Job, Quest Type, Unlocks, Prerequisites, Chain info
+### Quest Details & Prerequisites
+- Click any quest for a **detail window** with the full **recursive prerequisite tree**
+- Prerequisites shown at every depth, stopping at MSQ quests
+- Each prerequisite is **clickable** (opens map)
+- **Quest chains** automatically detected and displayed
+- **Favorite button** and **notes field** in detail window
 
 ### Map Integration
-- **Click any quest** in the table, detail window, or overlay to open the **in-game map** with a flag at the quest giver
-- Works for both blue quests and their prerequisites
+- **Click any quest** to open the in-game map with a flag at the quest giver
+- **"Send to Chat"** via right-click to share a map link in chat
+- Works for both blue quests and prerequisites
+
+### Route Planner
+- **Optimized quest route** for your tracking list
+- Groups quests by zone, then sorts by nearest-neighbor within each zone
+- Current zone prioritized first
 
 ### Custom Tracking Lists
-- Create **multiple named lists** to organize your quests (e.g. "Dungeons", "Raids", "Crafting")
-- **Right-click** any quest in the table to add it to an existing list or create a new one
+- Create **multiple named lists** (e.g. "Dungeons", "Raids", "Crafting")
+- **Right-click** any quest to add to a list or create a new one
 - **Export/Import** lists via clipboard (JSON) to share with friends
-- Lists are **saved persistently** across game restarts
-- **Auto-remove** completed quests from lists (optional, in Settings)
+- **Auto-remove** completed quests from lists (optional)
+- Lists saved persistently
 
 ### In-Game Overlay
-- Transparent, resizable, draggable **overlay window** with your active tracking list
-- Toggle via **"Show Overlay" button** or `/questie overlay`
-- Quest names, level requirements, and **missing prerequisites with warnings**
-- Click quests to **open the map**, right-click to **remove from list**
-- **Settings gear** and **close button** appear on hover
-- **Switch between lists** directly in the overlay
+- Transparent, resizable, draggable overlay with your active tracking list
+- **Settings gear** and **close button** on hover
 - **Background opacity increases on hover** for readability
+- Click quests to open map, right-click to remove
+- **Switch between lists** directly in the overlay
+
+### Progress Widget
+- Compact **mini-overlay** showing overall completion percentage
+- **Direction arrow** pointing to nearest tracked quest in your zone
+- Distance in yalms displayed
 
 ### Overlay Customization
-- Adjust **font scale**, **background opacity**, **border opacity**, and **window rounding**
+- Adjust **font scale**, **background opacity**, **border opacity**, **window rounding**
 - Customize **every color**: text, header, completed, level badge, warning, background, border
-- **Reset to defaults** with one click
-- All settings saved persistently
+- **Auto-remove completed quests** toggle
+- **Chat notifications** when new quests become available
+- **Sound notifications** option
+- **Reset to defaults** button
+
+### Aether Currents Tab
+- All Aether Current quests grouped by zone
+- **Progress bars** per zone with expansion colors
+- Click any quest to open map
+
+### Duty Unlock Checklist
+- All **dungeons, trials, and raids** grouped by type
+- **Expansion tags** and unlock descriptions
+- Quick overview of what duties you still need to unlock
 
 ### Statistics Tab
-- **Overall progress** bar with completion percentage
-- **Per-expansion** progress bars (ARR, HW, SB, ShB, EW, DT)
+- **Overall progress** bar
+- **Per-expansion** progress bars with expansion colors
 - **Per-type** progress bars (Feature, Job Unlock, Dungeon, Trial, Raid)
 
 ### Notifications
-- **Chat notifications** when a new blue quest becomes available (prerequisites met)
+- **Chat notifications** when a new blue quest becomes available
 - Colored messages in the Echo channel
-- Can be toggled in Settings
+- Toggleable in Settings
 
 ### Server Info Bar (DTR)
-- Shows **completion percentage** (`QB 67%`) in the Dalamud server info bar
+- Shows **completion percentage** (`QB 67%`) in the server info bar
 - **Click** to toggle the main window
 
 ---
@@ -82,19 +105,23 @@
 |---------|-------------|
 | `/questie` | Toggle the main window |
 | `/questie overlay` | Toggle the in-game overlay |
+| `/questie stats` | Open the main window |
 
 ---
 
 ## How It Works
 
 1. **Open the main window** with `/questie` or click the DTR bar entry
-2. **Browse quests** using filters — "Available" is the default, showing quests you can pick up right now
-3. **Click a quest** to see it on the map and view the full prerequisite chain
-4. **Right-click a quest** to add it to a tracking list
-5. **Show the overlay** to keep your tracked quests visible while playing
-6. **Check the Statistics tab** to see your completion progress per expansion and type
-7. **Customize** the overlay appearance and behavior in Settings
-8. **Share lists** with friends using Export/Import via clipboard
+2. **Browse quests** using filters — "Available" is the default
+3. **Click a quest** to see it on the map and view the prerequisite chain
+4. **Right-click a quest** to add to a tracking list, favorite it, or send to chat
+5. **Show the overlay** to keep tracked quests visible while playing
+6. **Enable the widget** for a compact progress bar with direction arrow
+7. **Check the Statistics tab** for completion progress per expansion and type
+8. **Use the Aether Currents tab** to track flight unlock progress
+9. **Use the Duty Unlocks tab** for a dungeon/trial/raid checklist
+10. **Share lists** with friends via Export/Import
+11. **Customize everything** in Settings
 
 ---
 

@@ -2,7 +2,7 @@
   "Author": "kk-triplesix",
   "Name": "QuestieBestie",
   "InternalName": "QuestieBestie",
-  "Description": "Track all blue (feature unlock) quests in FFXIV. Shows prerequisites, completion status, map markers, and custom tracking lists with an in-game overlay.",
+  "Description": "The ultimate blue quest companion.\n- Track all feature unlock quests with filters by expansion, class, location, and type\n- See what each quest unlocks: dungeons, trials, raids, jobs, features\n- Recursive prerequisite trees with MSQ cutoff\n- Custom tracking lists with in-game overlay\n- Aether Current tracker and Duty Unlock checklist\n- Statistics, favorites, notes, route planner, chat links\n- Fully customizable overlay with colors, transparency, and font scale",
   "ApplicableVersion": "any",
   "DalamudApiLevel": 14,
   "TestingDalamudApiLevel": 14,
@@ -11,7 +11,10 @@
     "tracker",
     "unlock",
     "blue quest",
-    "companion"
+    "feature",
+    "dungeon",
+    "aether current",
+    "overlay"
   ],
   "CategoryTags": [
     "other"
@@ -21,6 +24,6 @@
   "CanUnloadAsync": false,
   "LoadPriority": 0,
   "IsTestingExclusive": false,
-  "Punchline": "Never miss a blue quest again. Track, filter, and conquer.",
+  "Punchline": "The ultimate blue quest companion. Track, filter, and never miss an unlock.",
   "AcceptsFeedback": true
 }

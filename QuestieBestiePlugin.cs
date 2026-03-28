@@ -17,6 +17,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     private readonly OverlayWindow _overlayWindow;
     private readonly DetailWindow _detailWindow;
     private readonly SettingsWindow _settingsWindow;
+    private readonly WidgetWindow _widgetWindow;
     private readonly QuestService _questService;
     private readonly TrackingService _trackingService;
     private readonly IDtrBarEntry _dtrEntry;
@@ -33,7 +34,8 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         _overlayWindow = new OverlayWindow(_questService, _trackingService);
         _settingsWindow = new SettingsWindow(_trackingService);
         _overlayWindow.SetSettingsWindow(_settingsWindow);
-        _mainWindow = new MainWindow(_questService, _detailWindow, _trackingService, _overlayWindow, _settingsWindow);
+        _widgetWindow = new WidgetWindow(_questService, _trackingService);
+        _mainWindow = new MainWindow(_questService, _detailWindow, _trackingService, _overlayWindow, _settingsWindow, _widgetWindow);
 
         // Track "What's New" — update max RowId on first load
         var currentMax = _questService.BlueQuests.Count > 0 ? _questService.BlueQuests.Max(q => q.RowId) : 0u;
@@ -45,6 +47,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         _windowSystem.AddWindow(_overlayWindow);
         _windowSystem.AddWindow(_detailWindow);
         _windowSystem.AddWindow(_settingsWindow);
+        _windowSystem.AddWindow(_widgetWindow);
 
         _dtrEntry = Svc.DtrBar.Get("QuestieBestie");
         _dtrEntry.OnClick += OnDtrClick;

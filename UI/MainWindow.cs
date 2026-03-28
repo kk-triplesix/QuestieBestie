@@ -12,6 +12,7 @@ internal sealed class MainWindow : Window
     private readonly TrackingService _trackingService;
     private readonly OverlayWindow _overlayWindow;
     private readonly SettingsWindow _settingsWindow;
+    private readonly WidgetWindow _widgetWindow;
 
     private string _searchText = string.Empty;
     private int _filterMode = 1;
@@ -24,7 +25,7 @@ internal sealed class MainWindow : Window
     private bool _dirty = true;
     private string _newListName = string.Empty;
 
-    public MainWindow(QuestService questService, DetailWindow detailWindow, TrackingService trackingService, OverlayWindow overlayWindow, SettingsWindow settingsWindow)
+    public MainWindow(QuestService questService, DetailWindow detailWindow, TrackingService trackingService, OverlayWindow overlayWindow, SettingsWindow settingsWindow, WidgetWindow widgetWindow)
         : base("QuestieBestie###QuestieBestieMain", ImGuiWindowFlags.None)
     {
         _questService = questService;
@@ -32,6 +33,7 @@ internal sealed class MainWindow : Window
         _trackingService = trackingService;
         _overlayWindow = overlayWindow;
         _settingsWindow = settingsWindow;
+        _widgetWindow = widgetWindow;
         SizeConstraints = new WindowSizeConstraints { MinimumSize = new Vector2(750, 500), MaximumSize = new Vector2(9999, 9999) };
 
         _classJobOptions = ["All Classes", .. questService.BlueQuests.Select(q => q.RequiredClassJob).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().OrderBy(c => c)];
@@ -71,12 +73,18 @@ internal sealed class MainWindow : Window
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("— Blue Quest Tracker"); ImGui.PopStyleColor();
 
-        var settingsW = ImGui.CalcTextSize("Settings").X + 16;
-        var overlayLabel = _overlayWindow.IsOpen ? "Hide Overlay" : "Show Overlay";
-        var overlayW = ImGui.CalcTextSize(overlayLabel).X + 16;
+        // Right-aligned buttons
         ImGui.SameLine();
-        ImGui.SetCursorPosX(ImGui.GetWindowWidth() - settingsW - overlayW - 24);
+        var rightX = ImGui.GetWindowWidth() - 16;
+        var settingsW = ImGui.CalcTextSize("Settings").X + 16;
+        var widgetLabel = _widgetWindow.IsOpen ? "Hide Widget" : "Widget";
+        var widgetW = ImGui.CalcTextSize(widgetLabel).X + 16;
+        var overlayLabel = _overlayWindow.IsOpen ? "Hide Overlay" : "Overlay";
+        var overlayW = ImGui.CalcTextSize(overlayLabel).X + 16;
+        ImGui.SetCursorPosX(rightX - settingsW - widgetW - overlayW - 16);
         if (ImGui.Button(overlayLabel)) _overlayWindow.Toggle();
+        ImGui.SameLine();
+        if (ImGui.Button(widgetLabel)) _widgetWindow.Toggle();
         ImGui.SameLine();
         if (ImGui.Button("Settings")) _settingsWindow.Toggle();
 
@@ -269,9 +277,11 @@ internal sealed class MainWindow : Window
         if (ImGui.MenuItem(isFav ? "\u2605 Remove Favorite" : "\u2606 Add Favorite"))
             _trackingService.ToggleFavorite(quest.RowId);
 
-        // Map
+        // Map + Chat
         if (ImGui.MenuItem("Show on Map"))
             _questService.OpenQuestOnMap(quest.RowId);
+        if (ImGui.MenuItem("Send to Chat"))
+            _questService.SendQuestChatLink(quest.RowId);
 
         ImGui.Separator();
 
