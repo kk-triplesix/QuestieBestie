@@ -54,9 +54,9 @@ internal sealed class DetailWindow : Window
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text(_quest!.Name); ImGui.PopStyleColor();
         ImGui.SameLine();
         if (_quest.IsCompleted)
-        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextGreen); ImGui.Text("\u2713 Complete"); ImGui.PopStyleColor(); }
+        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextGreen); ImGui.Text("v Complete"); ImGui.PopStyleColor(); }
         else
-        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("\u2022 Incomplete"); ImGui.PopStyleColor(); }
+        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("- Incomplete"); ImGui.PopStyleColor(); }
 
         if (ImGui.Button("Show on Map"))
             _questService.OpenQuestOnMap(_quest.RowId);
@@ -67,7 +67,7 @@ internal sealed class DetailWindow : Window
             ImGui.SameLine();
             var isFav = _trackingService.IsFavorite(_quest.RowId);
             ImGui.PushStyleColor(ImGuiCol.Text, isFav ? Styles.FavoriteStar : Styles.TextDimmed);
-            if (ImGui.Button(isFav ? "\u2605 Favorited" : "\u2606 Favorite"))
+            if (ImGui.Button(isFav ? "* Favorited" : "o Favorite"))
                 _trackingService.ToggleFavorite(_quest.RowId);
             ImGui.PopStyleColor();
         }
@@ -103,7 +103,7 @@ internal sealed class DetailWindow : Window
             var msqPrereq = FindFirstMsq(_prereqTree);
             if (msqPrereq != null)
             {
-                var msqStatus = msqPrereq.IsCompleted ? "\u2713" : "\u2717";
+                var msqStatus = msqPrereq.IsCompleted ? "v" : "x";
                 DrawInfoLine("MSQ Req.", $"{msqStatus} {msqPrereq.Name}", msqPrereq.IsCompleted ? Styles.TextGreen : Styles.TextRed);
             }
         }
@@ -156,7 +156,7 @@ internal sealed class DetailWindow : Window
     private void DrawNode(PrerequisiteNode node, int indent)
     {
         var prefix = new string(' ', indent * 2);
-        var icon = node.IsCompleted ? "\u2713" : "\u2717";
+        var icon = node.IsCompleted ? "v" : "x";
         var iconColor = node.IsCompleted ? Styles.TextGreen : Styles.TextRed;
         var nameColor = node.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
         var typeTag = node.IsMsq ? " (MSQ)" : node.IsBlueQuest ? "" : " (Side)";

@@ -38,12 +38,12 @@ public sealed class QuestData
     public uint RewardExp { get; init; }
     public string CategoryIcon => Category switch
     {
-        QuestCategory.Dungeon => "\u2694",
-        QuestCategory.Trial => "\u2726",
-        QuestCategory.Raid => "\u2655",
-        QuestCategory.JobUnlock => "\u2606",
-        QuestCategory.Feature => "\u2699",
-        QuestCategory.Other => "\u25cb",
+        QuestCategory.Dungeon => "[D]",
+        QuestCategory.Trial => "[T]",
+        QuestCategory.Raid => "[R]",
+        QuestCategory.JobUnlock => "[J]",
+        QuestCategory.Feature => "[F]",
+        QuestCategory.Other => "[?]",
         _ => "",
     };
 }

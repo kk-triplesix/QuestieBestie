@@ -98,24 +98,27 @@ internal sealed class OverlayWindow : Window
         ImGui.Text($"({_questService.CompletionPercent:F0}%)");
         ImGui.PopStyleColor();
 
-        // Settings + Close buttons (right-aligned)
+        // Settings + Close buttons (right-aligned, only on hover)
         if (_isHovered)
         {
-            var closeSize = ImGui.CalcTextSize("\u2715").X + 8;
-            var gearSize = ImGui.CalcTextSize("\u2699").X + 8;
             ImGui.SameLine();
-            ImGui.SetCursorPosX(ImGui.GetWindowWidth() - closeSize - gearSize - 20);
+            var btnW = ImGui.CalcTextSize("[S]").X + ImGui.CalcTextSize("[X]").X + 40;
+            ImGui.SetCursorPosX(ImGui.GetWindowWidth() - btnW - 8);
 
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-            if (ImGui.Selectable("\u2699###ovSettings", false, ImGuiSelectableFlags.None, new Vector2(gearSize, 0)))
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(4, 1));
+            if (ImGui.Button("[S]###ovSettings"))
                 _settingsWindow?.Toggle();
-            ImGui.PopStyleColor();
+            if (ImGui.IsItemHovered())
+            { ImGui.BeginTooltip(); ImGui.Text("Settings"); ImGui.EndTooltip(); }
 
             ImGui.SameLine();
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);
-            if (ImGui.Selectable("\u2715###ovClose", false, ImGuiSelectableFlags.None, new Vector2(closeSize, 0)))
+            if (ImGui.Button("[X]###ovClose"))
                 IsOpen = false;
             ImGui.PopStyleColor();
+            if (ImGui.IsItemHovered())
+            { ImGui.BeginTooltip(); ImGui.Text("Close"); ImGui.EndTooltip(); }
+            ImGui.PopStyleVar();
         }
     }
 
@@ -167,7 +170,7 @@ internal sealed class OverlayWindow : Window
             if (quest.IsCompleted)
             {
                 ImGui.PushStyleColor(ImGuiCol.Text, s.CompletedColor);
-                ImGui.Text("\u2713");
+                ImGui.Text("v");
                 ImGui.PopStyleColor();
             }
             else
@@ -203,7 +206,7 @@ internal sealed class OverlayWindow : Window
                 {
                     ImGui.SameLine();
                     ImGui.PushStyleColor(ImGuiCol.Text, s.WarningColor);
-                    ImGui.Text($"\u26a0 {missing.Count} req");
+                    ImGui.Text($"! {missing.Count} req");
                     ImGui.PopStyleColor();
 
                     if (ImGui.IsItemHovered())
@@ -214,7 +217,7 @@ internal sealed class OverlayWindow : Window
                         {
                             var tag = isBlue ? "" : " (MSQ/Side)";
                             ImGui.PushStyleColor(ImGuiCol.Text, s.WarningColor);
-                            ImGui.Text($"  \u2717 {name}{tag}");
+                            ImGui.Text($"  x {name}{tag}");
                             ImGui.PopStyleColor();
                         }
                         ImGui.EndTooltip();

@@ -223,7 +223,7 @@ internal sealed class MainWindow : Window
             return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
-        ImGui.TableSetupColumn("\u2605", ImGuiTableColumnFlags.WidthFixed, 24);
+        ImGui.TableSetupColumn("*", ImGuiTableColumnFlags.WidthFixed, 24);
         ImGui.TableSetupColumn("Quest", ImGuiTableColumnFlags.WidthStretch | ImGuiTableColumnFlags.DefaultSort, 0);
         ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 28);
         ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 50);
@@ -243,7 +243,7 @@ internal sealed class MainWindow : Window
             ImGui.TableNextColumn();
             var isFav = _trackingService.IsFavorite(quest.RowId);
             ImGui.PushStyleColor(ImGuiCol.Text, isFav ? Styles.FavoriteStar : Styles.TextDimmed);
-            if (ImGui.Selectable($"{(isFav ? "\u2605" : "\u2606")}###fav{quest.RowId}", false, ImGuiSelectableFlags.None, new Vector2(20, 0)))
+            if (ImGui.Selectable($"{(isFav ? "*" : "o")}###fav{quest.RowId}", false, ImGuiSelectableFlags.None, new Vector2(20, 0)))
                 _trackingService.ToggleFavorite(quest.RowId);
             ImGui.PopStyleColor();
 
@@ -258,13 +258,13 @@ internal sealed class MainWindow : Window
             {
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 16);
                 ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed);
-                ImGui.Text("\u2514");
+                ImGui.Text("|_");
                 ImGui.PopStyleColor();
                 ImGui.SameLine();
             }
 
             if (quest.IsCompleted)
-            { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextGreen); ImGui.Text("\u2713"); ImGui.PopStyleColor(); ImGui.SameLine(); }
+            { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextGreen); ImGui.Text("v"); ImGui.PopStyleColor(); ImGui.SameLine(); }
 
             // "NEW" badge
             if (maxRowId > 0 && quest.RowId > maxRowId && !quest.IsCompleted)
@@ -476,7 +476,7 @@ internal sealed class MainWindow : Window
             // Show individual quests
             foreach (var quest in group.OrderBy(q => q.RequiredLevel))
             {
-                var icon = quest.IsCompleted ? "\u2713" : "\u2022";
+                var icon = quest.IsCompleted ? "v" : "-";
                 var color = quest.IsCompleted ? Styles.TextGreen : Styles.TextSecondary;
                 ImGui.PushStyleColor(ImGuiCol.Text, color); ImGui.Text($"    {icon}"); ImGui.PopStyleColor();
                 ImGui.SameLine();
@@ -517,7 +517,7 @@ internal sealed class MainWindow : Window
 
             foreach (var quest in quests)
             {
-                var icon = quest.IsCompleted ? "\u2713" : "\u2022";
+                var icon = quest.IsCompleted ? "v" : "-";
                 var iconColor = quest.IsCompleted ? Styles.TextGreen : Styles.TextSecondary;
                 ImGui.PushStyleColor(ImGuiCol.Text, iconColor); ImGui.Text($"  {icon}"); ImGui.PopStyleColor();
                 ImGui.SameLine();
@@ -571,7 +571,7 @@ internal sealed class MainWindow : Window
 
             if (quest == null) continue;
 
-            var icon = quest.IsCompleted ? "\u2713" : "\u2022";
+            var icon = quest.IsCompleted ? "v" : "-";
             var iconColor = quest.IsCompleted ? Styles.TextGreen : Styles.TextSecondary;
             ImGui.PushStyleColor(ImGuiCol.Text, iconColor); ImGui.Text(icon); ImGui.PopStyleColor();
             ImGui.SameLine();
@@ -654,7 +654,7 @@ internal sealed class MainWindow : Window
             // Status
             ImGui.TableNextColumn();
             ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextGreen : Styles.TextSecondary);
-            ImGui.Text(quest.IsCompleted ? "\u2713" : "\u2022");
+            ImGui.Text(quest.IsCompleted ? "v" : "-");
             ImGui.PopStyleColor();
 
             // Name
@@ -754,14 +754,14 @@ internal sealed class MainWindow : Window
         if (completed == total && total > 0)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar);
-            ImGui.Text($"\u2728 {completed}/{total} (100%)");
+            ImGui.Text($">> {completed}/{total} (100%)");
             ImGui.PopStyleColor();
 
             if ((DateTime.Now - _lastConfetti).TotalSeconds > 30)
             {
                 ImGui.SameLine();
                 ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar);
-                ImGui.Text("\u2728\u2728\u2728 COMPLETE! \u2728\u2728\u2728");
+                ImGui.Text(">>> COMPLETE! <<<");
                 ImGui.PopStyleColor();
             }
         }
