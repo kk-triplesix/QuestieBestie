@@ -152,21 +152,21 @@ public sealed class QuestService
                 toRemove.Add(old.RowId);
         }
 
-        // 3. GC variants: if any variant is completed, mark all as completed and keep only one
-        // Matches quests with same unlock text OR very similar names (differing only by GC suffix)
+        // 3. GC variants: quests with same unlock + same level = GC variants (keep one)
+        // Only applies to small groups (2-3) at same level to avoid false positives
         foreach (var group in BlueQuests
-            .Where(q => !toRemove.Contains(q.RowId) && !string.IsNullOrEmpty(q.Unlocks) && q.Unlocks != "Feature unlock")
-            .GroupBy(q => q.Unlocks)
-            .Where(g => g.Count() > 1))
+            .Where(q => !toRemove.Contains(q.RowId) && !string.IsNullOrEmpty(q.Unlocks)
+                && q.Unlocks != "Feature unlock" && !q.Unlocks.Contains("job ability")
+                && !q.Unlocks.Contains("quest chain") && !q.Unlocks.StartsWith("Chain:")
+                && !q.Unlocks.StartsWith("Leads to:"))
+            .GroupBy(q => (q.Unlocks, q.RequiredLevel))
+            .Where(g => g.Count() >= 2 && g.Count() <= 4))
         {
             var anyCompleted = group.Any(q => q.IsCompleted);
             if (anyCompleted)
-            {
-                // Mark all variants as completed
                 foreach (var q in group)
                     q.IsCompleted = true;
-            }
-            // Keep only one (prefer completed)
+
             foreach (var old in group.OrderByDescending(q => q.IsCompleted).ThenByDescending(q => q.RowId).Skip(1))
                 toRemove.Add(old.RowId);
         }
