@@ -49,6 +49,14 @@ public sealed class QuestService
             var classJob = quest.ClassJobCategory0.ValueNullable?.Name.ExtractText() ?? "All Classes";
             var isClassQuest = quest.ClassJobRequired.RowId != 0;
 
+            // Location from quest PlaceName
+            var location = quest.PlaceName.ValueNullable?.Name.ExtractText() ?? "";
+            if (string.IsNullOrWhiteSpace(location))
+                location = quest.IssuerLocation.ValueNullable?.Territory.ValueNullable?.PlaceName.ValueNullable?.Name.ExtractText() ?? "";
+
+            // Determine category and unlock description
+            var (category, unlocks) = DetermineQuestCategory(quest);
+
             var questData = new QuestData
             {
                 RowId = quest.RowId,
@@ -59,6 +67,9 @@ public sealed class QuestService
                 RequiredClassJob = classJob,
                 PrerequisiteIds = prereqs.ToArray(),
                 IsClassQuest = isClassQuest,
+                Location = location,
+                Category = category,
+                Unlocks = unlocks,
             };
 
             BlueQuests.Add(questData);
@@ -201,6 +212,71 @@ public sealed class QuestService
         }
 
         return nodes;
+    }
+
+    private (QuestCategory Category, string Unlocks) DetermineQuestCategory(Quest quest)
+    {
+        // Job unlock
+        var jobUnlock = quest.ClassJobUnlock.ValueNullable;
+        if (jobUnlock != null)
+        {
+            var jobName = jobUnlock.Value.Name.ExtractText();
+            if (!string.IsNullOrWhiteSpace(jobName))
+                return (QuestCategory.JobUnlock, $"Unlocks {jobName}");
+        }
+
+        // Instance content unlock (dungeon/trial/raid)
+        if (quest.InstanceContentUnlock.RowId != 0)
+        {
+            var cfcSheet = Svc.Data.GetExcelSheet<ContentFinderCondition>();
+            if (cfcSheet != null)
+            {
+                foreach (var cfc in cfcSheet)
+                {
+                    if (cfc.Content.RowId == quest.InstanceContentUnlock.RowId && cfc.ContentLinkType == 1)
+                    {
+                        var contentName = cfc.Name.ExtractText();
+                        if (string.IsNullOrWhiteSpace(contentName))
+                            break;
+
+                        var contentTypeId = cfc.ContentType.RowId;
+                        return contentTypeId switch
+                        {
+                            2 => (QuestCategory.Dungeon, $"Unlocks {contentName}"),
+                            4 => (QuestCategory.Trial, $"Unlocks {contentName}"),
+                            5 or 28 or 37 => (QuestCategory.Raid, $"Unlocks {contentName}"),
+                            _ => (QuestCategory.Other, $"Unlocks {contentName}"),
+                        };
+                    }
+                }
+            }
+        }
+
+        // Check rewards for more specific descriptions
+        var emote = quest.EmoteReward.ValueNullable;
+        if (emote != null)
+        {
+            var emoteName = emote.Value.Name.ExtractText();
+            if (!string.IsNullOrWhiteSpace(emoteName))
+                return (QuestCategory.Feature, $"Unlocks /{emoteName} emote");
+        }
+
+        var action = quest.ActionReward.ValueNullable;
+        if (action != null)
+        {
+            var actionName = action.Value.Name.ExtractText();
+            if (!string.IsNullOrWhiteSpace(actionName))
+                return (QuestCategory.Feature, $"Unlocks {actionName}");
+        }
+
+        if (quest.BeastTribe.RowId != 0)
+        {
+            var tribeName = quest.BeastTribe.ValueNullable?.Name.ExtractText();
+            if (!string.IsNullOrWhiteSpace(tribeName))
+                return (QuestCategory.Feature, $"Unlocks {tribeName} tribe");
+        }
+
+        return (QuestCategory.Feature, "");
     }
 
     public bool IsMsqQuest(uint rowId)

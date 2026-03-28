@@ -1,5 +1,15 @@
 namespace QuestieBestie.Models;
 
+public enum QuestCategory
+{
+    Feature,
+    JobUnlock,
+    Dungeon,
+    Trial,
+    Raid,
+    Other,
+}
+
 public sealed class QuestData
 {
     public uint RowId { get; init; }
@@ -11,4 +21,7 @@ public sealed class QuestData
     public uint[] PrerequisiteIds { get; init; } = [];
     public bool IsCompleted { get; set; }
     public bool IsClassQuest { get; init; }
+    public string Location { get; init; } = string.Empty;
+    public QuestCategory Category { get; init; }
+    public string Unlocks { get; init; } = string.Empty;
 }

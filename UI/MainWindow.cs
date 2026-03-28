@@ -18,7 +18,11 @@ internal sealed class MainWindow : Window
     private int _levelMin;
     private int _levelMax = 100;
     private int _classJobFilter; // 0 = All Classes
+    private int _locationFilter; // 0 = All Locations
+    private int _categoryFilter; // 0 = All Types
     private string[] _classJobOptions = [];
+    private string[] _locationOptions = [];
+    private string[] _categoryOptions = [];
     private List<QuestData> _filtered = [];
     private bool _dirty = true;
     private string _newListName = string.Empty;
@@ -42,6 +46,14 @@ internal sealed class MainWindow : Window
             .Where(c => !string.IsNullOrWhiteSpace(c))
             .Distinct()
             .OrderBy(c => c)];
+
+        _locationOptions = ["All Locations", .. _questService.BlueQuests
+            .Select(q => q.Location)
+            .Where(l => !string.IsNullOrWhiteSpace(l))
+            .Distinct()
+            .OrderBy(l => l)];
+
+        _categoryOptions = ["All Types", "Feature", "Job Unlock", "Dungeon", "Trial", "Raid", "Other"];
     }
 
     public override void PreDraw()
@@ -157,6 +169,18 @@ internal sealed class MainWindow : Window
         if (ImGui.Combo("##classjob", ref _classJobFilter, _classJobOptions, _classJobOptions.Length))
             _dirty = true;
         ImGui.PopItemWidth();
+
+        // Second filter row: location + category
+        ImGui.PushItemWidth(180);
+        if (ImGui.Combo("##location", ref _locationFilter, _locationOptions, _locationOptions.Length))
+            _dirty = true;
+        ImGui.PopItemWidth();
+
+        ImGui.SameLine();
+        ImGui.PushItemWidth(140);
+        if (ImGui.Combo("##category", ref _categoryFilter, _categoryOptions, _categoryOptions.Length))
+            _dirty = true;
+        ImGui.PopItemWidth();
     }
 
     private void DrawQuestTable()
@@ -177,14 +201,16 @@ internal sealed class MainWindow : Window
         var avail = ImGui.GetContentRegionAvail();
         var tableHeight = avail.Y - 30;
 
-        if (!ImGui.BeginTable("##quests", 4, flags, new Vector2(0, tableHeight)))
+        if (!ImGui.BeginTable("##quests", 6, flags, new Vector2(0, tableHeight)))
             return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableSetupColumn("Done", ImGuiTableColumnFlags.WidthFixed, 36);
         ImGui.TableSetupColumn("Quest", ImGuiTableColumnFlags.WidthStretch | ImGuiTableColumnFlags.DefaultSort, 0);
         ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 36);
-        ImGui.TableSetupColumn("Class/Job", ImGuiTableColumnFlags.WidthFixed, 140);
+        ImGui.TableSetupColumn("Location", ImGuiTableColumnFlags.WidthFixed, 120);
+        ImGui.TableSetupColumn("Class/Job", ImGuiTableColumnFlags.WidthFixed, 120);
+        ImGui.TableSetupColumn("Unlocks", ImGuiTableColumnFlags.WidthFixed, 200);
         ImGui.TableHeadersRow();
 
         HandleSorting();
@@ -243,11 +269,27 @@ internal sealed class MainWindow : Window
             ImGui.Text($"{quest.RequiredLevel}");
             ImGui.PopStyleColor();
 
+            // Location column
+            ImGui.TableNextColumn();
+            ImGui.PushStyleColor(ImGuiCol.Text, lvlColor);
+            ImGui.Text(quest.Location);
+            ImGui.PopStyleColor();
+
             // Class/Job column
             ImGui.TableNextColumn();
             ImGui.PushStyleColor(ImGuiCol.Text, lvlColor);
             ImGui.Text(quest.RequiredClassJob);
             ImGui.PopStyleColor();
+
+            // Unlocks column
+            ImGui.TableNextColumn();
+            if (!string.IsNullOrEmpty(quest.Unlocks))
+            {
+                var unlockColor = quest.IsCompleted ? Styles.TextDimmed : Styles.AccentCyan;
+                ImGui.PushStyleColor(ImGuiCol.Text, unlockColor);
+                ImGui.Text(quest.Unlocks);
+                ImGui.PopStyleColor();
+            }
         }
 
         ImGui.EndTable();
@@ -319,8 +361,14 @@ internal sealed class MainWindow : Window
                 ? [.. _filtered.OrderBy(q => q.RequiredLevel)]
                 : [.. _filtered.OrderByDescending(q => q.RequiredLevel)],
             3 => ascending
+                ? [.. _filtered.OrderBy(q => q.Location)]
+                : [.. _filtered.OrderByDescending(q => q.Location)],
+            4 => ascending
                 ? [.. _filtered.OrderBy(q => q.RequiredClassJob)]
                 : [.. _filtered.OrderByDescending(q => q.RequiredClassJob)],
+            5 => ascending
+                ? [.. _filtered.OrderBy(q => q.Unlocks)]
+                : [.. _filtered.OrderByDescending(q => q.Unlocks)],
             _ => _filtered
         };
 
@@ -351,6 +399,25 @@ internal sealed class MainWindow : Window
                 // Class/Job filter
                 if (_classJobFilter > 0 && !q.RequiredClassJob.Equals(_classJobOptions[_classJobFilter], StringComparison.OrdinalIgnoreCase)) return false;
 
+                // Location filter
+                if (_locationFilter > 0 && !q.Location.Equals(_locationOptions[_locationFilter], StringComparison.OrdinalIgnoreCase)) return false;
+
+                // Category filter
+                if (_categoryFilter > 0)
+                {
+                    var targetCategory = _categoryFilter switch
+                    {
+                        1 => QuestCategory.Feature,
+                        2 => QuestCategory.JobUnlock,
+                        3 => QuestCategory.Dungeon,
+                        4 => QuestCategory.Trial,
+                        5 => QuestCategory.Raid,
+                        6 => QuestCategory.Other,
+                        _ => (QuestCategory?)null,
+                    };
+                    if (targetCategory != null && q.Category != targetCategory) return false;
+                }
+
                 // Level range
                 if (q.RequiredLevel < _levelMin || q.RequiredLevel > _levelMax) return false;
 
@@ -358,6 +425,8 @@ internal sealed class MainWindow : Window
                 if (search.Length > 0
                     && !q.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
                     && !q.RequiredClassJob.Contains(search, StringComparison.OrdinalIgnoreCase)
+                    && !q.Location.Contains(search, StringComparison.OrdinalIgnoreCase)
+                    && !q.Unlocks.Contains(search, StringComparison.OrdinalIgnoreCase)
                     && !q.RequiredLevel.ToString().Contains(search, StringComparison.Ordinal)) return false;
 
                 return true;
