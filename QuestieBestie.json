@@ -24,6 +24,7 @@
   "CanUnloadAsync": false,
   "LoadPriority": 0,
   "IsTestingExclusive": false,
+  "IconUrl": "https://raw.githubusercontent.com/kk-triplesix/QuestieBestie/main/QuestieBestieLogo.png",
   "Punchline": "The ultimate blue quest companion. Track, filter, and never miss an unlock.",
   "AcceptsFeedback": true
 }

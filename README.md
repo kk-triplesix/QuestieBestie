@@ -1,6 +1,9 @@
-# QuestieBestie
+<p align="center">
+  <img src="QuestieBestieLogo.png" alt="QuestieBestie Logo" width="400">
+</p>
 
-**The ultimate blue quest companion for FFXIV.** Track all feature unlock quests, see what they unlock, plan your route, and never miss a dungeon, trial, or feature again.
+<h1 align="center">QuestieBestie</h1>
+<p align="center"><b>The ultimate blue quest companion for FFXIV.</b><br>Track all feature unlock quests, see what they unlock, plan your route, and never miss a dungeon, trial, or feature again.</p>
 
 ---
 
