@@ -39,6 +39,10 @@ public sealed class QuestService
             if (string.IsNullOrWhiteSpace(name))
                 continue;
 
+            // Skip repeatable quests (daily beast tribe quests etc.)
+            if (quest.RepeatIntervalType != 0)
+                continue;
+
             // Skip removed/deprecated quests (no valid quest giver location)
             if (quest.IssuerLocation.RowId == 0)
                 continue;
