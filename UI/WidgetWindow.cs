@@ -90,14 +90,18 @@ internal sealed class WidgetWindow : Window
             ImGui.PopStyleColor();
         }
 
-        // Config button (always visible, small)
-        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(2, 2));
-        if (ImGui.Button("S###wCfg"))
-            ImGui.OpenPopup("##widgetCfg");
-        ImGui.PopStyleVar();
-        if (ImGui.IsItemHovered())
-        { ImGui.BeginTooltip(); ImGui.Text("Settings"); ImGui.EndTooltip(); }
+        // Config button — only show on hover, but ALWAYS render popup
+        if (isHovered)
+        {
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(2, 2));
+            if (ImGui.Button("S###wCfg"))
+                ImGui.OpenPopup("##widgetCfg");
+            ImGui.PopStyleVar();
+            if (ImGui.IsItemHovered())
+            { ImGui.BeginTooltip(); ImGui.Text("Settings"); ImGui.EndTooltip(); }
+        }
 
+        // Popup must be rendered outside the hover check — ImGui manages its open state
         DrawConfigPopup();
     }
 

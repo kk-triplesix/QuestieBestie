@@ -100,21 +100,24 @@ internal sealed class OverlayWindow : Window
         ImGui.Text($"({_questService.CompletionPercent:F0}%)");
         ImGui.PopStyleColor();
 
-        // Settings + Close buttons
-        ImGui.SameLine();
-        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(2, 2));
-        if (ImGui.Button("S###ovSettings"))
-            _settingsWindow?.Toggle();
-        if (ImGui.IsItemHovered())
-        { ImGui.BeginTooltip(); ImGui.Text("Settings"); ImGui.EndTooltip(); }
-        ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);
-        if (ImGui.Button("X###ovClose"))
-            IsOpen = false;
-        ImGui.PopStyleColor();
-        if (ImGui.IsItemHovered())
-        { ImGui.BeginTooltip(); ImGui.Text("Close"); ImGui.EndTooltip(); }
-        ImGui.PopStyleVar();
+        // Settings + Close buttons (only on hover)
+        if (_isHovered)
+        {
+            ImGui.SameLine();
+            ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(2, 2));
+            if (ImGui.Button("S###ovSettings"))
+                _settingsWindow?.Toggle();
+            if (ImGui.IsItemHovered())
+            { ImGui.BeginTooltip(); ImGui.Text("Settings"); ImGui.EndTooltip(); }
+            ImGui.SameLine();
+            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);
+            if (ImGui.Button("X###ovClose"))
+                IsOpen = false;
+            ImGui.PopStyleColor();
+            if (ImGui.IsItemHovered())
+            { ImGui.BeginTooltip(); ImGui.Text("Close"); ImGui.EndTooltip(); }
+            ImGui.PopStyleVar();
+        }
     }
 
     private void DrawListSwitcher(OverlaySettings s)
