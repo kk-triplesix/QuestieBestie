@@ -564,7 +564,64 @@ public sealed class QuestService
         if (manual.HasValue)
             return manual.Value;
 
-        // Every blue quest unlocks SOMETHING by definition — give generic description
+        // Smart fallback — use context to generate a meaningful description
+        return DetermineFromContext(quest);
+    }
+
+    private static (QuestCategory Category, string Unlocks) DetermineFromContext(Quest quest)
+    {
+        // Job quest chain (has class requirement but didn't unlock a new job)
+        if (quest.ClassJobRequired.RowId != 0)
+        {
+            var jobName = quest.ClassJobRequired.ValueNullable?.Name.ExtractText();
+            if (!string.IsNullOrWhiteSpace(jobName))
+                return (QuestCategory.JobUnlock, $"{jobName} quest (job ability)");
+        }
+
+        // Role quest chains
+        var questName = quest.Name.ExtractText();
+        if (questName.Contains("Role Quest", StringComparison.OrdinalIgnoreCase))
+            return (QuestCategory.Feature, "Role quest chain");
+
+        // Tribal/Beast tribe related (follow-up quests in tribal chains)
+        if (quest.BeastTribe.RowId != 0)
+        {
+            var tribeName = quest.BeastTribe.ValueNullable?.Name.ExtractText();
+            return (QuestCategory.Feature, !string.IsNullOrWhiteSpace(tribeName) ? $"{tribeName} tribe quest" : "Tribal quest");
+        }
+
+        // Check if quest has instance content prerequisites — likely part of a content chain
+        for (var i = 0; i < 3; i++)
+        {
+            if (quest.InstanceContent[i].RowId != 0)
+                return (QuestCategory.Feature, "Content quest chain");
+        }
+
+        // Check JournalGenre for categorization hints
+        var genre = quest.JournalGenre.ValueNullable;
+        if (genre != null)
+        {
+            var genreName = genre.Value.Name.ExtractText();
+            if (!string.IsNullOrWhiteSpace(genreName))
+            {
+                if (genreName.Contains("Chronicles", StringComparison.OrdinalIgnoreCase))
+                    return (QuestCategory.Feature, "Chronicles quest");
+                if (genreName.Contains("Crystalline", StringComparison.OrdinalIgnoreCase) ||
+                    genreName.Contains("Studium", StringComparison.OrdinalIgnoreCase) ||
+                    genreName.Contains("Wachumeqimeqi", StringComparison.OrdinalIgnoreCase))
+                    return (QuestCategory.Feature, "Crafter/Gatherer delivery quest");
+                if (genreName.Contains("Hildibrand", StringComparison.OrdinalIgnoreCase))
+                    return (QuestCategory.Feature, "Hildibrand adventures");
+                if (genreName.Contains("Relic", StringComparison.OrdinalIgnoreCase) ||
+                    genreName.Contains("Zodiac", StringComparison.OrdinalIgnoreCase) ||
+                    genreName.Contains("Anima", StringComparison.OrdinalIgnoreCase) ||
+                    genreName.Contains("Resistance", StringComparison.OrdinalIgnoreCase) ||
+                    genreName.Contains("Manderville", StringComparison.OrdinalIgnoreCase))
+                    return (QuestCategory.Feature, "Relic weapon quest");
+                return (QuestCategory.Feature, $"{genreName}");
+            }
+        }
+
         return (QuestCategory.Feature, "Feature unlock");
     }
 

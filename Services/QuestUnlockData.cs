@@ -145,5 +145,35 @@ public static class QuestUnlockData
 
         // ── Hildibrand ──────────────────────────────────────────────
         ("The Rise and Fall of Gentlemen", QuestCategory.Feature, "Unlocks Hildibrand Adventures"),
+
+        // ── Duty Roulettes ──────────────────────────────────────────
+        ("Duty Roulette", QuestCategory.Feature, "Unlocks Duty Roulette"),
+        ("A Trial for What It's Worth", QuestCategory.Feature, "Unlocks Trial Roulette"),
+
+        // ── Ventures & Retainers ────────────────────────────────────
+        ("The Scions of the Seventh Dawn", QuestCategory.Feature, "Unlocks Retainers"),
+
+        // ── Grand Company ───────────────────────────────────────────
+        ("The Company You Keep", QuestCategory.Feature, "Unlocks Grand Company"),
+
+        // ── Airship Travel ──────────────────────────────────────────
+        ("The Ul'dahn Envoy", QuestCategory.Feature, "Unlocks Airship Travel"),
+        ("The Gridanian Envoy", QuestCategory.Feature, "Unlocks Airship Travel"),
+        ("The Lominsan Envoy", QuestCategory.Feature, "Unlocks Airship Travel"),
+
+        // ── Explorer Mode ───────────────────────────────────────────
+        ("Duty Explorer", QuestCategory.Feature, "Unlocks Explorer Mode"),
+
+        // ── Trust System ────────────────────────────────────────────
+        ("Shadowbringers", QuestCategory.Feature, "Unlocks Trust System"),
+
+        // ── Mentor System ───────────────────────────────────────────
+        ("Mentor", QuestCategory.Feature, "Unlocks Mentor Roulette"),
+
+        // ── Shared FATE ─────────────────────────────────────────────
+        ("A Shared FATE", QuestCategory.Feature, "Unlocks Shared FATE Rewards"),
+
+        // ── Unrestricted Party / Min IL ─────────────────────────────
+        ("Completion", QuestCategory.Feature, "Unlocks Duty Completion mode"),
     ];
 }
