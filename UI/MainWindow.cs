@@ -521,9 +521,10 @@ internal sealed class MainWindow : Window
 
     private void DrawDutyUnlocks()
     {
-        // All quests that unlock ANY content (not just dungeons/trials/raids)
+        // All quests that unlock content (excluding generic Feature quests)
         var contentQuests = _questService.BlueQuests
-            .Where(q => !string.IsNullOrEmpty(q.Unlocks))
+            .Where(q => !string.IsNullOrEmpty(q.Unlocks)
+                && q.Category != QuestCategory.Feature)
             .OrderBy(q => q.ExpansionId)
             .ThenBy(q => q.RequiredLevel)
             .ToList();

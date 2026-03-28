@@ -303,6 +303,12 @@ public static class QuestUnlockData
         // ── NieR: Automata Robots (DT) ──────────────────────────────
         ("Arcadion", QuestCategory.Raid, "Unlocks Arcadion raid"),
 
+        // ── DT Dungeons ─────────────────────────────────────────────
+        ("Something Stray in the Neighborhood", QuestCategory.Dungeon, "Unlocks The Strayborough Deadwalk"),
+        ("It Belongs in a Museum", QuestCategory.Dungeon, "Unlocks Tender Valley"),
+        ("Strayborough", QuestCategory.Dungeon, "Unlocks The Strayborough Deadwalk"),
+        ("Museum", QuestCategory.Dungeon, "Unlocks Tender Valley"),
+
         // ── DT Content ──────────────────────────────────────────────
         ("Lost Twin", QuestCategory.Feature, "Unlocks DT content"),
         ("Rhodina", QuestCategory.Feature, "Unlocks DT Custom Deliveries"),
