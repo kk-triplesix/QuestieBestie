@@ -8,6 +8,7 @@ namespace QuestieBestie.UI;
 internal sealed class SettingsWindow : Window
 {
     private readonly TrackingService _trackingService;
+    private QuestService? _questService;
 
     public SettingsWindow(TrackingService trackingService)
         : base("QuestieBestie Settings###QuestieBestieSettings", ImGuiWindowFlags.None)
@@ -15,21 +16,16 @@ internal sealed class SettingsWindow : Window
         _trackingService = trackingService;
         SizeConstraints = new WindowSizeConstraints
         {
-            MinimumSize = new Vector2(400, 450),
-            MaximumSize = new Vector2(500, 700),
+            MinimumSize = new Vector2(420, 600),
+            MaximumSize = new Vector2(520, 900),
         };
         IsOpen = false;
     }
 
-    public override void PreDraw()
-    {
-        Styles.PushMainStyle();
-    }
+    public void SetQuestService(QuestService qs) => _questService = qs;
 
-    public override void PostDraw()
-    {
-        Styles.PopMainStyle();
-    }
+    public override void PreDraw() => Styles.PushMainStyle();
+    public override void PostDraw() => Styles.PopMainStyle();
 
     public override void Draw()
     {
@@ -37,14 +33,14 @@ internal sealed class SettingsWindow : Window
         var changed = false;
 
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
-        ImGui.Text("Overlay Settings");
+        ImGui.Text(Loc.Get("settings.title"));
         ImGui.PopStyleColor();
         ImGui.Separator();
         ImGui.Spacing();
 
         // General
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text("General");
+        ImGui.Text(Loc.Get("settings.general"));
         ImGui.PopStyleColor();
 
         changed |= ImGui.SliderFloat("Font Scale", ref s.FontScale, 0.5f, 2.0f, "%.1f");
@@ -58,7 +54,7 @@ internal sealed class SettingsWindow : Window
 
         // Colors
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text("Colors");
+        ImGui.Text(Loc.Get("settings.colors"));
         ImGui.PopStyleColor();
 
         changed |= ColorEdit("Text", ref s.TextColor);
@@ -73,20 +69,73 @@ internal sealed class SettingsWindow : Window
         ImGui.Separator();
         ImGui.Spacing();
 
-        // Behavior
+        // Widget Progress Bars
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text("Behavior");
+        ImGui.Text("Widget Progress Bars");
         ImGui.PopStyleColor();
 
-        changed |= ImGui.Checkbox("Auto-remove completed quests from lists", ref s.AutoRemoveCompleted);
-        changed |= ImGui.Checkbox("Chat notifications for newly available quests", ref s.ChatNotifications);
-        changed |= ImGui.Checkbox("Sound notification for newly available quests", ref s.SoundNotifications);
+        if (ImGui.Checkbox("Total", ref s.WidgetShowTotal))
+            changed = true;
+
+        var expansions = new (uint Id, string Name)[]
+        { (0, "A Realm Reborn"), (1, "Heavensward"), (2, "Stormblood"), (3, "Shadowbringers"), (4, "Endwalker"), (5, "Dawntrail") };
+
+        foreach (var (id, name) in expansions)
+        {
+            var enabled = s.WidgetExpansions.Contains(id);
+            ImGui.PushStyleColor(ImGuiCol.Text, Styles.GetExpansionColor(id));
+            if (ImGui.Checkbox($"{name}###sExp{id}", ref enabled))
+            {
+                if (enabled) s.WidgetExpansions.Add(id); else s.WidgetExpansions.Remove(id);
+                changed = true;
+            }
+            ImGui.PopStyleColor();
+        }
+
+        // Quest Chains
+        if (_questService != null)
+        {
+            var chains = _questService.BlueQuests
+                .Where(q => !string.IsNullOrEmpty(q.ChainName))
+                .Select(q => q.ChainName).Distinct().OrderBy(n => n).ToList();
+
+            if (chains.Count > 0)
+            {
+                ImGui.Spacing();
+                ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+                ImGui.Text("Widget Quest Chains");
+                ImGui.PopStyleColor();
+
+                foreach (var chainName in chains)
+                {
+                    var enabled = s.WidgetChains.Contains(chainName);
+                    if (ImGui.Checkbox($"{chainName}###sCh{chainName.GetHashCode()}", ref enabled))
+                    {
+                        if (enabled) s.WidgetChains.Add(chainName); else s.WidgetChains.Remove(chainName);
+                        changed = true;
+                    }
+                }
+            }
+        }
 
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
 
-        if (ImGui.Button("Reset to Defaults"))
+        // Behavior
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+        ImGui.Text(Loc.Get("settings.behavior"));
+        ImGui.PopStyleColor();
+
+        changed |= ImGui.Checkbox(Loc.Get("settings.autoRemove"), ref s.AutoRemoveCompleted);
+        changed |= ImGui.Checkbox(Loc.Get("settings.chatNotify"), ref s.ChatNotifications);
+        changed |= ImGui.Checkbox(Loc.Get("settings.soundNotify"), ref s.SoundNotifications);
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+
+        if (ImGui.Button(Loc.Get("settings.reset")))
         {
             var defaults = new OverlaySettings();
             s.FontScale = defaults.FontScale;
@@ -100,6 +149,9 @@ internal sealed class SettingsWindow : Window
             s.WarningColor = defaults.WarningColor;
             s.BackgroundColor = defaults.BackgroundColor;
             s.BorderColor = defaults.BorderColor;
+            s.WidgetShowTotal = true;
+            s.WidgetExpansions.Clear();
+            s.WidgetChains.Clear();
             changed = true;
         }
 
