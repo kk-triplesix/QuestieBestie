@@ -136,7 +136,11 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
     private void OnChatMessage(Dalamud.Game.Text.XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
-        // Detect [QuestieBestie] tagged messages and auto-open detail for the quest
+        // Only react to messages from other players (party, FC, linkshell etc.)
+        // Skip Echo and system messages (our own notifications use Echo)
+        if (type is XivChatType.Echo or XivChatType.SystemMessage or XivChatType.SystemError)
+            return;
+
         var text = message.TextValue;
         if (!text.Contains("[QuestieBestie]"))
             return;
