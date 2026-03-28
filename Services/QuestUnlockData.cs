@@ -303,11 +303,37 @@ public static class QuestUnlockData
         // ── NieR: Automata Robots (DT) ──────────────────────────────
         ("Arcadion", QuestCategory.Raid, "Unlocks Arcadion raid"),
 
-        // ── DT Dungeons ─────────────────────────────────────────────
+        // ── ShB Optional Dungeons ────────────────────────────────────
+        ("Completion Complex", QuestCategory.Dungeon, "Unlocks The Twinning"),
+        ("Akademeia", QuestCategory.Dungeon, "Unlocks Akadaemia Anyder"),
+        ("Akadaemia", QuestCategory.Dungeon, "Unlocks Akadaemia Anyder"),
+        ("Twinning", QuestCategory.Dungeon, "Unlocks The Twinning"),
+
+        // ── EW Optional Dungeons ────────────────────────────────────
+        ("Cutting the Cheese", QuestCategory.Dungeon, "Unlocks Smileton"),
+        ("Where No Loporrit Has Gone Before", QuestCategory.Dungeon, "Unlocks Stigma Dreamscape"),
+        ("Smileton", QuestCategory.Dungeon, "Unlocks Smileton"),
+        ("Stigma Dreamscape", QuestCategory.Dungeon, "Unlocks Stigma Dreamscape"),
+        ("Alzadaal", QuestCategory.Dungeon, "Unlocks Alzadaal's Legacy"),
+        ("Lapis Manalis", QuestCategory.Dungeon, "Unlocks The Fell Court of Troia"),
+        ("Fell Court", QuestCategory.Dungeon, "Unlocks The Fell Court of Troia"),
+
+        // ── DT Optional Dungeons ────────────────────────────────────
         ("Something Stray in the Neighborhood", QuestCategory.Dungeon, "Unlocks The Strayborough Deadwalk"),
         ("It Belongs in a Museum", QuestCategory.Dungeon, "Unlocks Tender Valley"),
         ("Strayborough", QuestCategory.Dungeon, "Unlocks The Strayborough Deadwalk"),
-        ("Museum", QuestCategory.Dungeon, "Unlocks Tender Valley"),
+        ("Tender Valley", QuestCategory.Dungeon, "Unlocks Tender Valley"),
+
+        // ── SB Optional Dungeons ────────────────────────────────────
+        ("Hells' Lid", QuestCategory.Dungeon, "Unlocks Hells' Lid"),
+        ("Fractal Continuum (Hard)", QuestCategory.Dungeon, "Unlocks The Fractal Continuum (Hard)"),
+        ("Swallow's Compass", QuestCategory.Dungeon, "Unlocks The Swallow's Compass"),
+        ("Saint Mocianne", QuestCategory.Dungeon, "Unlocks Saint Mocianne's Arboretum (Hard)"),
+
+        // ── HW Optional Dungeons ────────────────────────────────────
+        ("Neverreap", QuestCategory.Dungeon, "Unlocks Neverreap"),
+        ("Fractal Continuum", QuestCategory.Dungeon, "Unlocks The Fractal Continuum"),
+        ("Saint Mocianne's Arboretum", QuestCategory.Dungeon, "Unlocks Saint Mocianne's Arboretum"),
 
         // ── DT Content ──────────────────────────────────────────────
         ("Lost Twin", QuestCategory.Feature, "Unlocks DT content"),
