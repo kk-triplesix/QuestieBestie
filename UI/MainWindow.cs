@@ -124,7 +124,7 @@ internal sealed class MainWindow : Window
                 _trackingService.DeleteList(_trackingService.ActiveListIndex);
             ImGui.EndPopup();
         }
-        if (ImGui.Button("\u270e")) ImGui.OpenPopup("##listMgmt");
+        if (ImGuiComponents.IconButton("listEdit", FontAwesomeIcon.Edit)) ImGui.OpenPopup("##listMgmt");
         if (ImGui.IsItemHovered()) { ImGui.BeginTooltip(); ImGui.Text(Loc.Get("ctx.rename") + " / " + Loc.Get("ctx.delete")); ImGui.EndTooltip(); }
 
         // Undo button
