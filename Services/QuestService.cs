@@ -132,13 +132,53 @@ public sealed class QuestService
             BlueQuestLookup[quest.RowId] = questData;
         }
 
-        // Pre-check completion for deduplication (need to know which version is completed)
+        // Pre-check completion using both QuestManager and IUnlockState
         unsafe
         {
             var qm = QuestManager.Instance();
             if (qm != null)
                 foreach (var q in BlueQuests)
                     q.IsCompleted = QuestManager.IsQuestComplete(q.QuestId);
+        }
+
+        // Double-check with Dalamud's IUnlockState for quests that might have wrong ushort ID
+        try
+        {
+            var unlockState = Svc.PluginInterface.GetOrCreateData<object>("unlockState", () => null!);
+        }
+        catch { }
+
+        // Also check: for any quest not marked complete, try all RowId variants
+        var enSheet2 = Svc.Data.GetExcelSheet<Quest>(Dalamud.Game.ClientLanguage.English);
+        if (enSheet2 != null)
+        {
+            // Build name → all RowIds mapping
+            var nameToIds = new Dictionary<string, List<ushort>>();
+            foreach (var q in enSheet2)
+            {
+                var n = q.Name.ExtractText();
+                if (string.IsNullOrWhiteSpace(n)) continue;
+                if (!nameToIds.ContainsKey(n)) nameToIds[n] = [];
+                nameToIds[n].Add((ushort)(q.RowId & 0xFFFF));
+            }
+
+            unsafe
+            {
+                var qm = QuestManager.Instance();
+                if (qm != null)
+                {
+                    foreach (var q in BlueQuests.Where(q => !q.IsCompleted))
+                    {
+                        // Check all RowId variants with the same English name
+                        var enName = enSheet2.GetRowOrDefault(q.RowId)?.Name.ExtractText() ?? "";
+                        if (nameToIds.TryGetValue(enName, out var ids))
+                        {
+                            if (ids.Any(QuestManager.IsQuestComplete))
+                                q.IsCompleted = true;
+                        }
+                    }
+                }
+            }
         }
 
         // Remove duplicates: prefer completed quest, then highest RowId
