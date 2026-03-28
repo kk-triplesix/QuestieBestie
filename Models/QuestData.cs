@@ -29,4 +29,6 @@ public sealed class QuestData
     public float IssuerX { get; init; }
     public float IssuerZ { get; init; }
     public uint TerritoryId { get; init; }
+    public string ChainName { get; set; } = string.Empty;
+    public int ChainIndex { get; set; }
 }

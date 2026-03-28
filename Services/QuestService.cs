@@ -107,6 +107,70 @@ public sealed class QuestService
             foreach (var id in dupeNames)
                 BlueQuestLookup.Remove(id);
         }
+
+        BuildQuestChains();
+    }
+
+    private void BuildQuestChains()
+    {
+        // Build chains by following PreviousQuest links between blue quests
+        var visited = new HashSet<uint>();
+
+        foreach (var quest in BlueQuests)
+        {
+            if (visited.Contains(quest.RowId) || !string.IsNullOrEmpty(quest.ChainName))
+                continue;
+
+            // Walk backwards to find the chain root
+            var chain = new List<QuestData>();
+            CollectChain(quest.RowId, chain, visited);
+
+            if (chain.Count <= 1)
+                continue;
+
+            // Sort chain by level then RowId
+            chain.Sort((a, b) => a.RequiredLevel != b.RequiredLevel
+                ? a.RequiredLevel.CompareTo(b.RequiredLevel)
+                : a.RowId.CompareTo(b.RowId));
+
+            // Determine chain name from the first quest's unlock or the shared class
+            var chainName = chain[0].Unlocks;
+            if (string.IsNullOrEmpty(chainName))
+            {
+                var sharedClass = chain.Select(q => q.RequiredClassJob).Distinct().ToList();
+                chainName = sharedClass.Count == 1 && sharedClass[0] != "All Classes"
+                    ? $"{sharedClass[0]} Quests"
+                    : $"{chain[0].Name} Chain";
+            }
+
+            for (var i = 0; i < chain.Count; i++)
+            {
+                chain[i].ChainName = chainName;
+                chain[i].ChainIndex = i + 1;
+            }
+        }
+    }
+
+    private void CollectChain(uint rowId, List<QuestData> chain, HashSet<uint> visited)
+    {
+        if (!visited.Add(rowId) || !BlueQuestLookup.TryGetValue(rowId, out var quest))
+            return;
+
+        chain.Add(quest);
+
+        // Follow quests that have this quest as a prerequisite
+        foreach (var other in BlueQuests)
+        {
+            if (other.PrerequisiteIds.Contains(rowId))
+                CollectChain(other.RowId, chain, visited);
+        }
+
+        // Follow this quest's prerequisites if they're blue quests
+        foreach (var prereqId in quest.PrerequisiteIds)
+        {
+            if (BlueQuestLookup.ContainsKey(prereqId))
+                CollectChain(prereqId, chain, visited);
+        }
     }
 
     public void RefreshCompletionStatus()

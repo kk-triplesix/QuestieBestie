@@ -86,6 +86,34 @@ public sealed class TrackingService
         return _config.Lists.Any(l => l.QuestRowIds.Contains(rowId));
     }
 
+    public string ExportList(int? listIndex = null)
+    {
+        var list = _config.Lists[listIndex ?? ActiveListIndex];
+        var export = new { list.Name, list.QuestRowIds };
+        return System.Text.Json.JsonSerializer.Serialize(export);
+    }
+
+    public bool ImportList(string json)
+    {
+        try
+        {
+            var doc = System.Text.Json.JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            var name = root.GetProperty("Name").GetString() ?? "Imported";
+            var ids = root.GetProperty("QuestRowIds").EnumerateArray()
+                .Select(e => e.GetUInt32()).ToList();
+
+            _config.Lists.Add(new TrackingList { Name = name, QuestRowIds = ids });
+            _config.ActiveListIndex = _config.Lists.Count - 1;
+            Save();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public void SaveOverlaySettings()
     {
         Save();

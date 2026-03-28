@@ -111,7 +111,7 @@ internal sealed class MainWindow : Window
         ImGui.SameLine();
         if (ImGui.Button("Settings")) _settingsWindow.Toggle();
 
-        // List selector
+        // List selector + export/import
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
         ImGui.Text("List:");
         ImGui.PopStyleColor();
@@ -122,6 +122,23 @@ internal sealed class MainWindow : Window
         if (ImGui.Combo("##listselect", ref activeIdx, listNames, listNames.Length))
             _trackingService.ActiveListIndex = activeIdx;
         ImGui.PopItemWidth();
+
+        ImGui.SameLine();
+        if (ImGui.Button("Export"))
+        {
+            var json = _trackingService.ExportList();
+            ImGui.SetClipboardText(json);
+        }
+        if (ImGui.IsItemHovered()) { ImGui.BeginTooltip(); ImGui.Text("Copy list to clipboard"); ImGui.EndTooltip(); }
+
+        ImGui.SameLine();
+        if (ImGui.Button("Import"))
+        {
+            var clip = ImGui.GetClipboardText();
+            if (!string.IsNullOrWhiteSpace(clip))
+                _trackingService.ImportList(clip);
+        }
+        if (ImGui.IsItemHovered()) { ImGui.BeginTooltip(); ImGui.Text("Import list from clipboard"); ImGui.EndTooltip(); }
 
         ImGui.Separator();
     }
@@ -155,6 +172,14 @@ internal sealed class MainWindow : Window
         ImGui.PopItemWidth();
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("Lv."); ImGui.PopStyleColor();
+
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 6);
+        if (ImGui.Button("Nearest"))
+        {
+            _filtered = [.. _filtered.OrderBy(q => _questService.GetDistanceToPlayer(q))];
+        }
+        if (ImGui.IsItemHovered()) { ImGui.BeginTooltip(); ImGui.Text("Sort by distance to player"); ImGui.EndTooltip(); }
 
         // Row 2: expansion, class/job, location, category
         if (DrawSearchableCombo("##expansion", ref _expansionFilter, _expansionOptions, ref _expansionSearch, 140))
@@ -257,9 +282,9 @@ internal sealed class MainWindow : Window
                 if (!string.IsNullOrEmpty(quest.Unlocks))
                     ImGui.Text($"Unlocks:    {quest.Unlocks}");
                 if (quest.PrerequisiteIds.Length > 0)
-                {
                     ImGui.Text($"Prereqs:    {quest.PrerequisiteIds.Length}");
-                }
+                if (!string.IsNullOrEmpty(quest.ChainName))
+                    ImGui.Text($"Chain:      {quest.ChainName} ({quest.ChainIndex})");
                 ImGui.Separator();
                 ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
                 ImGui.Text("Click: map + details | Right-click: track");
