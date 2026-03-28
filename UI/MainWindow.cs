@@ -24,6 +24,8 @@ internal sealed class MainWindow : Window
     private List<QuestData> _filtered = [];
     private bool _dirty = true;
     private string _newListName = string.Empty;
+    private readonly HashSet<uint> _selected = [];
+    private DateTime _lastConfetti = DateTime.MinValue;
 
     public MainWindow(QuestService questService, DetailWindow detailWindow, TrackingService trackingService, OverlayWindow overlayWindow, SettingsWindow settingsWindow, WidgetWindow widgetWindow)
         : base("QuestieBestie###QuestieBestieMain", ImGuiWindowFlags.None)
@@ -196,6 +198,23 @@ internal sealed class MainWindow : Window
     {
         if (_dirty) { ApplyFilters(); _dirty = false; }
 
+        // Multi-select bulk action bar
+        if (_selected.Count > 0)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
+            ImGui.Text($"{_selected.Count} selected");
+            ImGui.PopStyleColor();
+            ImGui.SameLine();
+            for (var i = 0; i < _trackingService.Lists.Count; i++)
+            {
+                ImGui.SameLine();
+                if (ImGui.Button($"{Loc.Get("ctx.addTo")} {_trackingService.Lists[i].Name}###bulk{i}"))
+                { foreach (var id in _selected) _trackingService.AddQuest(id, i); _selected.Clear(); }
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Clear")) _selected.Clear();
+        }
+
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable
                     | ImGuiTableFlags.ScrollY | ImGuiTableFlags.Sortable | ImGuiTableFlags.SizingStretchProp;
         var tableHeight = ImGui.GetContentRegionAvail().Y - 30;
@@ -240,9 +259,15 @@ internal sealed class MainWindow : Window
             if (maxRowId > 0 && quest.RowId > maxRowId && !quest.IsCompleted)
             { ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar); ImGui.Text("NEW"); ImGui.PopStyleColor(); ImGui.SameLine(); }
 
-            ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
-            if (ImGui.Selectable($"{quest.CategoryIcon} {quest.Name}###{quest.RowId}", false, ImGuiSelectableFlags.SpanAllColumns))
-            { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); _trackingService.AddRecent(quest.RowId); }
+            var isSelected = _selected.Contains(quest.RowId);
+            ImGui.PushStyleColor(ImGuiCol.Text, isSelected ? Styles.AccentCyan : nameColor);
+            if (ImGui.Selectable($"{quest.CategoryIcon} {quest.Name}###{quest.RowId}", isSelected, ImGuiSelectableFlags.SpanAllColumns))
+            {
+                if (ImGui.GetIO().KeyCtrl)
+                { if (!_selected.Remove(quest.RowId)) _selected.Add(quest.RowId); }
+                else
+                { _selected.Clear(); _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); _trackingService.AddRecent(quest.RowId); }
+            }
             ImGui.PopStyleColor();
 
             // Tooltip
@@ -693,7 +718,7 @@ internal sealed class MainWindow : Window
         }
     }
 
-    private static void DrawProgressBar(string label, int completed, int total, Vector4 color)
+    private void DrawProgressBar(string label, int completed, int total, Vector4 color)
     {
         var fraction = total > 0 ? (float)completed / total : 0f;
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextPrimary); ImGui.Text(label); ImGui.PopStyleColor();
@@ -703,6 +728,25 @@ internal sealed class MainWindow : Window
         ImGui.ProgressBar(fraction, new Vector2(250, 18), "");
         ImGui.PopStyleColor(2);
         ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text($"{completed}/{total} ({fraction * 100f:F0}%)"); ImGui.PopStyleColor();
+        if (completed == total && total > 0)
+        {
+            ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar);
+            ImGui.Text($"\u2728 {completed}/{total} (100%)");
+            ImGui.PopStyleColor();
+
+            if ((DateTime.Now - _lastConfetti).TotalSeconds > 30)
+            {
+                ImGui.SameLine();
+                ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar);
+                ImGui.Text("\u2728\u2728\u2728 COMPLETE! \u2728\u2728\u2728");
+                ImGui.PopStyleColor();
+            }
+        }
+        else
+        {
+            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+            ImGui.Text($"{completed}/{total} ({fraction * 100f:F0}%)");
+            ImGui.PopStyleColor();
+        }
     }
 }

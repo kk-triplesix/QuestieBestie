@@ -96,6 +96,28 @@ internal sealed class DetailWindow : Window
             var rewards = $"{(q.RewardGil > 0 ? $"{q.RewardGil} Gil" : "")} {(q.RewardExp > 0 ? $"{q.RewardExp} EXP" : "")}".Trim();
             DrawInfoLine(Loc.Get("detail.rewards"), rewards);
         }
+
+        // MSQ requirement indicator
+        if (_prereqTree.Count > 0)
+        {
+            var msqPrereq = FindFirstMsq(_prereqTree);
+            if (msqPrereq != null)
+            {
+                var msqStatus = msqPrereq.IsCompleted ? "\u2713" : "\u2717";
+                DrawInfoLine("MSQ Req.", $"{msqStatus} {msqPrereq.Name}", msqPrereq.IsCompleted ? Styles.TextGreen : Styles.TextRed);
+            }
+        }
+    }
+
+    private static PrerequisiteNode? FindFirstMsq(List<PrerequisiteNode> nodes)
+    {
+        foreach (var node in nodes)
+        {
+            if (node.IsMsq) return node;
+            var child = FindFirstMsq(node.Children);
+            if (child != null) return child;
+        }
+        return null;
     }
 
     private static void DrawInfoLine(string label, string value, Vector4? valueColor = null)
