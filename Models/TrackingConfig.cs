@@ -39,4 +39,7 @@ public sealed class OverlaySettings
     public bool AutoRemoveCompleted;
     public bool ChatNotifications = true;
     public bool SoundNotifications;
+    public bool WidgetShowTotal = true;
+    public HashSet<uint> WidgetExpansions = [];
+    public HashSet<string> WidgetChains = [];
 }

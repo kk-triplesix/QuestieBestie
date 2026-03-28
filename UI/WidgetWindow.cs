@@ -1,4 +1,6 @@
 using System.Numerics;
+using Dalamud.Interface;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
 using QuestieBestie.Services;
 
@@ -29,6 +31,7 @@ internal sealed class WidgetWindow : Window
         var s = _trackingService.OverlaySettings;
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, s.WindowRounding);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(10, 6));
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 3));
         var bg = new Vector4(s.BackgroundColor.X, s.BackgroundColor.Y, s.BackgroundColor.Z, s.BackgroundAlpha);
         var border = new Vector4(s.BorderColor.X, s.BorderColor.Y, s.BorderColor.Z, s.BorderAlpha);
         ImGui.PushStyleColor(ImGuiCol.WindowBg, bg);
@@ -38,24 +41,77 @@ internal sealed class WidgetWindow : Window
     public override void PostDraw()
     {
         ImGui.PopStyleColor(2);
-        ImGui.PopStyleVar(2);
+        ImGui.PopStyleVar(3);
     }
 
     public override void Draw()
     {
         _questService.RefreshCompletionStatus();
         var s = _trackingService.OverlaySettings;
+        var isHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows);
 
-        var completed = _questService.CompletedCount;
-        var total = _questService.TotalCount;
+        // Total progress (if enabled)
+        if (s.WidgetShowTotal)
+            DrawBar("Total", _questService.CompletedCount, _questService.TotalCount, s.CompletedColor, s);
+
+        // Per-expansion progress bars
+        foreach (var stat in _questService.GetExpansionStats())
+        {
+            var expId = _questService.BlueQuests.FirstOrDefault(q => q.Expansion == stat.Name)?.ExpansionId ?? 0u;
+            if (!s.WidgetExpansions.Contains(expId))
+                continue;
+
+            var abbrev = expId switch { 0 => "ARR", 1 => "HW", 2 => "SB", 3 => "ShB", 4 => "EW", 5 => "DT", _ => "?" };
+            DrawBar(abbrev, stat.Completed, stat.Total, Styles.GetExpansionColor(expId), s);
+        }
+
+        // Per-chain progress bars
+        var chains = _questService.BlueQuests
+            .Where(q => !string.IsNullOrEmpty(q.ChainName) && s.WidgetChains.Contains(q.ChainName))
+            .GroupBy(q => q.ChainName)
+            .OrderBy(g => g.First().ExpansionId);
+
+        foreach (var chain in chains)
+        {
+            var total = chain.Count();
+            var done = chain.Count(q => q.IsCompleted);
+            var expId = chain.First().ExpansionId;
+            var label = chain.Key.Length > 12 ? chain.Key[..12] + ".." : chain.Key;
+            DrawBar(label, done, total, Styles.GetExpansionColor(expId), s);
+        }
+
+        // Direction arrow
+        var activeList = _trackingService.ActiveList;
+        var direction = _questService.GetNearestTrackedQuestDirection(activeList.QuestRowIds);
+        if (direction.HasValue)
+        {
+            var (angle, dist, name) = direction.Value;
+            var arrow = GetDirectionArrow(angle);
+            ImGui.PushStyleColor(ImGuiCol.Text, s.LevelColor);
+            ImGui.Text($"{arrow} {name} ({dist:F0}y)");
+            ImGui.PopStyleColor();
+        }
+
+        // Config button on hover
+        if (isHovered)
+        {
+            if (ImGuiComponents.IconButton("wCfg", FontAwesomeIcon.Cog))
+                ImGui.OpenPopup("##widgetCfg");
+
+            DrawConfigPopup();
+        }
+    }
+
+    private static void DrawBar(string label, int completed, int total, Vector4 color, Models.OverlaySettings s)
+    {
         var fraction = total > 0 ? (float)completed / total : 0f;
 
         ImGui.PushStyleColor(ImGuiCol.Text, s.HeaderColor);
-        ImGui.Text("QB");
+        ImGui.Text(label);
         ImGui.PopStyleColor();
 
         ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.PlotHistogram, s.CompletedColor);
+        ImGui.PushStyleColor(ImGuiCol.PlotHistogram, color);
         ImGui.PushStyleColor(ImGuiCol.FrameBg, Styles.BgLight);
         ImGui.ProgressBar(fraction, new Vector2(100, 14), "");
         ImGui.PopStyleColor(2);
@@ -64,38 +120,88 @@ internal sealed class WidgetWindow : Window
         ImGui.PushStyleColor(ImGuiCol.Text, s.TextColor);
         ImGui.Text($"{fraction * 100f:F0}%");
         ImGui.PopStyleColor();
+    }
 
-        // Direction arrow to nearest tracked quest
-        var activeList = _trackingService.ActiveList;
-        var direction = _questService.GetNearestTrackedQuestDirection(activeList.QuestRowIds);
-        if (direction.HasValue)
+    private void DrawConfigPopup()
+    {
+        if (!ImGui.BeginPopup("##widgetCfg"))
+            return;
+
+        var s = _trackingService.OverlaySettings;
+        var changed = false;
+
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
+        ImGui.Text("Widget Bars");
+        ImGui.PopStyleColor();
+        ImGui.Separator();
+
+        // Total toggle
+        if (ImGui.Checkbox("Total", ref s.WidgetShowTotal))
+            changed = true;
+
+        ImGui.Separator();
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+        ImGui.Text("Expansions");
+        ImGui.PopStyleColor();
+
+        // Expansion toggles
+        var expansionNames = new (uint Id, string Name)[]
+        { (0, "A Realm Reborn"), (1, "Heavensward"), (2, "Stormblood"), (3, "Shadowbringers"), (4, "Endwalker"), (5, "Dawntrail") };
+
+        foreach (var (id, name) in expansionNames)
         {
-            var (angle, dist, name) = direction.Value;
-            ImGui.SameLine();
-            ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 4);
+            var enabled = s.WidgetExpansions.Contains(id);
+            ImGui.PushStyleColor(ImGuiCol.Text, Styles.GetExpansionColor(id));
+            if (ImGui.Checkbox($"{name}###wExp{id}", ref enabled))
+            {
+                if (enabled) s.WidgetExpansions.Add(id); else s.WidgetExpansions.Remove(id);
+                changed = true;
+            }
+            ImGui.PopStyleColor();
+        }
 
-            // Unicode arrow based on direction
-            var arrow = GetDirectionArrow(angle);
-            ImGui.PushStyleColor(ImGuiCol.Text, s.LevelColor);
-            ImGui.Text($"{arrow} {dist:F0}y");
+        // Chain toggles
+        var allChains = _questService.BlueQuests
+            .Where(q => !string.IsNullOrEmpty(q.ChainName))
+            .Select(q => q.ChainName)
+            .Distinct()
+            .OrderBy(n => n)
+            .ToList();
+
+        if (allChains.Count > 0)
+        {
+            ImGui.Separator();
+            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+            ImGui.Text("Quest Chains");
             ImGui.PopStyleColor();
 
-            if (ImGui.IsItemHovered())
-            { ImGui.BeginTooltip(); ImGui.Text($"Nearest: {name} ({dist:F0} yalms)"); ImGui.EndTooltip(); }
+            foreach (var chainName in allChains)
+            {
+                var enabled = s.WidgetChains.Contains(chainName);
+                if (ImGui.Checkbox($"{chainName}###wCh{chainName.GetHashCode()}", ref enabled))
+                {
+                    if (enabled) s.WidgetChains.Add(chainName); else s.WidgetChains.Remove(chainName);
+                    changed = true;
+                }
+            }
         }
+
+        if (changed)
+            _trackingService.SaveOverlaySettings();
+
+        ImGui.EndPopup();
     }
 
     private static string GetDirectionArrow(float angleRad)
     {
-        // Normalize to 0-2pi
         var a = ((angleRad % (2 * MathF.PI)) + 2 * MathF.PI) % (2 * MathF.PI);
         return (a / (MathF.PI / 4)) switch
         {
-            < 1 => "\u2191",   // N
-            < 3 => "\u2192",   // E
-            < 5 => "\u2193",   // S
-            < 7 => "\u2190",   // W
-            _ => "\u2191",     // N
+            < 1 => "N",
+            < 3 => "E",
+            < 5 => "S",
+            < 7 => "W",
+            _ => "N",
         };
     }
 }
