@@ -146,7 +146,7 @@ public static class QuestUnlockData
         // ── Hildibrand ──────────────────────────────────────────────
         ("The Rise and Fall of Gentlemen", QuestCategory.Feature, "Unlocks Hildibrand Adventures"),
 
-        // ── Crafting/Gathering Classes ──────────────────────────────
+        // ── Crafting/Gathering Classes (EN + DE) ────────────────────
         ("Way of the Carpenter", QuestCategory.JobUnlock, "Unlocks Carpenter"),
         ("Way of the Blacksmith", QuestCategory.JobUnlock, "Unlocks Blacksmith"),
         ("Way of the Armorer", QuestCategory.JobUnlock, "Unlocks Armorer"),
@@ -158,6 +158,18 @@ public static class QuestUnlockData
         ("Way of the Miner", QuestCategory.JobUnlock, "Unlocks Miner"),
         ("Way of the Botanist", QuestCategory.JobUnlock, "Unlocks Botanist"),
         ("Way of the Fisher", QuestCategory.JobUnlock, "Unlocks Fisher"),
+        ("Gilde der Zimmerer", QuestCategory.JobUnlock, "Unlocks Carpenter"),
+        ("Gilde der Grobschmiede", QuestCategory.JobUnlock, "Unlocks Blacksmith"),
+        ("Gilde der Plattner", QuestCategory.JobUnlock, "Unlocks Armorer"),
+        ("Gilde der Goldschmiede", QuestCategory.JobUnlock, "Unlocks Goldsmith"),
+        ("Gilde der Gerber", QuestCategory.JobUnlock, "Unlocks Leatherworker"),
+        ("Gilde der Weber", QuestCategory.JobUnlock, "Unlocks Weaver"),
+        ("Gilde der Alchemisten", QuestCategory.JobUnlock, "Unlocks Alchemist"),
+        ("Gilde der Gourmets", QuestCategory.JobUnlock, "Unlocks Culinarian"),
+        ("Gilde der Minenarbeiter", QuestCategory.JobUnlock, "Unlocks Miner"),
+        ("Gilde der G\u00e4rtner", QuestCategory.JobUnlock, "Unlocks Botanist"),
+        ("Gilde der Fischer", QuestCategory.JobUnlock, "Unlocks Fisher"),
+        ("Gilde der Maschinisten", QuestCategory.JobUnlock, "Unlocks Machinist"),
 
         // ── Levequests per Expansion ────────────────────────────────
         ("Leves of", QuestCategory.Feature, "Unlocks Levequests"),
@@ -165,6 +177,30 @@ public static class QuestUnlockData
         ("Leves of Kugane", QuestCategory.Feature, "Unlocks SB Levequests"),
         ("Leves of the Crystarium", QuestCategory.Feature, "Unlocks ShB Levequests"),
         ("Leves of Tuliyollal", QuestCategory.Feature, "Unlocks DT Levequests"),
+
+        // ── HW Job Unlocks (DE) ─────────────────────────────────────
+        ("d\u00fcsteres Schauspiel", QuestCategory.JobUnlock, "Unlocks Dark Knight"),
+        ("Wiege der Astrologie", QuestCategory.JobUnlock, "Unlocks Astrologian"),
+        ("Savior of Skysteel", QuestCategory.JobUnlock, "Unlocks Machinist"),
+        ("Out of the Shadows", QuestCategory.JobUnlock, "Unlocks Dark Knight"),
+        ("Stairway to the Heavens", QuestCategory.JobUnlock, "Unlocks Astrologian"),
+
+        // ── German specific unlocks ─────────────────────────────────
+        ("Wiedererweckte Erinnerungen", QuestCategory.Feature, "Unlocks New Game+"),
+        ("Willkommen zu den Triple Triad-Turnieren", QuestCategory.Feature, "Unlocks Triple Triad Tournaments"),
+        ("Trautes Heim, Inselgl\u00fcck", QuestCategory.Feature, "Unlocks Island Sanctuary"),
+        ("Abstieg in die Katakomben", QuestCategory.Dungeon, "Unlocks Palace of the Dead"),
+        ("Rowenas Wacht", QuestCategory.Feature, "Unlocks Collectables (SB)"),
+        ("Frontbericht", QuestCategory.Feature, "Unlocks Bozja Field Notes"),
+        ("verzweifelte Schreiber", QuestCategory.Feature, "Unlocks Resistance Weapons (ShB)"),
+        ("Lebenszeichen", QuestCategory.Feature, "Unlocks Dwarf Beast Tribe"),
+        ("Helfende H\u00e4nde", QuestCategory.Feature, "Unlocks Dwarf Beast Tribe quest chain"),
+        ("Papas Paradoxie", QuestCategory.Feature, "Unlocks Dwarf Beast Tribe quest chain"),
+        ("Ausgefuchste Assistenz", QuestCategory.Feature, "Unlocks Dwarf Beast Tribe quest chain"),
+        ("Papas persistente Paradoxie", QuestCategory.Feature, "Unlocks Dwarf Beast Tribe quest chain"),
+        ("Gl\u00fcck auf f\u00fcr Komra", QuestCategory.Raid, "Unlocks Copied Factory (YoRHa)"),
+        ("Orden f\u00fcr deine Brust", QuestCategory.Feature, "Unlocks Zadnor Field Notes"),
+        ("Traumwetter", QuestCategory.Feature, "Unlocks Shared FATE (ShB)"),
 
         // ── Triple Triad Tournaments ────────────────────────────────
         ("Triple Triad Tournament", QuestCategory.Feature, "Unlocks Triple Triad Tournaments"),
