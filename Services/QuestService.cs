@@ -252,7 +252,28 @@ public sealed class QuestService
             }
         }
 
-        // Check rewards for more specific descriptions
+        // General action rewards (glamour, dye, materia melding, desynthesis, treasure maps, etc.)
+        for (var i = 0; i < 2; i++)
+        {
+            var ga = quest.GeneralActionReward[i].ValueNullable;
+            if (ga != null)
+            {
+                var gaName = ga.Value.Name.ExtractText();
+                if (!string.IsNullOrWhiteSpace(gaName))
+                    return (QuestCategory.Feature, $"Unlocks {gaName}");
+            }
+        }
+
+        // Other rewards (Aether Current, etc.)
+        var otherReward = quest.OtherReward.ValueNullable;
+        if (otherReward != null)
+        {
+            var rewardName = otherReward.Value.Name.ExtractText();
+            if (!string.IsNullOrWhiteSpace(rewardName) && rewardName != "???")
+                return (QuestCategory.Feature, $"Rewards {rewardName}");
+        }
+
+        // Emote reward
         var emote = quest.EmoteReward.ValueNullable;
         if (emote != null)
         {
@@ -261,6 +282,7 @@ public sealed class QuestService
                 return (QuestCategory.Feature, $"Unlocks /{emoteName} emote");
         }
 
+        // Action reward
         var action = quest.ActionReward.ValueNullable;
         if (action != null)
         {
@@ -269,6 +291,7 @@ public sealed class QuestService
                 return (QuestCategory.Feature, $"Unlocks {actionName}");
         }
 
+        // Beast tribe
         if (quest.BeastTribe.RowId != 0)
         {
             var tribeName = quest.BeastTribe.ValueNullable?.Name.ExtractText();
