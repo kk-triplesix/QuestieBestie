@@ -559,6 +559,11 @@ public sealed class QuestService
         if (hasUnlockInstruction)
             return (QuestCategory.Dungeon, "Unlocks content");
 
+        // Manual lookup fallback for quests with no structured unlock data
+        var manual = QuestUnlockData.Lookup(quest.Name.ExtractText());
+        if (manual.HasValue)
+            return manual.Value;
+
         return (QuestCategory.Feature, "");
     }
 
