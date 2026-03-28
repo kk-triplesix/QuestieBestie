@@ -446,28 +446,12 @@ public sealed class QuestService
         // Instance content unlock (dungeon/trial/raid)
         if (quest.InstanceContentUnlock.RowId != 0)
         {
-            var cfcSheet = Svc.Data.GetExcelSheet<ContentFinderCondition>();
-            if (cfcSheet != null)
-            {
-                foreach (var cfc in cfcSheet)
-                {
-                    if (cfc.Content.RowId == quest.InstanceContentUnlock.RowId && cfc.ContentLinkType == 1)
-                    {
-                        var contentName = cfc.Name.ExtractText();
-                        if (string.IsNullOrWhiteSpace(contentName))
-                            break;
+            var result = LookupInstanceContent(quest.InstanceContentUnlock.RowId);
+            if (result.HasValue)
+                return result.Value;
 
-                        var contentTypeId = cfc.ContentType.RowId;
-                        return contentTypeId switch
-                        {
-                            2 => (QuestCategory.Dungeon, $"Unlocks {contentName}"),
-                            4 => (QuestCategory.Trial, $"Unlocks {contentName}"),
-                            5 or 28 or 37 => (QuestCategory.Raid, $"Unlocks {contentName}"),
-                            _ => (QuestCategory.Other, $"Unlocks {contentName}"),
-                        };
-                    }
-                }
-            }
+            // Fallback: InstanceContentUnlock is set but no CFC match found
+            return (QuestCategory.Dungeon, "Unlocks content");
         }
 
         // General action rewards (glamour, dye, materia melding, desynthesis, treasure maps, etc.)
@@ -545,27 +529,9 @@ public sealed class QuestService
 
         if (hasUnlockInstruction && scriptInstanceId != 0)
         {
-            var cfcSheet = Svc.Data.GetExcelSheet<ContentFinderCondition>();
-            if (cfcSheet != null)
-            {
-                foreach (var cfc in cfcSheet)
-                {
-                    if (cfc.Content.RowId == scriptInstanceId && cfc.ContentLinkType == 1)
-                    {
-                        var contentName = cfc.Name.ExtractText();
-                        if (!string.IsNullOrWhiteSpace(contentName))
-                        {
-                            return cfc.ContentType.RowId switch
-                            {
-                                2 => (QuestCategory.Dungeon, $"Unlocks {contentName}"),
-                                4 => (QuestCategory.Trial, $"Unlocks {contentName}"),
-                                5 or 28 or 37 => (QuestCategory.Raid, $"Unlocks {contentName}"),
-                                _ => (QuestCategory.Other, $"Unlocks {contentName}"),
-                            };
-                        }
-                    }
-                }
-            }
+            var scriptResult = LookupInstanceContent(scriptInstanceId);
+            if (scriptResult.HasValue)
+                return scriptResult.Value;
         }
 
         // Even without instance ID, if UNLOCK instructions exist, mark as content unlock
@@ -573,6 +539,35 @@ public sealed class QuestService
             return (QuestCategory.Dungeon, "Unlocks content");
 
         return (QuestCategory.Feature, "");
+    }
+
+    private (QuestCategory Category, string Unlocks)? LookupInstanceContent(uint instanceContentId)
+    {
+        var cfcSheet = Svc.Data.GetExcelSheet<ContentFinderCondition>();
+        if (cfcSheet == null)
+            return null;
+
+        foreach (var cfc in cfcSheet)
+        {
+            // Match by Content RowId — try any ContentLinkType, not just 1
+            if (cfc.Content.RowId != instanceContentId)
+                continue;
+
+            var contentName = cfc.Name.ExtractText();
+            if (string.IsNullOrWhiteSpace(contentName))
+                continue;
+
+            var contentTypeId = cfc.ContentType.RowId;
+            return contentTypeId switch
+            {
+                2 => (QuestCategory.Dungeon, $"Unlocks {contentName}"),
+                4 => (QuestCategory.Trial, $"Unlocks {contentName}"),
+                5 or 28 or 37 => (QuestCategory.Raid, $"Unlocks {contentName}"),
+                _ => (QuestCategory.Other, $"Unlocks {contentName}"),
+            };
+        }
+
+        return null;
     }
 
     private static (QuestCategory Category, string Unlocks)? CheckUmbrellaQuest(Quest quest)
