@@ -559,8 +559,11 @@ internal sealed class MainWindow : Window
     private string _sideSearch = string.Empty;
     private int _sideFilter; // 0=All, 1=Special Only, 2=Incomplete, 3=Complete
     private int _sideSpecialFilter;
+    private int _sideLocationFilter;
     private string[] _sideSpecialOptions = [];
+    private string[] _sideLocationOptions = [];
     private string _sideSpecialSearch = string.Empty;
+    private string _sideLocationSearch = string.Empty;
     private int _sideExpansion;
 
     // ── Recent Quests Tab ──────────────────────────────────────────────
@@ -623,14 +626,21 @@ internal sealed class MainWindow : Window
         ImGui.Combo("##sideExp", ref _sideExpansion, _expansionOptions, _expansionOptions.Length);
         ImGui.PopItemWidth();
 
-        // Special tag filter
+        // Location + Special tag filters
+        if (_sideLocationOptions.Length == 0)
+        {
+            _sideLocationOptions = ["All Locations", .. _questService.SideQuests
+                .Select(q => q.Location).Where(l => !string.IsNullOrWhiteSpace(l)).Distinct().OrderBy(l => l)];
+        }
         if (_sideSpecialOptions.Length == 0)
         {
             _sideSpecialOptions = ["All Specials", .. _questService.SideQuests
                 .Where(q => q.IsSpecial && !string.IsNullOrWhiteSpace(q.SpecialTag))
                 .Select(q => q.SpecialTag).Distinct().OrderBy(s => s)];
         }
-        DrawSearchableCombo("##sideSpecial", ref _sideSpecialFilter, _sideSpecialOptions, ref _sideSpecialSearch, 250);
+        DrawSearchableCombo("##sideLocation", ref _sideLocationFilter, _sideLocationOptions, ref _sideLocationSearch, 150);
+        ImGui.SameLine();
+        DrawSearchableCombo("##sideSpecial", ref _sideSpecialFilter, _sideSpecialOptions, ref _sideSpecialSearch, 220);
 
         // Filter
         var search = _sideSearch.Trim();
@@ -643,6 +653,7 @@ internal sealed class MainWindow : Window
                 case 3: if (!q.IsCompleted) return false; break;
             }
             if (_sideExpansion > 0 && !q.Expansion.Equals(_expansionOptions[_sideExpansion], StringComparison.OrdinalIgnoreCase)) return false;
+            if (_sideLocationFilter > 0 && !q.Location.Equals(_sideLocationOptions[_sideLocationFilter], StringComparison.OrdinalIgnoreCase)) return false;
             if (_sideSpecialFilter > 0 && !q.SpecialTag.Equals(_sideSpecialOptions[_sideSpecialFilter], StringComparison.OrdinalIgnoreCase)) return false;
             if (search.Length > 0 && !q.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
                 && !q.Location.Contains(search, StringComparison.OrdinalIgnoreCase)
