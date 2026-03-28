@@ -1,6 +1,4 @@
 using System.Numerics;
-using Dalamud.Interface;
-using Dalamud.Interface.Components;
 using Dalamud.Interface.Windowing;
 using QuestieBestie.Services;
 
@@ -92,14 +90,15 @@ internal sealed class WidgetWindow : Window
             ImGui.PopStyleColor();
         }
 
-        // Config button on hover
-        if (isHovered)
-        {
-            if (ImGuiComponents.IconButton("wCfg", FontAwesomeIcon.Cog))
-                ImGui.OpenPopup("##widgetCfg");
+        // Config button (always visible, small)
+        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(2, 2));
+        if (ImGui.Button("S###wCfg"))
+            ImGui.OpenPopup("##widgetCfg");
+        ImGui.PopStyleVar();
+        if (ImGui.IsItemHovered())
+        { ImGui.BeginTooltip(); ImGui.Text("Settings"); ImGui.EndTooltip(); }
 
-            DrawConfigPopup();
-        }
+        DrawConfigPopup();
     }
 
     private static void DrawBar(string label, int completed, int total, Vector4 color, Models.OverlaySettings s)
@@ -111,12 +110,14 @@ internal sealed class WidgetWindow : Window
         ImGui.PopStyleColor();
 
         ImGui.SameLine();
+        ImGui.SetCursorPosX(80);
         ImGui.PushStyleColor(ImGuiCol.PlotHistogram, color);
         ImGui.PushStyleColor(ImGuiCol.FrameBg, Styles.BgLight);
         ImGui.ProgressBar(fraction, new Vector2(100, 14), "");
         ImGui.PopStyleColor(2);
 
         ImGui.SameLine();
+        ImGui.SetCursorPosX(190);
         ImGui.PushStyleColor(ImGuiCol.Text, s.TextColor);
         ImGui.Text($"{fraction * 100f:F0}%");
         ImGui.PopStyleColor();
