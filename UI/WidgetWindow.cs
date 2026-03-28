@@ -8,6 +8,7 @@ internal sealed class WidgetWindow : Window
 {
     private readonly QuestService _questService;
     private readonly TrackingService _trackingService;
+    private DateTime _lastHovered = DateTime.MinValue;
 
     public WidgetWindow(QuestService questService, TrackingService trackingService)
         : base("##QBWidget",
@@ -46,7 +47,10 @@ internal sealed class WidgetWindow : Window
     {
         _questService.RefreshCompletionStatus();
         var s = _trackingService.OverlaySettings;
-        var isHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows);
+
+        if (ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows | ImGuiHoveredFlags.AllowWhenBlockedByActiveItem))
+            _lastHovered = DateTime.Now;
+        var showBtn = (DateTime.Now - _lastHovered).TotalSeconds < 2.0;
 
         // Total progress (if enabled)
         if (s.WidgetShowTotal)
@@ -91,7 +95,7 @@ internal sealed class WidgetWindow : Window
         }
 
         // Config button — only show on hover, but ALWAYS render popup
-        if (isHovered)
+        if (showBtn)
         {
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(2, 2));
             if (ImGui.Button("S###wCfg"))

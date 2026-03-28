@@ -14,7 +14,8 @@ internal sealed class OverlayWindow : Window
     private SettingsWindow? _settingsWindow;
 
     private bool _fontScaled;
-    private bool _isHovered;
+    private bool _showButtons;
+    private DateTime _lastHovered = DateTime.MinValue;
 
     public OverlayWindow(QuestService questService, TrackingService trackingService)
         : base("##QuestieBestieOverlay",
@@ -47,7 +48,7 @@ internal sealed class OverlayWindow : Window
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14, 10));
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 4));
 
-        var alpha = _isHovered ? Math.Max(s.BackgroundAlpha, 0.85f) : s.BackgroundAlpha;
+        var alpha = _showButtons ? Math.Max(s.BackgroundAlpha, 0.85f) : s.BackgroundAlpha;
         var bg = new Vector4(s.BackgroundColor.X, s.BackgroundColor.Y, s.BackgroundColor.Z, alpha);
         var border = new Vector4(s.BorderColor.X, s.BorderColor.Y, s.BorderColor.Z, s.BorderAlpha);
 
@@ -72,7 +73,9 @@ internal sealed class OverlayWindow : Window
     public override void Draw()
     {
         var s = _trackingService.OverlaySettings;
-        _isHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows);
+        if (ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows | ImGuiHoveredFlags.AllowWhenBlockedByActiveItem))
+            _lastHovered = DateTime.Now;
+        _showButtons = (DateTime.Now - _lastHovered).TotalSeconds < 2.0;
 
         if (Math.Abs(s.FontScale - 1.0f) > 0.01f)
         {
@@ -101,7 +104,7 @@ internal sealed class OverlayWindow : Window
         ImGui.PopStyleColor();
 
         // Settings + Close buttons (only on hover)
-        if (_isHovered)
+        if (_showButtons)
         {
             ImGui.SameLine();
             ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(2, 2));
