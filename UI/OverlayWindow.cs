@@ -9,13 +9,15 @@ internal sealed class OverlayWindow : Window
 {
     private readonly QuestService _questService;
     private readonly TrackingService _trackingService;
+    private SettingsWindow? _settingsWindow;
+
+    private bool _fontScaled;
+    private bool _isHovered;
 
     public OverlayWindow(QuestService questService, TrackingService trackingService)
         : base("##QuestieBestieOverlay",
             ImGuiWindowFlags.NoTitleBar
             | ImGuiWindowFlags.NoScrollbar
-            | ImGuiWindowFlags.NoScrollWithMouse
-            | ImGuiWindowFlags.AlwaysAutoResize
             | ImGuiWindowFlags.NoFocusOnAppearing
             | ImGuiWindowFlags.NoBringToFrontOnFocus)
     {
@@ -23,6 +25,16 @@ internal sealed class OverlayWindow : Window
         _trackingService = trackingService;
         IsOpen = false;
         RespectCloseHotkey = false;
+        SizeConstraints = new WindowSizeConstraints
+        {
+            MinimumSize = new Vector2(200, 80),
+            MaximumSize = new Vector2(800, 1200),
+        };
+    }
+
+    public void SetSettingsWindow(SettingsWindow settingsWindow)
+    {
+        _settingsWindow = settingsWindow;
     }
 
     public override void PreDraw()
@@ -33,7 +45,8 @@ internal sealed class OverlayWindow : Window
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14, 10));
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 4));
 
-        var bg = new Vector4(s.BackgroundColor.X, s.BackgroundColor.Y, s.BackgroundColor.Z, s.BackgroundAlpha);
+        var alpha = _isHovered ? Math.Max(s.BackgroundAlpha, 0.85f) : s.BackgroundAlpha;
+        var bg = new Vector4(s.BackgroundColor.X, s.BackgroundColor.Y, s.BackgroundColor.Z, alpha);
         var border = new Vector4(s.BorderColor.X, s.BorderColor.Y, s.BorderColor.Z, s.BorderAlpha);
 
         ImGui.PushStyleColor(ImGuiCol.WindowBg, bg);
@@ -54,11 +67,10 @@ internal sealed class OverlayWindow : Window
         }
     }
 
-    private bool _fontScaled;
-
     public override void Draw()
     {
         var s = _trackingService.OverlaySettings;
+        _isHovered = ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows);
 
         if (Math.Abs(s.FontScale - 1.0f) > 0.01f)
         {
@@ -85,6 +97,26 @@ internal sealed class OverlayWindow : Window
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
         ImGui.Text($"({_questService.CompletionPercent:F0}%)");
         ImGui.PopStyleColor();
+
+        // Settings + Close buttons (right-aligned)
+        if (_isHovered)
+        {
+            var closeSize = ImGui.CalcTextSize("\u2715").X + 8;
+            var gearSize = ImGui.CalcTextSize("\u2699").X + 8;
+            ImGui.SameLine();
+            ImGui.SetCursorPosX(ImGui.GetWindowWidth() - closeSize - gearSize - 20);
+
+            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+            if (ImGui.Selectable("\u2699###ovSettings", false, ImGuiSelectableFlags.None, new Vector2(gearSize, 0)))
+                _settingsWindow?.Toggle();
+            ImGui.PopStyleColor();
+
+            ImGui.SameLine();
+            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);
+            if (ImGui.Selectable("\u2715###ovClose", false, ImGuiSelectableFlags.None, new Vector2(closeSize, 0)))
+                IsOpen = false;
+            ImGui.PopStyleColor();
+        }
     }
 
     private void DrawListSwitcher(OverlaySettings s)

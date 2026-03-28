@@ -37,6 +37,10 @@ public sealed class QuestService
             if (string.IsNullOrWhiteSpace(name))
                 continue;
 
+            // Skip removed/deprecated quests (no valid quest giver location)
+            if (quest.IssuerLocation.RowId == 0)
+                continue;
+
             var prereqs = new List<uint>();
             if (quest.PreviousQuest[0].RowId != 0) prereqs.Add(quest.PreviousQuest[0].RowId);
             if (quest.PreviousQuest[1].RowId != 0) prereqs.Add(quest.PreviousQuest[1].RowId);
@@ -59,6 +63,21 @@ public sealed class QuestService
 
             BlueQuests.Add(questData);
             BlueQuestLookup[quest.RowId] = questData;
+        }
+
+        // Remove duplicates: keep the quest with the highest RowId (newest version)
+        var dupeNames = BlueQuests
+            .GroupBy(q => q.Name)
+            .Where(g => g.Count() > 1)
+            .SelectMany(g => g.OrderByDescending(q => q.RowId).Skip(1))
+            .Select(q => q.RowId)
+            .ToHashSet();
+
+        if (dupeNames.Count > 0)
+        {
+            BlueQuests.RemoveAll(q => dupeNames.Contains(q.RowId));
+            foreach (var id in dupeNames)
+                BlueQuestLookup.Remove(id);
         }
     }
 
