@@ -110,6 +110,7 @@ public sealed class QuestService
                 RowId = quest.RowId,
                 QuestId = (ushort)(quest.RowId & 0xFFFF),
                 Name = name,
+                EnglishName = enName,
                 IconId = (ushort)quest.Icon,
                 RequiredLevel = (byte)quest.ClassJobLevel[0],
                 RequiredClassJob = classJob,
@@ -141,43 +142,16 @@ public sealed class QuestService
                     q.IsCompleted = QuestManager.IsQuestComplete(q.QuestId);
         }
 
-        // Double-check with Dalamud's IUnlockState for quests that might have wrong ushort ID
-        try
+        // Cross-check: for any not-complete quest, check all RowId variants with same EnglishName
+        unsafe
         {
-            var unlockState = Svc.PluginInterface.GetOrCreateData<object>("unlockState", () => null!);
-        }
-        catch { }
-
-        // Also check: for any quest not marked complete, try all RowId variants
-        var enSheet2 = Svc.Data.GetExcelSheet<Quest>(Dalamud.Game.ClientLanguage.English);
-        if (enSheet2 != null)
-        {
-            // Build name → all RowIds mapping
-            var nameToIds = new Dictionary<string, List<ushort>>();
-            foreach (var q in enSheet2)
+            var qm = QuestManager.Instance();
+            if (qm != null)
             {
-                var n = q.Name.ExtractText();
-                if (string.IsNullOrWhiteSpace(n)) continue;
-                if (!nameToIds.ContainsKey(n)) nameToIds[n] = [];
-                nameToIds[n].Add((ushort)(q.RowId & 0xFFFF));
-            }
-
-            unsafe
-            {
-                var qm = QuestManager.Instance();
-                if (qm != null)
-                {
-                    foreach (var q in BlueQuests.Where(q => !q.IsCompleted))
-                    {
-                        // Check all RowId variants with the same English name
-                        var enName = enSheet2.GetRowOrDefault(q.RowId)?.Name.ExtractText() ?? "";
-                        if (nameToIds.TryGetValue(enName, out var ids))
-                        {
-                            if (ids.Any(QuestManager.IsQuestComplete))
-                                q.IsCompleted = true;
-                        }
-                    }
-                }
+                var nameGroups = BlueQuests.GroupBy(q => q.EnglishName).Where(g => g.Any(q => q.IsCompleted));
+                foreach (var group in nameGroups)
+                    foreach (var q in group.Where(q => !q.IsCompleted))
+                        q.IsCompleted = true;
             }
         }
 
@@ -185,7 +159,7 @@ public sealed class QuestService
         var toRemove = new HashSet<uint>();
 
         // 1. Same name → keep completed, or newest if none completed
-        foreach (var group in BlueQuests.GroupBy(q => q.Name).Where(g => g.Count() > 1))
+        foreach (var group in BlueQuests.GroupBy(q => q.EnglishName).Where(g => g.Count() > 1))
             foreach (var old in group.OrderByDescending(q => q.IsCompleted).ThenByDescending(q => q.RowId).Skip(1))
                 toRemove.Add(old.RowId);
 

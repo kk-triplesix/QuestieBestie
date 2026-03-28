@@ -206,7 +206,7 @@ internal sealed class OverlayWindow : Window
             var nameColor = quest.IsCompleted ? Styles.TextDimmed : s.TextColor;
             ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
             if (ImGui.Selectable($"{quest.Name}###ov{quest.RowId}", false))
-            { _questService.OpenQuestOnMap(quest.RowId); _detailWindow?.ShowQuest(quest); }
+                _questService.OpenQuestOnMap(quest.RowId);
             ImGui.PopStyleColor();
 
             if (ImGui.BeginPopupContextItem($"ovctx###{quest.RowId}"))
