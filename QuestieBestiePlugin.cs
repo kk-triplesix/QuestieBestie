@@ -38,6 +38,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         _settingsWindow = new SettingsWindow(_trackingService);
         _settingsWindow.SetQuestService(_questService);
         _overlayWindow.SetSettingsWindow(_settingsWindow);
+        _overlayWindow.SetDetailWindow(_detailWindow);
         _widgetWindow = new WidgetWindow(_questService, _trackingService);
         _mainWindow = new MainWindow(_questService, _detailWindow, _trackingService, _overlayWindow, _settingsWindow, _widgetWindow);
 

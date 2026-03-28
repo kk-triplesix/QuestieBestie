@@ -164,7 +164,11 @@ internal sealed class DetailWindow : Window
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
         if (ImGui.Selectable($"{node.Name}{typeTag}###{node.RowId}", false, ImGuiSelectableFlags.None, new Vector2(0, 0)))
+        {
             _questService.OpenQuestOnMap(node.RowId);
+            if (node.IsBlueQuest && _questService.BlueQuestLookup.TryGetValue(node.RowId, out var prereqQuest))
+                ShowQuest(prereqQuest);
+        }
         ImGui.PopStyleColor();
 
         if (ImGui.IsItemHovered()) { ImGui.BeginTooltip(); ImGui.Text("Click to show on map"); ImGui.EndTooltip(); }

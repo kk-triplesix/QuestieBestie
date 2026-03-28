@@ -355,7 +355,7 @@ internal sealed class MainWindow : Window
 
         // Map + Chat
         if (ImGui.MenuItem("Show on Map"))
-            _questService.OpenQuestOnMap(quest.RowId);
+        { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
         if (ImGui.MenuItem("Send to Chat"))
             _questService.SendQuestChatLink(quest.RowId);
 
@@ -485,7 +485,7 @@ internal sealed class MainWindow : Window
                 var nameColor = quest.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
                 ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
                 if (ImGui.Selectable($"{quest.Name} (Lv.{quest.RequiredLevel})###ac{quest.RowId}", false))
-                    _questService.OpenQuestOnMap(quest.RowId);
+                { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
                 ImGui.PopStyleColor();
             }
             ImGui.Spacing();
@@ -536,7 +536,7 @@ internal sealed class MainWindow : Window
                 var nameColor = quest.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
                 ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
                 if (ImGui.Selectable($"Lv.{quest.RequiredLevel} {quest.Name}###du{quest.RowId}", false))
-                    _questService.OpenQuestOnMap(quest.RowId);
+                { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
                 ImGui.PopStyleColor();
 
                 if (!string.IsNullOrEmpty(quest.Unlocks))
@@ -663,7 +663,7 @@ internal sealed class MainWindow : Window
             var nameColor = quest.IsCompleted ? Styles.TextDimmed : quest.IsSpecial ? Styles.FavoriteStar : Styles.TextPrimary;
             ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
             if (ImGui.Selectable($"{quest.Name}###sq{quest.RowId}", false, ImGuiSelectableFlags.SpanAllColumns))
-                _questService.OpenQuestOnMap(quest.RowId);
+            { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
             ImGui.PopStyleColor();
 
             if (ImGui.IsItemHovered() && !string.IsNullOrEmpty(quest.SpecialTag))

@@ -12,6 +12,7 @@ internal sealed class OverlayWindow : Window
     private readonly QuestService _questService;
     private readonly TrackingService _trackingService;
     private SettingsWindow? _settingsWindow;
+    private DetailWindow? _detailWindow;
 
     private bool _fontScaled;
     private bool _showButtons;
@@ -35,6 +36,7 @@ internal sealed class OverlayWindow : Window
         };
     }
 
+    public void SetDetailWindow(DetailWindow detailWindow) => _detailWindow = detailWindow;
     public void SetSettingsWindow(SettingsWindow settingsWindow)
     {
         _settingsWindow = settingsWindow;
@@ -183,7 +185,7 @@ internal sealed class OverlayWindow : Window
             var nameColor = quest.IsCompleted ? Styles.TextDimmed : s.TextColor;
             ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
             if (ImGui.Selectable($"{quest.Name}###ov{quest.RowId}", false))
-                _questService.OpenQuestOnMap(quest.RowId);
+            { _questService.OpenQuestOnMap(quest.RowId); _detailWindow?.ShowQuest(quest); }
             ImGui.PopStyleColor();
 
             if (ImGui.BeginPopupContextItem($"ovctx###{quest.RowId}"))
