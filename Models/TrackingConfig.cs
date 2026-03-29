@@ -11,6 +11,7 @@ public sealed class TrackingConfig : IPluginConfiguration
     public int ActiveListIndex { get; set; }
     public OverlaySettings Overlay { get; set; } = new();
     public HashSet<uint> Favorites { get; set; } = [];
+    public HashSet<uint> ManuallyCompleted { get; set; } = [];
     public Dictionary<uint, string> Notes { get; set; } = [];
     public uint LastKnownMaxRowId { get; set; }
 }

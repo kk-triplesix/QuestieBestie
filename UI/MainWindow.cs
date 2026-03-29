@@ -366,6 +366,21 @@ internal sealed class MainWindow : Window
 
         ImGui.Separator();
 
+        // Manual completion
+        var isManual = _trackingService.IsManuallyCompleted(quest.RowId);
+        if (isManual)
+        {
+            if (ImGui.MenuItem("Unmark Completed"))
+                _trackingService.UnmarkCompleted(quest.RowId);
+        }
+        else
+        {
+            if (ImGui.MenuItem("Mark as Completed"))
+                _trackingService.MarkCompleted(quest.RowId, _questService);
+        }
+
+        ImGui.Separator();
+
         // Tracking lists
         for (var i = 0; i < _trackingService.Lists.Count; i++)
         {

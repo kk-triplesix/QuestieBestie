@@ -130,6 +130,35 @@ public sealed class TrackingService
 
     public bool IsFavorite(uint rowId) => _config.Favorites.Contains(rowId);
 
+    public HashSet<uint> ManuallyCompleted => _config.ManuallyCompleted;
+
+    public bool IsManuallyCompleted(uint rowId) => _config.ManuallyCompleted.Contains(rowId);
+
+    public void MarkCompleted(uint rowId, QuestService questService)
+    {
+        _config.ManuallyCompleted.Add(rowId);
+        MarkPrerequisitesCompleted(rowId, questService);
+        Save();
+    }
+
+    public void UnmarkCompleted(uint rowId)
+    {
+        _config.ManuallyCompleted.Remove(rowId);
+        Save();
+    }
+
+    private void MarkPrerequisitesCompleted(uint rowId, QuestService questService)
+    {
+        if (!questService.BlueQuestLookup.TryGetValue(rowId, out var quest))
+            return;
+
+        foreach (var prereqId in quest.PrerequisiteIds)
+        {
+            if (_config.ManuallyCompleted.Add(prereqId))
+                MarkPrerequisitesCompleted(prereqId, questService);
+        }
+    }
+
     public void SetNote(uint rowId, string note)
     {
         if (string.IsNullOrWhiteSpace(note))

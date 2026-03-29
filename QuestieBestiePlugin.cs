@@ -32,6 +32,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
         _questService = new QuestService();
         _trackingService = new TrackingService();
+        _questService.SetManuallyCompleted(_trackingService.ManuallyCompleted);
         _detailWindow = new DetailWindow(_questService);
         _detailWindow.SetTrackingService(_trackingService);
         _overlayWindow = new OverlayWindow(_questService, _trackingService);

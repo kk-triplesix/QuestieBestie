@@ -17,11 +17,17 @@ public sealed class QuestService
     public List<QuestData> SideQuests { get; } = [];
 
     private DateTime _lastRefresh = DateTime.MinValue;
+    private HashSet<uint>? _manuallyCompleted;
 
     public QuestService()
     {
         LoadBlueQuests();
         LoadSideQuests();
+    }
+
+    public void SetManuallyCompleted(HashSet<uint> manuallyCompleted)
+    {
+        _manuallyCompleted = manuallyCompleted;
     }
 
     private void LoadBlueQuests()
@@ -482,6 +488,9 @@ public sealed class QuestService
                         }
                     }
                 }
+                // Manual completion override
+                if (!quest.IsCompleted && _manuallyCompleted != null && _manuallyCompleted.Contains(quest.RowId))
+                    quest.IsCompleted = true;
             }
 
             foreach (var quest in SideQuests)
@@ -512,6 +521,8 @@ public sealed class QuestService
             var qm = QuestManager.Instance();
             isCompleted = qm != null && QuestManager.IsQuestComplete((ushort)(rowId & 0xFFFF));
         }
+        if (!isCompleted && _manuallyCompleted != null && _manuallyCompleted.Contains(rowId))
+            isCompleted = true;
 
         return (name, isCompleted, false);
     }
