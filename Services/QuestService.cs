@@ -142,13 +142,15 @@ public sealed class QuestService
                     q.IsCompleted = QuestManager.IsQuestComplete(q.QuestId);
         }
 
-        // Cross-check: for any not-complete quest, check all RowId variants with same EnglishName
+        // Cross-check: GC variants share EnglishName + RequiredLevel, mark all complete if any is
         unsafe
         {
             var qm = QuestManager.Instance();
             if (qm != null)
             {
-                var nameGroups = BlueQuests.GroupBy(q => q.EnglishName).Where(g => g.Any(q => q.IsCompleted));
+                var nameGroups = BlueQuests
+                    .GroupBy(q => (q.EnglishName, q.RequiredLevel))
+                    .Where(g => g.Count() >= 2 && g.Count() <= 4 && g.Any(q => q.IsCompleted));
                 foreach (var group in nameGroups)
                     foreach (var q in group.Where(q => !q.IsCompleted))
                         q.IsCompleted = true;
@@ -158,10 +160,14 @@ public sealed class QuestService
         // Remove duplicates: prefer completed quest, then highest RowId
         var toRemove = new HashSet<uint>();
 
-        // 1. Same name → keep completed, or newest if none completed
-        foreach (var group in BlueQuests.GroupBy(q => q.EnglishName).Where(g => g.Count() > 1))
+        // 1. Same name + same level → GC variants, keep completed or newest
+        foreach (var group in BlueQuests
+            .GroupBy(q => (q.EnglishName, q.RequiredLevel))
+            .Where(g => g.Count() >= 2 && g.Count() <= 4))
+        {
             foreach (var old in group.OrderByDescending(q => q.IsCompleted).ThenByDescending(q => q.RowId).Skip(1))
                 toRemove.Add(old.RowId);
+        }
 
         // 2. Same unlock target → keep completed, or newest
         foreach (var group in BlueQuests
@@ -196,8 +202,8 @@ public sealed class QuestService
         // Transfer removed variants' QuestIds to the surviving quest
         if (toRemove.Count > 0)
         {
-            // Group all quests by EnglishName to find survivors and removed variants
-            foreach (var group in BlueQuests.GroupBy(q => q.EnglishName).Where(g => g.Any(q => toRemove.Contains(q.RowId))))
+            // Group by EnglishName+Level to find survivors and removed variants
+            foreach (var group in BlueQuests.GroupBy(q => (q.EnglishName, q.RequiredLevel)).Where(g => g.Any(q => toRemove.Contains(q.RowId))))
             {
                 var survivor = group.FirstOrDefault(q => !toRemove.Contains(q.RowId));
                 if (survivor == null) continue;
