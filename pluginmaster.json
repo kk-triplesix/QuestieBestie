@@ -1,0 +1,39 @@
+[
+  {
+    "Author": "kk-triplesix",
+    "Name": "QuestieBestie",
+    "InternalName": "QuestieBestie",
+    "Description": "The ultimate blue quest companion.\n\n- Track all feature unlock quests with filters by expansion, class, location, and type\n- See what each quest unlocks: dungeons, trials, raids, jobs, features\n- Recursive prerequisite trees with MSQ cutoff\n- Custom tracking lists with in-game overlay\n- Aether Current tracker and Duty Unlock checklist\n- Side quest tracker with special highlighting\n- Statistics, favorites, notes, route planner, chat links\n- Fully customizable overlay with colors, transparency, and font scale\n- Multi-language support (EN/DE/FR/JP)\n\nCommands:\n/questie - Toggle main window\n/questie overlay - Toggle overlay\n/questie widget - Toggle progress widget\n/questie search <name> - Search quest",
+    "ApplicableVersion": "any",
+    "DalamudApiLevel": 14,
+    "TestingDalamudApiLevel": 14,
+    "Tags": [
+      "quest",
+      "tracker",
+      "unlock",
+      "blue quest",
+      "feature",
+      "dungeon",
+      "aether current",
+      "overlay"
+    ],
+    "CategoryTags": [
+      "other"
+    ],
+    "LoadRequiredState": 0,
+    "LoadSync": false,
+    "CanUnloadAsync": false,
+    "LoadPriority": 0,
+    "IsTestingExclusive": false,
+    "IconUrl": "https://raw.githubusercontent.com/kk-triplesix/QuestieBestie/main/QuestieBestieLogo.png",
+    "Punchline": "The ultimate blue quest companion. Track every unlock, plan your route, never miss a feature.",
+    "AcceptsFeedback": true,
+    "AssemblyVersion": "7.4.5.82",
+    "TestingAssemblyVersion": "7.4.5.82",
+    "DownloadLinkInstall": "https://github.com/kk-triplesix/QuestieBestie/releases/download/7.4.5.82/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/kk-triplesix/QuestieBestie/releases/download/7.4.5.82/latest.zip",
+    "DownloadLinkTesting": "https://github.com/kk-triplesix/QuestieBestie/releases/download/7.4.5.82/latest.zip",
+    "DownloadCount": 0,
+    "LastUpdated": "2026-03-29T21:02:23Z"
+  }
+]
