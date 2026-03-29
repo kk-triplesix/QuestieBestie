@@ -29,6 +29,9 @@ internal sealed class OverlayWindow : Window
         _trackingService = trackingService;
         IsOpen = false;
         RespectCloseHotkey = false;
+        AllowClickthrough = false;
+        AllowPinning = false;
+        ShowCloseButton = false;
         SizeConstraints = new WindowSizeConstraints
         {
             MinimumSize = new Vector2(200, 80),

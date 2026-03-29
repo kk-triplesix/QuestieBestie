@@ -25,6 +25,9 @@ internal sealed class WidgetWindow : Window
         _trackingService = trackingService;
         IsOpen = false;
         RespectCloseHotkey = false;
+        AllowClickthrough = false;
+        AllowPinning = false;
+        ShowCloseButton = false;
     }
 
     public override void PreDraw()

@@ -37,4 +37,5 @@ public sealed class QuestData
     public string NpcName { get; init; } = string.Empty;
     public uint RewardGil { get; init; }
     public uint RewardExp { get; init; }
+    public ushort[] AlternateQuestIds { get; set; } = [];
 }

@@ -193,8 +193,19 @@ public sealed class QuestService
                 toRemove.Add(old.RowId);
         }
 
+        // Transfer removed variants' QuestIds to the surviving quest
         if (toRemove.Count > 0)
         {
+            // Group all quests by EnglishName to find survivors and removed variants
+            foreach (var group in BlueQuests.GroupBy(q => q.EnglishName).Where(g => g.Any(q => toRemove.Contains(q.RowId))))
+            {
+                var survivor = group.FirstOrDefault(q => !toRemove.Contains(q.RowId));
+                if (survivor == null) continue;
+                var altIds = group.Where(q => toRemove.Contains(q.RowId)).Select(q => q.QuestId).ToList();
+                if (altIds.Count > 0)
+                    survivor.AlternateQuestIds = altIds.ToArray();
+            }
+
             BlueQuests.RemoveAll(q => toRemove.Contains(q.RowId));
             foreach (var id in toRemove)
                 BlueQuestLookup.Remove(id);
@@ -451,7 +462,22 @@ public sealed class QuestService
                 return;
 
             foreach (var quest in BlueQuests)
+            {
                 quest.IsCompleted = QuestManager.IsQuestComplete(quest.QuestId);
+                // GC variants: check alternate QuestIds (removed during dedup)
+                if (!quest.IsCompleted && quest.AlternateQuestIds.Length > 0)
+                {
+                    foreach (var altId in quest.AlternateQuestIds)
+                    {
+                        if (QuestManager.IsQuestComplete(altId))
+                        {
+                            quest.IsCompleted = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
             foreach (var quest in SideQuests)
                 quest.IsCompleted = QuestManager.IsQuestComplete(quest.QuestId);
         }
