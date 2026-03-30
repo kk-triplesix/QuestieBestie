@@ -147,6 +147,12 @@ public sealed class TrackingService
         Save();
     }
 
+    public void ClearManualCompletions()
+    {
+        _config.ManuallyCompleted.Clear();
+        Save();
+    }
+
     private void MarkPrerequisitesCompleted(uint rowId, QuestService questService)
     {
         if (!questService.BlueQuestLookup.TryGetValue(rowId, out var quest))

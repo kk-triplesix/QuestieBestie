@@ -9,6 +9,7 @@ internal sealed class SettingsWindow : Window
 {
     private readonly TrackingService _trackingService;
     private QuestService? _questService;
+    private bool _syncPopupOpen = true;
 
     public SettingsWindow(TrackingService trackingService)
         : base("QuestieBestie Settings###QuestieBestieSettings", ImGuiWindowFlags.None)
@@ -104,6 +105,67 @@ internal sealed class SettingsWindow : Window
         changed |= ImGui.Checkbox(Loc.Get("settings.autoRemove"), ref s.AutoRemoveCompleted);
         changed |= ImGui.Checkbox(Loc.Get("settings.chatNotify"), ref s.ChatNotifications);
         changed |= ImGui.Checkbox(Loc.Get("settings.soundNotify"), ref s.SoundNotifications);
+
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+
+        // Sync with Game State
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+        ImGui.Text("Data");
+        ImGui.PopStyleColor();
+
+        var manualCount = _trackingService.ManuallyCompleted.Count;
+        if (manualCount > 0)
+        {
+            if (ImGui.Button("Sync with Game State"))
+                ImGui.OpenPopup("##confirmSync");
+
+            ImGui.SameLine();
+            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+            ImGui.Text($"({manualCount} manual overrides)");
+            ImGui.PopStyleColor();
+
+            if (ImGui.BeginPopupModal("##confirmSync", ref _syncPopupOpen, ImGuiWindowFlags.AlwaysAutoResize))
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar);
+                ImGui.Text("WARNUNG");
+                ImGui.PopStyleColor();
+                ImGui.Spacing();
+                ImGui.TextWrapped($"Alle {manualCount} manuellen Completion-Aenderungen werden unwiderruflich entfernt und der Quest-Status wird mit dem Gamestate synchronisiert.");
+                ImGui.Spacing();
+                ImGui.TextWrapped("Dieser Vorgang kann nicht rueckgaengig gemacht werden!");
+                ImGui.Spacing();
+                ImGui.Separator();
+                ImGui.Spacing();
+
+                ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.7f, 0.15f, 0.15f, 1f));
+                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.9f, 0.2f, 0.2f, 1f));
+                if (ImGui.Button("Ja, alle lokalen Aenderungen entfernen", new Vector2(300, 0)))
+                {
+                    _trackingService.ClearManualCompletions();
+                    _questService?.RefreshCompletionStatus();
+                    ImGui.CloseCurrentPopup();
+                }
+                ImGui.PopStyleColor(2);
+
+                ImGui.SameLine();
+                if (ImGui.Button("Abbrechen", new Vector2(100, 0)))
+                    ImGui.CloseCurrentPopup();
+
+                ImGui.EndPopup();
+            }
+        }
+        else
+        {
+            ImGui.BeginDisabled();
+            ImGui.Button("Sync with Game State");
+            ImGui.EndDisabled();
+            ImGui.SameLine();
+            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
+            ImGui.Text("(no manual overrides)");
+            ImGui.PopStyleColor();
+        }
 
         ImGui.Spacing();
         ImGui.Separator();
