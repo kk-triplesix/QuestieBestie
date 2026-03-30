@@ -175,8 +175,22 @@ internal sealed class MainWindow : Window
         if (ImGui.Combo("##category", ref _categoryFilter, _categoryOptions, _categoryOptions.Length)) _dirty = true;
         ImGui.PopItemWidth();
 
-        // Row 3: unlock filter
+        // Row 3: unlock filter + reset
         if (DrawSearchableCombo("##unlock", ref _unlockFilter, _unlockFilterOptions, ref _unlockSearch, 250)) _dirty = true;
+        ImGui.SameLine();
+        if (ImGui.Button("Reset Filter"))
+        {
+            _searchText = string.Empty;
+            _filterMode = 1;
+            _levelMin = 0;
+            _levelMax = 100;
+            _classJobFilter = 0; _classJobSearch = string.Empty;
+            _locationFilter = 0; _locationSearch = string.Empty;
+            _expansionFilter = 0; _expansionSearch = string.Empty;
+            _categoryFilter = 0;
+            _unlockFilter = 0; _unlockSearch = string.Empty;
+            _dirty = true;
+        }
     }
 
     private static bool DrawSearchableCombo(string id, ref int selected, string[] options, ref string search, float width)
@@ -227,7 +241,7 @@ internal sealed class MainWindow : Window
                     | ImGuiTableFlags.ScrollY | ImGuiTableFlags.Sortable | ImGuiTableFlags.SizingStretchProp;
         var tableHeight = ImGui.GetContentRegionAvail().Y - 30;
 
-        if (!ImGui.BeginTable("##quests", 7, flags, new Vector2(0, tableHeight)))
+        if (!ImGui.BeginTable("##quests", 8, flags, new Vector2(0, tableHeight)))
             return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
@@ -238,6 +252,7 @@ internal sealed class MainWindow : Window
         ImGui.TableSetupColumn("Location", ImGuiTableColumnFlags.WidthFixed, 100);
         ImGui.TableSetupColumn("Class/Job", ImGuiTableColumnFlags.WidthFixed, 100);
         ImGui.TableSetupColumn("Unlocks", ImGuiTableColumnFlags.WidthFixed, 170);
+        ImGui.TableSetupColumn("##toggle", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort, 28);
         ImGui.TableHeadersRow();
         HandleSorting();
 
@@ -341,6 +356,20 @@ internal sealed class MainWindow : Window
             ImGui.TableNextColumn();
             if (!string.IsNullOrEmpty(quest.Unlocks))
             { ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.AccentCyan); ImGui.Text(quest.Unlocks); ImGui.PopStyleColor(); }
+
+            // Toggle completion button
+            ImGui.TableNextColumn();
+            if (Icons.IconButton(quest.IsCompleted ? FontAwesomeIcon.Undo : FontAwesomeIcon.Check, $"tog{quest.RowId}",
+                quest.IsCompleted ? Styles.TextSecondary : Styles.TextGreen))
+            {
+                if (_trackingService.IsManuallyCompleted(quest.RowId))
+                    _trackingService.UnmarkCompleted(quest.RowId);
+                else
+                    _trackingService.MarkCompleted(quest.RowId, _questService);
+                _dirty = true;
+            }
+            if (ImGui.IsItemHovered())
+            { ImGui.BeginTooltip(); ImGui.Text(quest.IsCompleted ? "Unmark Completed" : "Mark as Completed"); ImGui.EndTooltip(); }
         }
 
         ImGui.EndTable();
@@ -678,6 +707,15 @@ internal sealed class MainWindow : Window
         DrawSearchableCombo("##sideLocation", ref _sideLocationFilter, _sideLocationOptions, ref _sideLocationSearch, 150);
         ImGui.SameLine();
         DrawSearchableCombo("##sideSpecial", ref _sideSpecialFilter, _sideSpecialOptions, ref _sideSpecialSearch, 220);
+        ImGui.SameLine();
+        if (ImGui.Button("Reset Filter##side"))
+        {
+            _sideSearch = string.Empty;
+            _sideFilter = 0;
+            _sideExpansion = 0;
+            _sideLocationFilter = 0; _sideLocationSearch = string.Empty;
+            _sideSpecialFilter = 0; _sideSpecialSearch = string.Empty;
+        }
 
         // Filter
         var search = _sideSearch.Trim();
@@ -706,7 +744,7 @@ internal sealed class MainWindow : Window
                     | ImGuiTableFlags.ScrollY | ImGuiTableFlags.SizingStretchProp;
         var tableHeight = ImGui.GetContentRegionAvail().Y;
 
-        if (!ImGui.BeginTable("##sidequests", 5, flags, new Vector2(0, tableHeight)))
+        if (!ImGui.BeginTable("##sidequests", 6, flags, new Vector2(0, tableHeight)))
             return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
@@ -715,6 +753,7 @@ internal sealed class MainWindow : Window
         ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 28);
         ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 45);
         ImGui.TableSetupColumn("Special", ImGuiTableColumnFlags.WidthFixed, 250);
+        ImGui.TableSetupColumn("##toggle", ImGuiTableColumnFlags.WidthFixed, 28);
         ImGui.TableHeadersRow();
 
         foreach (var quest in filtered)
@@ -757,6 +796,19 @@ internal sealed class MainWindow : Window
                 ImGui.Text(quest.SpecialTag);
                 ImGui.PopStyleColor();
             }
+
+            // Toggle completion button
+            ImGui.TableNextColumn();
+            if (Icons.IconButton(quest.IsCompleted ? FontAwesomeIcon.Undo : FontAwesomeIcon.Check, $"stog{quest.RowId}",
+                quest.IsCompleted ? Styles.TextSecondary : Styles.TextGreen))
+            {
+                if (_trackingService.IsManuallyCompleted(quest.RowId))
+                    _trackingService.UnmarkCompleted(quest.RowId);
+                else
+                    _trackingService.MarkCompleted(quest.RowId, _questService);
+            }
+            if (ImGui.IsItemHovered())
+            { ImGui.BeginTooltip(); ImGui.Text(quest.IsCompleted ? "Unmark Completed" : "Mark as Completed"); ImGui.EndTooltip(); }
         }
 
         ImGui.EndTable();
