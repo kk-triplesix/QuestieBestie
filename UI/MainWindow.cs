@@ -29,6 +29,8 @@ internal sealed class MainWindow : Window
     private string _newListName = string.Empty;
     private readonly HashSet<uint> _selected = [];
     private DateTime _lastConfetti = DateTime.MinValue;
+    private bool _autoFitted;
+    private float _afQuestW, _afLocW, _afClassW;
 
     public MainWindow(QuestService questService, DetailWindow detailWindow, TrackingService trackingService, OverlayWindow overlayWindow, SettingsWindow settingsWindow, WidgetWindow widgetWindow)
         : base("QuestieBestie###QuestieBestieMain", ImGuiWindowFlags.None)
@@ -245,15 +247,59 @@ internal sealed class MainWindow : Window
             return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
-        ImGui.TableSetupColumn("*", ImGuiTableColumnFlags.WidthFixed, 24);
-        ImGui.TableSetupColumn("Quest", ImGuiTableColumnFlags.WidthStretch | ImGuiTableColumnFlags.DefaultSort, 0);
-        ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 28);
-        ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 50);
-        ImGui.TableSetupColumn("Location", ImGuiTableColumnFlags.WidthFixed, 100);
-        ImGui.TableSetupColumn("Class/Job", ImGuiTableColumnFlags.WidthFixed, 100);
-        ImGui.TableSetupColumn("Unlocks", ImGuiTableColumnFlags.WidthFixed, 170);
+        ImGui.TableSetupColumn("*", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort, 24);
+        if (_autoFitted)
+        {
+            ImGui.TableSetupColumn("Quest", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.DefaultSort, _afQuestW);
+            ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 28);
+            ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 50);
+            ImGui.TableSetupColumn("Location", ImGuiTableColumnFlags.WidthFixed, _afLocW);
+            ImGui.TableSetupColumn("Class/Job", ImGuiTableColumnFlags.WidthFixed, _afClassW);
+            ImGui.TableSetupColumn("Unlocks", ImGuiTableColumnFlags.WidthStretch, 0);
+        }
+        else
+        {
+            ImGui.TableSetupColumn("Quest", ImGuiTableColumnFlags.WidthStretch | ImGuiTableColumnFlags.DefaultSort, 0);
+            ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 28);
+            ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 50);
+            ImGui.TableSetupColumn("Location", ImGuiTableColumnFlags.WidthFixed, 100);
+            ImGui.TableSetupColumn("Class/Job", ImGuiTableColumnFlags.WidthFixed, 100);
+            ImGui.TableSetupColumn("Unlocks", ImGuiTableColumnFlags.WidthFixed, 170);
+        }
         ImGui.TableSetupColumn("##toggle", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort, 28);
-        ImGui.TableHeadersRow();
+
+        // Manual header row: clickable auto-fit button in first column
+        ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
+        ImGui.TableSetColumnIndex(0);
+        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(0, 0));
+        if (Icons.IconButton(_autoFitted ? FontAwesomeIcon.Undo : FontAwesomeIcon.TextWidth, "##autofit", Styles.TextSecondary))
+        {
+            if (_autoFitted)
+            {
+                _autoFitted = false;
+            }
+            else
+            {
+                _afQuestW = ImGui.CalcTextSize("Quest").X;
+                _afLocW = ImGui.CalcTextSize("Location").X;
+                _afClassW = ImGui.CalcTextSize("Class/Job").X;
+                foreach (var q in _filtered)
+                {
+                    _afQuestW = Math.Max(_afQuestW, ImGui.CalcTextSize(q.Name).X);
+                    _afLocW = Math.Max(_afLocW, ImGui.CalcTextSize(q.Location).X);
+                    _afClassW = Math.Max(_afClassW, ImGui.CalcTextSize(q.RequiredClassJob).X);
+                }
+                _afQuestW += 52; // icons, checkmarks, chain indent
+                _afLocW += 16;
+                _afClassW += 16;
+                _autoFitted = true;
+            }
+        }
+        ImGui.PopStyleVar();
+        if (ImGui.IsItemHovered())
+        { ImGui.BeginTooltip(); ImGui.Text(_autoFitted ? "Reset column widths" : "Auto-fit columns"); ImGui.EndTooltip(); }
+        for (var col = 1; col < 8; col++)
+        { ImGui.TableSetColumnIndex(col); ImGui.TableHeader(ImGui.TableGetColumnName(col)); }
         HandleSorting();
 
         var maxRowId = _trackingService.LastKnownMaxRowId;
