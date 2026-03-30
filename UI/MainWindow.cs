@@ -537,24 +537,6 @@ internal sealed class MainWindow : Window
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text($"{_filtered.Count}/{_questService.TotalCount} shown"); ImGui.PopStyleColor();
 
         ImGui.SameLine();
-        if (ImGui.Button("Export Generic"))
-        {
-            var generic = _questService.BlueQuests
-                .Where(q => q.Unlocks == "Feature unlock")
-                .OrderBy(q => q.ExpansionId).ThenBy(q => q.RequiredLevel)
-                .Select(q => $"{q.Name}\t{q.RequiredLevel}\t{q.Expansion}\t{q.Location}\t{q.RequiredClassJob}")
-                .ToList();
-            ImGui.SetClipboardText($"Name\tLevel\tExpansion\tLocation\tClass/Job\n{string.Join("\n", generic)}");
-        }
-        if (ImGui.IsItemHovered())
-        {
-            var count = _questService.BlueQuests.Count(q => q.Unlocks == "Feature unlock");
-            ImGui.BeginTooltip();
-            ImGui.Text($"Copy {count} quests with generic 'Feature unlock' to clipboard (TSV)");
-            ImGui.EndTooltip();
-        }
-
-        ImGui.SameLine();
         var text = $"{_questService.CompletedCount}/{_questService.TotalCount} complete ({_questService.CompletionPercent:F1}%)";
         ImGui.SetCursorPosX(ImGui.GetWindowWidth() - ImGui.CalcTextSize(text).X - 20);
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentGreen); ImGui.Text(text); ImGui.PopStyleColor();
