@@ -3,6 +3,11 @@ on:
   push:
     tags:
       - '*.*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build and release'
+        required: true
 
 env:
   CI: true
@@ -15,10 +20,12 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
 
       - name: Get Tag Version
         run: |
-          $tag = "${{ github.ref }}" -replace 'refs/tags/', ''
+          $tag = "${{ inputs.tag || github.ref_name }}"
           "tag=$tag" | Out-File -Append -FilePath $Env:GITHUB_ENV
 
       - name: Set up .NET
