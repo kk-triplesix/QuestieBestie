@@ -30,7 +30,6 @@ internal sealed class MainWindow : Window
     private readonly HashSet<uint> _selected = [];
     private DateTime _lastConfetti = DateTime.MinValue;
     private bool _autoFitted;
-    private bool _applyAutoFit;
     private float _afQuestW, _afLocW, _afClassW;
 
     public MainWindow(QuestService questService, DetailWindow detailWindow, TrackingService trackingService, OverlayWindow overlayWindow, SettingsWindow settingsWindow, WidgetWindow widgetWindow)
@@ -244,7 +243,8 @@ internal sealed class MainWindow : Window
                     | ImGuiTableFlags.ScrollY | ImGuiTableFlags.Sortable | ImGuiTableFlags.SizingStretchProp;
         var tableHeight = ImGui.GetContentRegionAvail().Y - 30;
 
-        if (!ImGui.BeginTable("##quests", 8, flags, new Vector2(0, tableHeight)))
+        var tableId = _autoFitted ? "##questsAF" : "##quests";
+        if (!ImGui.BeginTable(tableId, 8, flags, new Vector2(0, tableHeight)))
             return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
@@ -269,25 +269,6 @@ internal sealed class MainWindow : Window
         }
         ImGui.TableSetupColumn("##toggle", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort, 28);
 
-        // Force column widths when auto-fit is toggled (TableSetupColumn only sets initial widths)
-        if (_applyAutoFit)
-        {
-            _applyAutoFit = false;
-            if (_autoFitted)
-            {
-                ImGui.TableSetColumnWidth(1, _afQuestW);
-                ImGui.TableSetColumnWidth(4, _afLocW);
-                ImGui.TableSetColumnWidth(5, _afClassW);
-            }
-            else
-            {
-                ImGui.TableSetColumnWidth(1, 0); // stretch
-                ImGui.TableSetColumnWidth(4, 100);
-                ImGui.TableSetColumnWidth(5, 100);
-                ImGui.TableSetColumnWidth(6, 170);
-            }
-        }
-
         // Manual header row: clickable auto-fit button in first column
         ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
         ImGui.TableSetColumnIndex(0);
@@ -297,7 +278,6 @@ internal sealed class MainWindow : Window
             if (_autoFitted)
             {
                 _autoFitted = false;
-                _applyAutoFit = true;
             }
             else
             {
@@ -314,7 +294,6 @@ internal sealed class MainWindow : Window
                 _afLocW += 16;
                 _afClassW += 16;
                 _autoFitted = true;
-                _applyAutoFit = true;
             }
         }
         ImGui.PopStyleVar();
