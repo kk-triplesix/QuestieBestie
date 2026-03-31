@@ -176,11 +176,16 @@ public sealed class QuestService
         }
 
         // 2. Same unlock target → keep completed, or newest
+        // Only for specific content unlocks (e.g. same dungeon name), not generic/chain descriptions
         foreach (var group in BlueQuests
             .Where(q => !string.IsNullOrEmpty(q.Unlocks) && q.Unlocks != "Feature unlock"
+                && q.Unlocks != "Unlocks content"
+                && !q.Unlocks.Contains("(job ability)")
+                && !q.Unlocks.Contains("quest chain")
+                && !q.Unlocks.Contains("Content quest chain")
                 && q.Category is QuestCategory.JobUnlock or QuestCategory.Dungeon or QuestCategory.Trial or QuestCategory.Raid)
             .GroupBy(q => q.Unlocks)
-            .Where(g => g.Count() > 1))
+            .Where(g => g.Count() >= 2 && g.Count() <= 4))
         {
             foreach (var old in group.OrderByDescending(q => q.IsCompleted).ThenByDescending(q => q.RowId).Skip(1))
                 toRemove.Add(old.RowId);
