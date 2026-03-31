@@ -10,7 +10,7 @@
 ## Features
 
 ### Quest Database
-- All blue (feature unlock) quests in a sortable 7-column table
+- All blue (feature unlock) quests in a sortable table with auto-fit columns
 - Color-coded expansion tags: ARR, HW, SB, ShB, EW, DT
 - Category icons for Dungeons, Trials, Raids, Jobs, and Features
 - "NEW" badge on quests added after a game patch
