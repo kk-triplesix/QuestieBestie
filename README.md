@@ -135,6 +135,13 @@ Then search for **QuestieBestie** in the plugin installer.
 
 ---
 
+## Contact
+
+- Discord: **666kk_**
+- GitHub: [kk-triplesix](https://github.com/kk-triplesix)
+
+---
+
 ## License
 
 This project is provided as-is for personal use with FFXIV.
