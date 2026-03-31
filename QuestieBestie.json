@@ -2,7 +2,7 @@
   "Author": "kk-triplesix",
   "Name": "QuestieBestie",
   "InternalName": "QuestieBestie",
-  "Description": "The ultimate blue quest companion.\n\n- Track all feature unlock quests with filters by expansion, class, location, and type\n- See what each quest unlocks: dungeons, trials, raids, jobs, features\n- Recursive prerequisite trees with MSQ cutoff\n- Custom tracking lists with in-game overlay\n- Aether Current tracker and Duty Unlock checklist\n- Side quest tracker with special highlighting\n- Statistics, favorites, notes, route planner, chat links\n- Fully customizable overlay with colors, transparency, and font scale\n- Multi-language support (EN/DE/FR/JP)\n\nCommands:\n/questie - Toggle main window\n/questie overlay - Toggle overlay\n/questie widget - Toggle progress widget\n/questie search <name> - Search quest",
+  "Description": "Track every blue quest unlock in FFXIV.\n\n- Browse all feature unlock quests with smart filters (expansion, class, location, type, level)\n- See what each quest unlocks: dungeons, trials, raids, jobs, and 200+ more\n- Full prerequisite trees with MSQ indicators\n- Custom tracking lists with in-game overlay and route planner\n- Mark quests as completed manually\n- Aether Current tracker, Duty Unlock checklist, Side Quest tracker\n- Statistics, favorites, personal notes, map flags, chat links\n- Customizable overlay with 7 colors, transparency, and font scale\n- Multi-language (EN/DE/FR/JP)\n\nCommands:\n/questie - Toggle main window\n/questie overlay - Toggle overlay\n/questie widget - Toggle progress widget\n/questie search <name> - Search quest",
   "ApplicableVersion": "any",
   "DalamudApiLevel": 14,
   "TestingDalamudApiLevel": 14,
@@ -25,6 +25,6 @@
   "LoadPriority": 0,
   "IsTestingExclusive": false,
   "IconUrl": "https://raw.githubusercontent.com/kk-triplesix/QuestieBestie/main/QuestieBestieLogo.png",
-  "Punchline": "The ultimate blue quest companion. Track every unlock, plan your route, never miss a feature.",
+  "Punchline": "Track every blue quest unlock — see what you're missing, plan your route, never skip a feature.",
   "AcceptsFeedback": true
 }
