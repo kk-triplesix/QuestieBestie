@@ -364,7 +364,7 @@ internal sealed class MainWindow : Window
 
             var isSelected = _selected.Contains(quest.RowId);
             ImGui.PushStyleColor(ImGuiCol.Text, isSelected ? Styles.AccentCyan : nameColor);
-            if (ImGui.Selectable($"{quest.Name}###{quest.RowId}", isSelected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap))
+            if (ImGui.Selectable($"{quest.Name}###{quest.RowId}", isSelected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowItemOverlap))
             {
                 if (ImGui.GetIO().KeyCtrl)
                 { if (!_selected.Remove(quest.RowId)) _selected.Add(quest.RowId); }
@@ -818,7 +818,7 @@ internal sealed class MainWindow : Window
             ImGui.TableNextColumn();
             var nameColor = quest.IsCompleted ? Styles.TextDimmed : quest.IsSpecial ? Styles.FavoriteStar : Styles.TextPrimary;
             ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
-            if (ImGui.Selectable($"{quest.Name}###sq{quest.RowId}", false, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap))
+            if (ImGui.Selectable($"{quest.Name}###sq{quest.RowId}", false, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowItemOverlap))
             { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
             ImGui.PopStyleColor();
 
