@@ -20,6 +20,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
     [PluginService] internal static IDtrBar DtrBar { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
+    [PluginService] internal static IFramework Framework { get; private set; } = null!;
 
     private readonly WindowSystem _windowSystem;
     private readonly MainWindow _mainWindow;
@@ -31,6 +32,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     private readonly TrackingService _trackingService;
     private readonly IDtrBarEntry _dtrEntry;
     private DateTime _lastNotificationCheck = DateTime.MinValue;
+    private float _lastDtrPercent = -1f;
 
     public QuestieBestiePlugin(IDalamudPluginInterface pluginInterface)
     {
@@ -56,18 +58,17 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         _windowSystem.AddWindow(_settingsWindow);
         _windowSystem.AddWindow(_widgetWindow);
 
-        // Ensure detail/settings don't persist open state from previous session
         _detailWindow.IsOpen = false;
         _settingsWindow.IsOpen = false;
 
         _dtrEntry = DtrBar.Get("QuestieBestie");
         _dtrEntry.OnClick += OnDtrClick;
-        UpdateDtrText();
+        _dtrEntry.Tooltip = "QuestieBestie — Click to toggle";
 
         PluginInterface.UiBuilder.OpenMainUi += OnOpenMainUi;
-        PluginInterface.UiBuilder.OpenConfigUi += OnOpenMainUi;
-        PluginInterface.UiBuilder.Draw += OnDraw;
-        // Chat message handler — detect quest names in chat and offer to open detail
+        PluginInterface.UiBuilder.OpenConfigUi += OnOpenConfigUi;
+        PluginInterface.UiBuilder.Draw += _windowSystem.Draw;
+        Framework.Update += OnFrameworkUpdate;
         Chat.ChatMessage += OnChatMessage;
 
         Commands.AddHandler("/questie", new Dalamud.Game.Command.CommandInfo(OnCommand)
@@ -76,6 +77,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         });
 
         _questService.CheckNewlyAvailable();
+        Log.Information("QuestieBestie loaded — {Count} blue quests found", _questService.BlueQuests.Count);
     }
 
     private void OnCommand(string command, string args)
@@ -131,6 +133,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     }
 
     private void OnOpenMainUi() => _mainWindow.Toggle();
+    private void OnOpenConfigUi() => _settingsWindow.Toggle();
     private void OnDtrClick(DtrInteractionEvent e) => _mainWindow.Toggle();
 
     private static readonly HashSet<XivChatType> RelevantChatTypes =
@@ -148,7 +151,6 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
     private void OnChatMessage(Dalamud.Game.Text.XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
-        // Only react to player chat channels — skip battle log, system, etc.
         if (!RelevantChatTypes.Contains(type))
             return;
 
@@ -161,11 +163,11 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
             _detailWindow.ShowQuest(match);
     }
 
-    private void OnDraw()
+    private void OnFrameworkUpdate(IFramework framework)
     {
-        if (GameGui.GameUiHidden) return;
+        if (!ClientState.IsLoggedIn) return;
+
         _questService.RefreshCompletionStatus();
-        _windowSystem.Draw();
         UpdateDtrText();
         CheckNotifications();
         AutoRemoveCompleted();
@@ -173,8 +175,10 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
     private void UpdateDtrText()
     {
-        _dtrEntry.Text = $"QB {_questService.CompletionPercent:F0}%";
-        _dtrEntry.Tooltip = "QuestieBestie — Click to toggle";
+        var percent = _questService.CompletionPercent;
+        if (Math.Abs(percent - _lastDtrPercent) < 0.01f) return;
+        _lastDtrPercent = percent;
+        _dtrEntry.Text = $"QB {percent:F0}%";
     }
 
     private void CheckNotifications()
@@ -213,11 +217,12 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
     public void Dispose()
     {
+        Framework.Update -= OnFrameworkUpdate;
         Chat.ChatMessage -= OnChatMessage;
         Commands.RemoveHandler("/questie");
         PluginInterface.UiBuilder.OpenMainUi -= OnOpenMainUi;
-        PluginInterface.UiBuilder.OpenConfigUi -= OnOpenMainUi;
-        PluginInterface.UiBuilder.Draw -= OnDraw;
+        PluginInterface.UiBuilder.OpenConfigUi -= OnOpenConfigUi;
+        PluginInterface.UiBuilder.Draw -= _windowSystem.Draw;
         _dtrEntry.OnClick -= OnDtrClick;
         _dtrEntry.Remove();
 
