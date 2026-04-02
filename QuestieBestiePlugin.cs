@@ -139,11 +139,23 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     private void OnOpenMainUi() => _mainWindow.Toggle();
     private void OnDtrClick(DtrInteractionEvent e) => _mainWindow.Toggle();
 
+    private static readonly HashSet<XivChatType> RelevantChatTypes =
+    [
+        XivChatType.Say, XivChatType.Yell, XivChatType.Shout,
+        XivChatType.TellIncoming,
+        XivChatType.Party, XivChatType.Alliance,
+        XivChatType.FreeCompany,
+        XivChatType.Ls1, XivChatType.Ls2, XivChatType.Ls3, XivChatType.Ls4,
+        XivChatType.Ls5, XivChatType.Ls6, XivChatType.Ls7, XivChatType.Ls8,
+        XivChatType.CrossLinkShell1, XivChatType.CrossLinkShell2, XivChatType.CrossLinkShell3,
+        XivChatType.CrossLinkShell4, XivChatType.CrossLinkShell5, XivChatType.CrossLinkShell6,
+        XivChatType.CrossLinkShell7, XivChatType.CrossLinkShell8,
+    ];
+
     private void OnChatMessage(Dalamud.Game.Text.XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
     {
-        // Only react to messages from other players (party, FC, linkshell etc.)
-        // Skip Echo and system messages (our own notifications use Echo)
-        if (type is XivChatType.Echo or XivChatType.SystemMessage or XivChatType.SystemError)
+        // Only react to player chat channels — skip battle log, system, etc.
+        if (!RelevantChatTypes.Contains(type))
             return;
 
         var text = message.TextValue;

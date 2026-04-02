@@ -1017,7 +1017,6 @@ public sealed class QuestService
                 .AddUiForeground("[QuestieBestie] ", 35)
                 .AddText("Quest info copied to clipboard. Paste in chat to share!")
                 .Build(),
-            Type = Dalamud.Game.Text.XivChatType.Echo,
         });
     }
 
