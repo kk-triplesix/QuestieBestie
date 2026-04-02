@@ -38,9 +38,8 @@ internal sealed class SettingsWindow : Window, IDisposable
         var s = _trackingService.OverlaySettings;
         var changed = false;
 
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
-        ImGui.Text(Loc.Get("settings.title"));
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.AccentCyan))
+            ImGui.Text(Loc.Get("settings.title"));
         ImGui.Separator();
         ImGui.Spacing();
 
@@ -52,9 +51,8 @@ internal sealed class SettingsWindow : Window, IDisposable
         ImGui.Spacing();
 
         // General
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text(Loc.Get("settings.general"));
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary))
+            ImGui.Text(Loc.Get("settings.general"));
 
         changed |= ImGui.SliderFloat(Loc.Get("settings.fontScale"), ref s.FontScale, 0.5f, 2.0f, "%.1f");
         changed |= ImGui.SliderFloat(Loc.Get("settings.bgOpacity"), ref s.BackgroundAlpha, 0.0f, 1.0f, "%.2f");
@@ -66,9 +64,8 @@ internal sealed class SettingsWindow : Window, IDisposable
         ImGui.Spacing();
 
         // Colors
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text(Loc.Get("settings.colors"));
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary))
+            ImGui.Text(Loc.Get("settings.colors"));
 
         changed |= ColorEdit(Loc.Get("settings.colorText"), ref s.TextColor);
         changed |= ColorEdit(Loc.Get("settings.colorHeader"), ref s.HeaderColor);
@@ -83,9 +80,8 @@ internal sealed class SettingsWindow : Window, IDisposable
         ImGui.Spacing();
 
         // Widget Progress Bars
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text(Loc.Get("settings.widgetBars"));
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary))
+            ImGui.Text(Loc.Get("settings.widgetBars"));
 
         if (ImGui.Checkbox(Loc.Get("misc.total"), ref s.WidgetShowTotal))
             changed = true;
@@ -93,13 +89,12 @@ internal sealed class SettingsWindow : Window, IDisposable
         foreach (var (id, name) in Styles.Expansions)
         {
             var enabled = s.WidgetExpansions.Contains(id);
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.GetExpansionColor(id));
-            if (ImGui.Checkbox($"{name}###sExp{id}", ref enabled))
-            {
-                if (enabled) s.WidgetExpansions.Add(id); else s.WidgetExpansions.Remove(id);
-                changed = true;
-            }
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.GetExpansionColor(id)))
+                if (ImGui.Checkbox($"{name}###sExp{id}", ref enabled))
+                {
+                    if (enabled) s.WidgetExpansions.Add(id); else s.WidgetExpansions.Remove(id);
+                    changed = true;
+                }
         }
 
         ImGui.Spacing();
@@ -107,9 +102,8 @@ internal sealed class SettingsWindow : Window, IDisposable
         ImGui.Spacing();
 
         // Behavior
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text(Loc.Get("settings.behavior"));
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary))
+            ImGui.Text(Loc.Get("settings.behavior"));
 
         changed |= ImGui.Checkbox(Loc.Get("settings.autoRemove"), ref s.AutoRemoveCompleted);
 
@@ -118,9 +112,8 @@ internal sealed class SettingsWindow : Window, IDisposable
         ImGui.Spacing();
 
         // Sync with Game State
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text(Loc.Get("settings.data"));
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary))
+            ImGui.Text(Loc.Get("settings.data"));
 
         var manualCount = _trackingService.ManuallyCompleted.Count;
         if (manualCount > 0)
@@ -129,17 +122,15 @@ internal sealed class SettingsWindow : Window, IDisposable
                 ImGui.OpenPopup("##confirmSync");
 
             ImGui.SameLine();
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-            ImGui.Text($"({manualCount} {Loc.Get("settings.manualOverrides")})");
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary))
+                ImGui.Text($"({manualCount} {Loc.Get("settings.manualOverrides")})");
 
             using (var modal = ImRaii.PopupModal("##confirmSync", ref _syncPopupOpen, ImGuiWindowFlags.AlwaysAutoResize))
             {
                 if (modal.Success)
                 {
-                    ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar);
-                    ImGui.Text(Loc.Get("settings.syncWarning"));
-                    ImGui.PopStyleColor();
+                    using (ImRaii.PushColor(ImGuiCol.Text, Styles.FavoriteStar))
+                        ImGui.Text(Loc.Get("settings.syncWarning"));
                     ImGui.Spacing();
                     ImGui.TextWrapped(string.Format(Loc.Get("settings.syncDesc"), manualCount));
                     ImGui.Spacing();
@@ -148,15 +139,13 @@ internal sealed class SettingsWindow : Window, IDisposable
                     ImGui.Separator();
                     ImGui.Spacing();
 
-                    ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.7f, 0.15f, 0.15f, 1f));
-                    ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.9f, 0.2f, 0.2f, 1f));
-                    if (ImGui.Button(Loc.Get("settings.syncConfirm"), new Vector2(300 * ImGuiHelpers.GlobalScale, 0)))
-                    {
-                        _trackingService.ClearManualCompletions();
-                        _questService.RefreshCompletionStatus();
-                        ImGui.CloseCurrentPopup();
-                    }
-                    ImGui.PopStyleColor(2);
+                    using (ImRaii.PushColor(ImGuiCol.Button, new Vector4(0.7f, 0.15f, 0.15f, 1f)).Push(ImGuiCol.ButtonHovered, new Vector4(0.9f, 0.2f, 0.2f, 1f)))
+                        if (ImGui.Button(Loc.Get("settings.syncConfirm"), new Vector2(300 * ImGuiHelpers.GlobalScale, 0)))
+                        {
+                            _trackingService.ClearManualCompletions();
+                            _questService.RefreshCompletionStatus();
+                            ImGui.CloseCurrentPopup();
+                        }
 
                     ImGui.SameLine();
                     if (ImGui.Button(Loc.Get("settings.syncCancel"), new Vector2(100 * ImGuiHelpers.GlobalScale, 0)))
@@ -171,9 +160,8 @@ internal sealed class SettingsWindow : Window, IDisposable
                 ImGui.Button(Loc.Get("settings.sync"));
             }
             ImGui.SameLine();
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-            ImGui.Text(Loc.Get("settings.noOverrides"));
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary))
+                ImGui.Text(Loc.Get("settings.noOverrides"));
         }
 
         ImGui.Spacing();

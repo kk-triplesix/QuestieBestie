@@ -67,7 +67,7 @@ internal sealed class DetailWindow : Window, IDisposable
 
     private void DrawQuestHeader()
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text(_quest!.Name); ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.AccentCyan)) ImGui.Text(_quest!.Name);
         ImGui.SameLine();
         if (_quest.IsCompleted)
         { Icons.DrawIcon(FontAwesomeIcon.CheckCircle, Styles.TextGreen); ImGui.SameLine(); ImGui.Text(Loc.Get("detail.complete")); }
@@ -80,10 +80,9 @@ internal sealed class DetailWindow : Window, IDisposable
         // Favorite toggle
         ImGui.SameLine();
         var isFav = _trackingService.IsFavorite(_quest.RowId);
-        ImGui.PushStyleColor(ImGuiCol.Text, isFav ? Styles.FavoriteStar : Styles.TextDimmed);
-        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Star, isFav ? Loc.Get("detail.favorited") : Loc.Get("detail.favorite")))
-            _trackingService.ToggleFavorite(_quest.RowId);
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, isFav ? Styles.FavoriteStar : Styles.TextDimmed))
+            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Star, isFav ? Loc.Get("detail.favorited") : Loc.Get("detail.favorite")))
+                _trackingService.ToggleFavorite(_quest.RowId);
     }
 
     private void DrawQuestInfo()
@@ -134,16 +133,14 @@ internal sealed class DetailWindow : Window, IDisposable
 
     private static void DrawInfoLine(string label, string value, Vector4? valueColor = null)
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text($"{label}:"); ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary)) ImGui.Text($"{label}:");
         ImGui.SameLine(); ImGui.SetCursorPosX(100 * ImGuiHelpers.GlobalScale);
-        if (valueColor.HasValue) ImGui.PushStyleColor(ImGuiCol.Text, valueColor.Value);
-        ImGui.Text(value);
-        if (valueColor.HasValue) ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, valueColor ?? default, valueColor.HasValue)) ImGui.Text(value);
     }
 
     private void DrawNotes()
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text(Loc.Get("detail.notes")); ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.AccentCyan)) ImGui.Text(Loc.Get("detail.notes"));
         ImGui.Spacing();
         using (ImRaii.ItemWidth(-1))
         {
@@ -154,11 +151,11 @@ internal sealed class DetailWindow : Window, IDisposable
 
     private void DrawPrerequisiteTree()
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text(Loc.Get("detail.prereqs")); ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.AccentCyan)) ImGui.Text(Loc.Get("detail.prereqs"));
         ImGui.Spacing();
 
         if (_prereqTree.Count == 0)
-        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed); ImGui.Text(Loc.Get("detail.noPrereqs")); ImGui.PopStyleColor(); return; }
+        { using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextDimmed)) ImGui.Text(Loc.Get("detail.noPrereqs")); return; }
 
         foreach (var node in _prereqTree)
             DrawNode(node, 0);
@@ -171,14 +168,13 @@ internal sealed class DetailWindow : Window, IDisposable
         var nameColor = node.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
         var typeTag = node.IsMsq ? Loc.Get("detail.tagMsq") : node.IsBlueQuest ? "" : Loc.Get("detail.tagSide");
         ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
-        if (ImGui.Selectable($"{node.Name}{typeTag}###{node.RowId}", false, ImGuiSelectableFlags.None, new Vector2(0, 0)))
-        {
-            _questService.OpenQuestOnMap(node.RowId);
-            if (node.IsBlueQuest && _questService.BlueQuestLookup.TryGetValue(node.RowId, out var prereqQuest))
-                ShowQuest(prereqQuest);
-        }
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, nameColor))
+            if (ImGui.Selectable($"{node.Name}{typeTag}###{node.RowId}", false, ImGuiSelectableFlags.None, new Vector2(0, 0)))
+            {
+                _questService.OpenQuestOnMap(node.RowId);
+                if (node.IsBlueQuest && _questService.BlueQuestLookup.TryGetValue(node.RowId, out var prereqQuest))
+                    ShowQuest(prereqQuest);
+            }
 
         if (ImGui.IsItemHovered()) { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("misc.clickMap")); }
 

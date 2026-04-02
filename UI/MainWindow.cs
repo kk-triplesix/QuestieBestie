@@ -85,9 +85,9 @@ internal sealed class MainWindow : Window, IDisposable
 
     private void DrawHeader()
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text("QuestieBestie"); ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.AccentCyan)) ImGui.Text("QuestieBestie");
         ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text($"— {Loc.Get("header.subtitle")}"); ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary)) ImGui.Text($"— {Loc.Get("header.subtitle")}");
 
         // Right-aligned buttons
         ImGui.SameLine();
@@ -105,7 +105,7 @@ internal sealed class MainWindow : Window, IDisposable
         ImGui.SameLine();
         if (ImGui.Button(settingsLabel)) _settingsWindow.Toggle();
 
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text(Loc.Get("header.list")); ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary)) ImGui.Text(Loc.Get("header.list"));
         ImGui.SameLine();
         using (var width = ImRaii.ItemWidth(160 * ImGuiHelpers.GlobalScale))
         {
@@ -163,10 +163,10 @@ internal sealed class MainWindow : Window, IDisposable
         ImGui.SameLine();
         using (var width = ImRaii.ItemWidth(50 * ImGuiHelpers.GlobalScale))
         { if (ImGui.InputInt("##lvlMin", ref _levelMin, 0, 0)) { _levelMin = Math.Clamp(_levelMin, 0, 100); _dirty = true; } }
-        ImGui.SameLine(); ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("-"); ImGui.PopStyleColor(); ImGui.SameLine();
+        ImGui.SameLine(); using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary)) ImGui.Text("-"); ImGui.SameLine();
         using (var width = ImRaii.ItemWidth(50 * ImGuiHelpers.GlobalScale))
         { if (ImGui.InputInt("##lvlMax", ref _levelMax, 0, 0)) { _levelMax = Math.Clamp(_levelMax, 0, 100); _dirty = true; } }
-        ImGui.SameLine(); ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("Lv."); ImGui.PopStyleColor();
+        ImGui.SameLine(); using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary)) ImGui.Text("Lv.");
         ImGui.SameLine(); ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 6 * ImGuiHelpers.GlobalScale);
         if (ImGui.Button(Loc.Get("filter.nearest"))) _filtered = [.. _filtered.OrderBy(q => _questService.GetDistanceToPlayer(q))];
         if (ImGui.IsItemHovered()) { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("misc.sortDistance")); }
@@ -228,9 +228,8 @@ internal sealed class MainWindow : Window, IDisposable
         // Multi-select bulk action bar
         if (_selected.Count > 0)
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
-            ImGui.Text($"{_selected.Count} {Loc.Get("misc.selected")}");
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.AccentCyan))
+                ImGui.Text($"{_selected.Count} {Loc.Get("misc.selected")}");
             ImGui.SameLine();
             for (var i = 0; i < _trackingService.Lists.Count; i++)
             {
@@ -275,7 +274,7 @@ internal sealed class MainWindow : Window, IDisposable
         // Manual header row: clickable auto-fit button in first column
         ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
         ImGui.TableSetColumnIndex(0);
-        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(0, 0));
+        using var style = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(0, 0));
         if (Icons.IconButton(_autoFitted ? FontAwesomeIcon.Undo : FontAwesomeIcon.TextWidth, "##autofit", Styles.TextSecondary))
         {
             if (_autoFitted)
@@ -299,7 +298,7 @@ internal sealed class MainWindow : Window, IDisposable
                 _autoFitted = true;
             }
         }
-        ImGui.PopStyleVar();
+        style.Dispose();
         if (ImGui.IsItemHovered())
         { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(_autoFitted ? Loc.Get("misc.resetColumns") : Loc.Get("misc.autoFit")); }
         for (var col = 1; col < 8; col++)
@@ -338,22 +337,23 @@ internal sealed class MainWindow : Window, IDisposable
 
             // "NEW" badge
             if (maxRowId > 0 && quest.RowId > maxRowId && !quest.IsCompleted)
-            { ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar); ImGui.Text(Loc.Get("badge.new")); ImGui.PopStyleColor(); ImGui.SameLine(); }
+            { using (ImRaii.PushColor(ImGuiCol.Text, Styles.FavoriteStar)) ImGui.Text(Loc.Get("badge.new")); ImGui.SameLine(); }
 
             // Category icon
             Icons.DrawIcon(Icons.GetCategoryIcon(quest.Category), quest.IsCompleted ? Styles.TextDimmed : Styles.TextSecondary);
             ImGui.SameLine();
 
             var isSelected = _selected.Contains(quest.RowId);
-            ImGui.PushStyleColor(ImGuiCol.Text, isSelected ? Styles.AccentCyan : nameColor);
-            if (ImGui.Selectable($"{quest.Name}###{quest.RowId}", isSelected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowItemOverlap))
+            using (ImRaii.PushColor(ImGuiCol.Text, isSelected ? Styles.AccentCyan : nameColor))
             {
-                if (ImGui.GetIO().KeyCtrl)
-                { if (!_selected.Remove(quest.RowId)) _selected.Add(quest.RowId); }
-                else
-                { _selected.Clear(); _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); _trackingService.AddRecent(quest.RowId); }
+                if (ImGui.Selectable($"{quest.Name}###{quest.RowId}", isSelected, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowItemOverlap))
+                {
+                    if (ImGui.GetIO().KeyCtrl)
+                    { if (!_selected.Remove(quest.RowId)) _selected.Add(quest.RowId); }
+                    else
+                    { _selected.Clear(); _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); _trackingService.AddRecent(quest.RowId); }
+                }
             }
-            ImGui.PopStyleColor();
 
             // Tooltip
             if (ImGui.IsItemHovered())
@@ -361,11 +361,10 @@ internal sealed class MainWindow : Window, IDisposable
                 using var tt = ImRaii.Tooltip();
                 if (tt.Success)
                 {
-                    ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text($"{quest.Category} {quest.Name}"); ImGui.PopStyleColor();
+                    using (ImRaii.PushColor(ImGuiCol.Text, Styles.AccentCyan)) ImGui.Text($"{quest.Category} {quest.Name}");
                     ImGui.Separator();
-                    ImGui.PushStyleColor(ImGuiCol.Text, Styles.GetExpansionColor(quest.ExpansionId));
-                    ImGui.Text($"{Loc.Get("detail.expansion")}:  {quest.Expansion}");
-                    ImGui.PopStyleColor();
+                    using (ImRaii.PushColor(ImGuiCol.Text, Styles.GetExpansionColor(quest.ExpansionId)))
+                        ImGui.Text($"{Loc.Get("detail.expansion")}:  {quest.Expansion}");
                     ImGui.Text($"{Loc.Get("detail.level")}:      {quest.RequiredLevel}");
                     ImGui.Text($"{Loc.Get("detail.location")}:   {quest.Location}");
                     if (!string.IsNullOrEmpty(quest.NpcName)) ImGui.Text($"{Loc.Get("detail.npc")}:  {quest.NpcName}");
@@ -381,9 +380,9 @@ internal sealed class MainWindow : Window, IDisposable
                         ImGui.Text($"{Loc.Get("detail.chain")}:      {quest.ChainName} ({Loc.Get("misc.step")} {quest.ChainIndex}, {chainDone}/{chainQuests.Count})");
                     }
                     var note = _trackingService.GetNote(quest.RowId);
-                    if (!string.IsNullOrEmpty(note)) { ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar); ImGui.Text($"{Loc.Get("detail.notes")}:       {note}"); ImGui.PopStyleColor(); }
+                    if (!string.IsNullOrEmpty(note)) { using (ImRaii.PushColor(ImGuiCol.Text, Styles.FavoriteStar)) ImGui.Text($"{Loc.Get("detail.notes")}:       {note}"); }
                     ImGui.Separator();
-                    ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text(Loc.Get("misc.clickMap")); ImGui.PopStyleColor();
+                    using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary)) ImGui.Text(Loc.Get("misc.clickMap"));
                 }
             }
 
@@ -393,20 +392,20 @@ internal sealed class MainWindow : Window, IDisposable
 
             // Remaining columns
             var dim = quest.IsCompleted ? Styles.TextDimmed : Styles.TextSecondary;
-            ImGui.TableNextColumn(); ImGui.PushStyleColor(ImGuiCol.Text, dim); ImGui.Text($"{quest.RequiredLevel}"); ImGui.PopStyleColor();
+            ImGui.TableNextColumn(); using (ImRaii.PushColor(ImGuiCol.Text, dim)) ImGui.Text($"{quest.RequiredLevel}");
 
             // Expansion tag with color
             ImGui.TableNextColumn();
             var expAbbrev = Styles.GetExpansionAbbrev(quest.ExpansionId);
             var expColor = quest.IsCompleted ? Styles.TextDimmed : Styles.GetExpansionColor(quest.ExpansionId);
-            ImGui.PushStyleColor(ImGuiCol.Text, expColor); ImGui.Text(expAbbrev); ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, expColor)) ImGui.Text(expAbbrev);
 
-            ImGui.TableNextColumn(); ImGui.PushStyleColor(ImGuiCol.Text, dim); ImGui.Text(quest.Location); ImGui.PopStyleColor();
-            ImGui.TableNextColumn(); ImGui.PushStyleColor(ImGuiCol.Text, dim); ImGui.Text(quest.RequiredClassJob); ImGui.PopStyleColor();
+            ImGui.TableNextColumn(); using (ImRaii.PushColor(ImGuiCol.Text, dim)) ImGui.Text(quest.Location);
+            ImGui.TableNextColumn(); using (ImRaii.PushColor(ImGuiCol.Text, dim)) ImGui.Text(quest.RequiredClassJob);
 
             ImGui.TableNextColumn();
             if (!string.IsNullOrEmpty(quest.Unlocks))
-            { ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.AccentCyan); ImGui.Text(quest.Unlocks); ImGui.PopStyleColor(); }
+            { using (ImRaii.PushColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.AccentCyan)) ImGui.Text(quest.Unlocks); }
 
             // Toggle completion button
             ImGui.TableNextColumn();
@@ -428,7 +427,7 @@ internal sealed class MainWindow : Window, IDisposable
 
     private void DrawQuestContextMenu(QuestData quest)
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text(quest.Name); ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.AccentCyan)) ImGui.Text(quest.Name);
         ImGui.Separator();
 
         // Favorite toggle
@@ -537,12 +536,12 @@ internal sealed class MainWindow : Window, IDisposable
 
     private void DrawStatusBar()
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text($"{_filtered.Count}/{_questService.TotalCount} {Loc.Get("misc.shown")}"); ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary)) ImGui.Text($"{_filtered.Count}/{_questService.TotalCount} {Loc.Get("misc.shown")}");
 
         ImGui.SameLine();
         var text = $"{_questService.CompletedCount}/{_questService.TotalCount} complete ({_questService.CompletionPercent:F1}%)";
         ImGui.SetCursorPosX(ImGui.GetWindowWidth() - ImGui.CalcTextSize(text).X - 20 * ImGuiHelpers.GlobalScale);
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentGreen); ImGui.Text(text); ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.AccentGreen)) ImGui.Text(text);
     }
 
     // ── Aether Currents Tab ─────────────────────────────────────────────
@@ -557,7 +556,7 @@ internal sealed class MainWindow : Window, IDisposable
             .ToList();
 
         if (aetherQuests.Count == 0)
-        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed); ImGui.Text(Loc.Get("misc.noAether")); ImGui.PopStyleColor(); return; }
+        { using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextDimmed)) ImGui.Text(Loc.Get("misc.noAether")); return; }
 
         foreach (var group in aetherQuests)
         {
@@ -566,16 +565,13 @@ internal sealed class MainWindow : Window, IDisposable
             var fraction = total > 0 ? (float)done / total : 0f;
             var expId = group.First().ExpansionId;
 
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.GetExpansionColor(expId));
-            ImGui.Text(group.Key);
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.GetExpansionColor(expId)))
+                ImGui.Text(group.Key);
             ImGui.SameLine(); ImGui.SetCursorPosX(200 * ImGuiHelpers.GlobalScale);
-            ImGui.PushStyleColor(ImGuiCol.PlotHistogram, Styles.GetExpansionColor(expId));
-            ImGui.PushStyleColor(ImGuiCol.FrameBg, Styles.BgLight);
-            ImGui.ProgressBar(fraction, new Vector2(200, 16) * ImGuiHelpers.GlobalScale, "");
-            ImGui.PopStyleColor(2);
+            using (ImRaii.PushColor(ImGuiCol.PlotHistogram, Styles.GetExpansionColor(expId)).Push(ImGuiCol.FrameBg, Styles.BgLight))
+                ImGui.ProgressBar(fraction, new Vector2(200, 16) * ImGuiHelpers.GlobalScale, "");
             ImGui.SameLine();
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text($"{done}/{total}"); ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary)) ImGui.Text($"{done}/{total}");
 
             // Show individual quests
             foreach (var quest in group.OrderBy(q => q.RequiredLevel))
@@ -583,10 +579,11 @@ internal sealed class MainWindow : Window, IDisposable
                 ImGui.Text("   "); ImGui.SameLine();
                 Icons.DrawCheck(quest.IsCompleted); ImGui.SameLine();
                 var nameColor = quest.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
-                ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
-                if (ImGui.Selectable($"{quest.Name} (Lv.{quest.RequiredLevel})###ac{quest.RowId}", false))
-                { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
-                ImGui.PopStyleColor();
+                using (ImRaii.PushColor(ImGuiCol.Text, nameColor))
+                {
+                    if (ImGui.Selectable($"{quest.Name} (Lv.{quest.RequiredLevel})###ac{quest.RowId}", false))
+                    { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
+                }
             }
             ImGui.Spacing();
         }
@@ -604,13 +601,12 @@ internal sealed class MainWindow : Window, IDisposable
             .ThenBy(q => q.RequiredLevel)
             .ToList();
 
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.TextWrapped(Loc.Get("misc.dutyDesc"));
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary))
+            ImGui.TextWrapped(Loc.Get("misc.dutyDesc"));
         ImGui.Spacing();
 
         if (contentQuests.Count == 0)
-        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed); ImGui.Text(Loc.Get("misc.noDuty")); ImGui.PopStyleColor(); return; }
+        { using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextDimmed)) ImGui.Text(Loc.Get("misc.noDuty")); return; }
 
         // Group by category, show all
         var groups = contentQuests.GroupBy(q => q.Category).OrderBy(g => g.Key).ToList();
@@ -620,9 +616,8 @@ internal sealed class MainWindow : Window, IDisposable
             var quests = group.ToList();
             var done = quests.Count(q => q.IsCompleted);
 
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
-            ImGui.Text($"{group.Key} ({done}/{quests.Count})");
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.AccentCyan))
+                ImGui.Text($"{group.Key} ({done}/{quests.Count})");
             ImGui.Separator();
 
             foreach (var quest in quests)
@@ -630,20 +625,19 @@ internal sealed class MainWindow : Window, IDisposable
                 Icons.DrawCheck(quest.IsCompleted); ImGui.SameLine();
 
                 var expAbbrev = Styles.GetExpansionAbbrev(quest.ExpansionId);
-                ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.GetExpansionColor(quest.ExpansionId));
-                ImGui.Text($"[{expAbbrev}]");
-                ImGui.PopStyleColor();
+                using (ImRaii.PushColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.GetExpansionColor(quest.ExpansionId)))
+                    ImGui.Text($"[{expAbbrev}]");
                 ImGui.SameLine();
 
-                ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary);
-                if (ImGui.Selectable($"Lv.{quest.RequiredLevel} {quest.Name}###du{quest.RowId}", false))
-                { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
-                ImGui.PopStyleColor();
+                using (ImRaii.PushColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary))
+                {
+                    if (ImGui.Selectable($"Lv.{quest.RequiredLevel} {quest.Name}###du{quest.RowId}", false))
+                    { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
+                }
 
                 ImGui.SameLine();
-                ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.AccentCyan);
-                ImGui.Text($"-> {quest.Unlocks}");
-                ImGui.PopStyleColor();
+                using (ImRaii.PushColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.AccentCyan))
+                    ImGui.Text($"-> {quest.Unlocks}");
             }
             ImGui.Spacing();
         }
@@ -670,9 +664,8 @@ internal sealed class MainWindow : Window, IDisposable
         var recent = _trackingService.RecentQuests;
         if (recent.Count == 0)
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed);
-            ImGui.Text(Loc.Get("misc.noRecent"));
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextDimmed))
+                ImGui.Text(Loc.Get("misc.noRecent"));
             return;
         }
 
@@ -689,19 +682,19 @@ internal sealed class MainWindow : Window, IDisposable
             Icons.DrawCheck(quest.IsCompleted); ImGui.SameLine();
 
             var nameColor = quest.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
-            ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
-            if (ImGui.Selectable($"{quest.Name} (Lv.{quest.RequiredLevel})###rec{quest.RowId}", false))
-            { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, nameColor))
+            {
+                if (ImGui.Selectable($"{quest.Name} (Lv.{quest.RequiredLevel})###rec{quest.RowId}", false))
+                { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
+            }
 
             ImGui.SameLine();
             var expAbbrev = Styles.GetExpansionAbbrev(quest.ExpansionId);
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.GetExpansionColor(quest.ExpansionId));
-            ImGui.Text($"[{expAbbrev}]");
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.GetExpansionColor(quest.ExpansionId)))
+                ImGui.Text($"[{expAbbrev}]");
 
             if (!string.IsNullOrEmpty(quest.Unlocks))
-            { ImGui.SameLine(); ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text($"-> {quest.Unlocks}"); ImGui.PopStyleColor(); }
+            { ImGui.SameLine(); using (ImRaii.PushColor(ImGuiCol.Text, Styles.AccentCyan)) ImGui.Text($"-> {quest.Unlocks}"); }
         }
     }
 
@@ -766,9 +759,8 @@ internal sealed class MainWindow : Window, IDisposable
             return true;
         }).OrderByDescending(q => q.IsSpecial).ThenBy(q => q.RequiredLevel).ThenBy(q => q.Name).ToList();
 
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text($"{filtered.Count} quests shown ({_questService.SpecialSideQuestCount} special)");
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary))
+            ImGui.Text($"{filtered.Count} quests shown ({_questService.SpecialSideQuestCount} special)");
 
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable
                     | ImGuiTableFlags.ScrollY | ImGuiTableFlags.SizingStretchProp;
@@ -797,34 +789,32 @@ internal sealed class MainWindow : Window, IDisposable
             // Name
             ImGui.TableNextColumn();
             var nameColor = quest.IsCompleted ? Styles.TextDimmed : quest.IsSpecial ? Styles.FavoriteStar : Styles.TextPrimary;
-            ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
-            if (ImGui.Selectable($"{quest.Name}###sq{quest.RowId}", false, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowItemOverlap))
-            { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, nameColor))
+            {
+                if (ImGui.Selectable($"{quest.Name}###sq{quest.RowId}", false, ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowItemOverlap))
+                { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
+            }
 
             if (ImGui.IsItemHovered() && !string.IsNullOrEmpty(quest.SpecialTag))
             { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(quest.SpecialTag); }
 
             // Level
             ImGui.TableNextColumn();
-            ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.TextSecondary);
-            ImGui.Text($"{quest.RequiredLevel}");
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.TextSecondary))
+                ImGui.Text($"{quest.RequiredLevel}");
 
             // Expansion
             ImGui.TableNextColumn();
             var expAbbrev = Styles.GetExpansionAbbrev(quest.ExpansionId);
-            ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.GetExpansionColor(quest.ExpansionId));
-            ImGui.Text(expAbbrev);
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.GetExpansionColor(quest.ExpansionId)))
+                ImGui.Text(expAbbrev);
 
             // Special tag
             ImGui.TableNextColumn();
             if (quest.IsSpecial)
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.FavoriteStar);
-                ImGui.Text(quest.SpecialTag);
-                ImGui.PopStyleColor();
+                using (ImRaii.PushColor(ImGuiCol.Text, quest.IsCompleted ? Styles.TextDimmed : Styles.FavoriteStar))
+                    ImGui.Text(quest.SpecialTag);
             }
 
             // Toggle completion button
@@ -846,12 +836,12 @@ internal sealed class MainWindow : Window, IDisposable
 
     private void DrawStatistics()
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text(Loc.Get("stats.overall")); ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.AccentCyan)) ImGui.Text(Loc.Get("stats.overall"));
         ImGui.Spacing();
         DrawProgressBar(Loc.Get("misc.total"), _questService.CompletedCount, _questService.TotalCount, Styles.AccentGreen);
         ImGui.Spacing(); ImGui.Separator(); ImGui.Spacing();
 
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text(Loc.Get("stats.byExpansion")); ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.AccentCyan)) ImGui.Text(Loc.Get("stats.byExpansion"));
         ImGui.Spacing();
         foreach (var stat in _questService.GetExpansionStats())
         {
@@ -860,7 +850,7 @@ internal sealed class MainWindow : Window, IDisposable
         }
         ImGui.Spacing(); ImGui.Separator(); ImGui.Spacing();
 
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text(Loc.Get("stats.byType")); ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.AccentCyan)) ImGui.Text(Loc.Get("stats.byType"));
         ImGui.Spacing();
         foreach (var stat in _questService.GetCategoryStats())
             DrawProgressBar(stat.Name, stat.Completed, stat.Total, Styles.AccentGreen);
@@ -870,32 +860,27 @@ internal sealed class MainWindow : Window, IDisposable
     private void DrawProgressBar(string label, int completed, int total, Vector4 color)
     {
         var fraction = total > 0 ? (float)completed / total : 0f;
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextPrimary); ImGui.Text(label); ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextPrimary)) ImGui.Text(label);
         ImGui.SameLine(); ImGui.SetCursorPosX(200 * ImGuiHelpers.GlobalScale);
-        ImGui.PushStyleColor(ImGuiCol.PlotHistogram, color);
-        ImGui.PushStyleColor(ImGuiCol.FrameBg, Styles.BgLight);
-        ImGui.ProgressBar(fraction, new Vector2(250, 18) * ImGuiHelpers.GlobalScale, "");
-        ImGui.PopStyleColor(2);
+        using (ImRaii.PushColor(ImGuiCol.PlotHistogram, color).Push(ImGuiCol.FrameBg, Styles.BgLight))
+            ImGui.ProgressBar(fraction, new Vector2(250, 18) * ImGuiHelpers.GlobalScale, "");
         ImGui.SameLine();
         if (completed == total && total > 0)
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar);
-            ImGui.Text($">> {completed}/{total} (100%)");
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.FavoriteStar))
+                ImGui.Text($">> {completed}/{total} (100%)");
 
             if ((DateTime.Now - _lastConfetti).TotalSeconds > 30)
             {
                 ImGui.SameLine();
-                ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar);
-                ImGui.Text(Loc.Get("badge.complete"));
-                ImGui.PopStyleColor();
+                using (ImRaii.PushColor(ImGuiCol.Text, Styles.FavoriteStar))
+                    ImGui.Text(Loc.Get("badge.complete"));
             }
         }
         else
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-            ImGui.Text($"{completed}/{total} ({fraction * 100f:F0}%)");
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary))
+                ImGui.Text($"{completed}/{total} ({fraction * 100f:F0}%)");
         }
     }
 }

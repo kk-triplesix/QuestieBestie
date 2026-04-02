@@ -97,9 +97,8 @@ internal sealed class WidgetWindow : Window, IDisposable
         {
             var (angle, dist, name) = direction.Value;
             var arrow = GetDirectionArrow(angle);
-            ImGui.PushStyleColor(ImGuiCol.Text, s.LevelColor);
-            ImGui.Text($"{arrow} {name} ({dist:F0}y)");
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, s.LevelColor))
+                ImGui.Text($"{arrow} {name} ({dist:F0}y)");
         }
 
         // Config + Close buttons — only show on hover, but ALWAYS render popup
@@ -111,10 +110,9 @@ internal sealed class WidgetWindow : Window, IDisposable
             { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("header.settings")); }
 
             ImGui.SameLine();
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);
-            if (ImGuiComponents.IconButton("wClose", FontAwesomeIcon.Times))
-                IsOpen = false;
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextRed))
+                if (ImGuiComponents.IconButton("wClose", FontAwesomeIcon.Times))
+                    IsOpen = false;
             if (ImGui.IsItemHovered())
             { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("misc.close")); }
         }
@@ -127,22 +125,18 @@ internal sealed class WidgetWindow : Window, IDisposable
     {
         var fraction = total > 0 ? (float)completed / total : 0f;
 
-        ImGui.PushStyleColor(ImGuiCol.Text, s.HeaderColor);
-        ImGui.Text(label);
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, s.HeaderColor))
+            ImGui.Text(label);
 
         ImGui.SameLine();
         ImGui.SetCursorPosX(80 * ImGuiHelpers.GlobalScale);
-        ImGui.PushStyleColor(ImGuiCol.PlotHistogram, color);
-        ImGui.PushStyleColor(ImGuiCol.FrameBg, Styles.BgLight);
-        ImGui.ProgressBar(fraction, new Vector2(100, 14) * ImGuiHelpers.GlobalScale, "");
-        ImGui.PopStyleColor(2);
+        using (ImRaii.PushColor(ImGuiCol.PlotHistogram, color).Push(ImGuiCol.FrameBg, Styles.BgLight))
+            ImGui.ProgressBar(fraction, new Vector2(100, 14) * ImGuiHelpers.GlobalScale, "");
 
         ImGui.SameLine();
         ImGui.SetCursorPosX(190 * ImGuiHelpers.GlobalScale);
-        ImGui.PushStyleColor(ImGuiCol.Text, s.TextColor);
-        ImGui.Text($"{fraction * 100f:F0}%");
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, s.TextColor))
+            ImGui.Text($"{fraction * 100f:F0}%");
     }
 
     private void DrawConfigPopup()
@@ -154,9 +148,8 @@ internal sealed class WidgetWindow : Window, IDisposable
         var s = _trackingService.OverlaySettings;
         var changed = false;
 
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
-        ImGui.Text(Loc.Get("settings.widgetBarsCfg"));
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.AccentCyan))
+            ImGui.Text(Loc.Get("settings.widgetBarsCfg"));
         ImGui.Separator();
 
         // Total toggle
@@ -164,21 +157,19 @@ internal sealed class WidgetWindow : Window, IDisposable
             changed = true;
 
         ImGui.Separator();
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text(Loc.Get("settings.expansions"));
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary))
+            ImGui.Text(Loc.Get("settings.expansions"));
 
         // Expansion toggles
         foreach (var (id, name) in Styles.Expansions)
         {
             var enabled = s.WidgetExpansions.Contains(id);
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.GetExpansionColor(id));
-            if (ImGui.Checkbox($"{name}###wExp{id}", ref enabled))
-            {
-                if (enabled) s.WidgetExpansions.Add(id); else s.WidgetExpansions.Remove(id);
-                changed = true;
-            }
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.GetExpansionColor(id)))
+                if (ImGui.Checkbox($"{name}###wExp{id}", ref enabled))
+                {
+                    if (enabled) s.WidgetExpansions.Add(id); else s.WidgetExpansions.Remove(id);
+                    changed = true;
+                }
         }
 
         if (changed)

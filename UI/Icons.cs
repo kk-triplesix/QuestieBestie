@@ -21,10 +21,9 @@ public static class Icons
 
     public static void DrawIcon(FontAwesomeIcon icon, Vector4? color = null)
     {
-        if (color.HasValue) ImGui.PushStyleColor(ImGuiCol.Text, color.Value);
+        using (ImRaii.PushColor(ImGuiCol.Text, color ?? default, color.HasValue))
         using (ImRaii.PushFont(UiBuilder.IconFont))
             ImGui.Text(icon.ToIconString());
-        if (color.HasValue) ImGui.PopStyleColor();
     }
 
     public static void DrawIconSameLine(FontAwesomeIcon icon, Vector4? color = null)
@@ -48,13 +47,7 @@ public static class Icons
 
     public static bool IconButton(FontAwesomeIcon icon, string id, Vector4? color = null)
     {
-        if (color.HasValue)
-        {
-            ImGui.PushStyleColor(ImGuiCol.Text, color.Value);
-            var result = ImGuiComponents.IconButton(id, icon);
-            ImGui.PopStyleColor();
-            return result;
-        }
-        return ImGuiComponents.IconButton(id, icon);
+        using (ImRaii.PushColor(ImGuiCol.Text, color ?? default, color.HasValue))
+            return ImGuiComponents.IconButton(id, icon);
     }
 }

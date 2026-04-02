@@ -101,14 +101,12 @@ internal sealed class OverlayWindow : Window, IDisposable
 
     private void DrawHeader(OverlaySettings s)
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, s.HeaderColor);
-        ImGui.Text("QuestieBestie");
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, s.HeaderColor))
+            ImGui.Text("QuestieBestie");
 
         ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text($"({_questService.CompletionPercent:F0}%)");
-        ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary))
+            ImGui.Text($"({_questService.CompletionPercent:F0}%)");
 
         // Settings + Close buttons (right-aligned, always rendered for stable layout)
         ImGui.SameLine();
@@ -119,10 +117,9 @@ internal sealed class OverlayWindow : Window, IDisposable
         if (_showButtons && ImGui.IsItemHovered())
         { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("header.settings")); }
         ImGui.SameLine();
-        if (_showButtons) ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);
-        if (ImGuiComponents.IconButton("ovClose", FontAwesomeIcon.Times) && _showButtons)
-            IsOpen = false;
-        if (_showButtons) ImGui.PopStyleColor();
+        using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextRed, _showButtons))
+            if (ImGuiComponents.IconButton("ovClose", FontAwesomeIcon.Times) && _showButtons)
+                IsOpen = false;
         if (_showButtons && ImGui.IsItemHovered())
         { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("misc.close")); }
         if (!_showButtons) ImGui.PopStyleVar();
@@ -133,9 +130,8 @@ internal sealed class OverlayWindow : Window, IDisposable
         var lists = _trackingService.Lists;
         if (lists.Count <= 1)
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-            ImGui.Text(_trackingService.ActiveList.Name);
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary))
+                ImGui.Text(_trackingService.ActiveList.Name);
             return;
         }
 
@@ -144,12 +140,9 @@ internal sealed class OverlayWindow : Window, IDisposable
             if (i > 0) ImGui.SameLine();
 
             var isActive = i == _trackingService.ActiveListIndex;
-            ImGui.PushStyleColor(ImGuiCol.Text, isActive ? s.HeaderColor : Styles.TextDimmed);
-
-            if (ImGui.Selectable($"{lists[i].Name}###list{i}", isActive, ImGuiSelectableFlags.None, new Vector2(ImGui.CalcTextSize(lists[i].Name).X + 8 * ImGuiHelpers.GlobalScale, 0)))
-                _trackingService.ActiveListIndex = i;
-
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, isActive ? s.HeaderColor : Styles.TextDimmed))
+                if (ImGui.Selectable($"{lists[i].Name}###list{i}", isActive, ImGuiSelectableFlags.None, new Vector2(ImGui.CalcTextSize(lists[i].Name).X + 8 * ImGuiHelpers.GlobalScale, 0)))
+                    _trackingService.ActiveListIndex = i;
         }
     }
 
@@ -159,12 +152,10 @@ internal sealed class OverlayWindow : Window, IDisposable
 
         if (activeList.QuestRowIds.Count == 0)
         {
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed);
-            ImGui.Text(Loc.Get("overlay.noQuests"));
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-            ImGui.Text(Loc.Get("overlay.addHint"));
-            ImGui.PopStyleColor();
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextDimmed))
+                ImGui.Text(Loc.Get("overlay.noQuests"));
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextSecondary))
+                ImGui.Text(Loc.Get("overlay.addHint"));
             return;
         }
 
@@ -200,18 +191,16 @@ internal sealed class OverlayWindow : Window, IDisposable
             }
             else
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, s.LevelColor);
-                ImGui.Text($"[{quest.RequiredLevel,2}]");
-                ImGui.PopStyleColor();
+                using (ImRaii.PushColor(ImGuiCol.Text, s.LevelColor))
+                    ImGui.Text($"[{quest.RequiredLevel,2}]");
             }
 
             ImGui.SameLine();
 
             var nameColor = quest.IsCompleted ? Styles.TextDimmed : s.TextColor;
-            ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
-            if (ImGui.Selectable($"{quest.Name}###ov{quest.RowId}", false))
-                _questService.OpenQuestOnMap(quest.RowId);
-            ImGui.PopStyleColor();
+            using (ImRaii.PushColor(ImGuiCol.Text, nameColor))
+                if (ImGui.Selectable($"{quest.Name}###ov{quest.RowId}", false))
+                    _questService.OpenQuestOnMap(quest.RowId);
 
             using (var popup = ImRaii.ContextPopupItem($"ovctx###{quest.RowId}"))
             {
@@ -238,9 +227,8 @@ internal sealed class OverlayWindow : Window, IDisposable
                 if (missing.Count > 0)
                 {
                     ImGui.SameLine();
-                    ImGui.PushStyleColor(ImGuiCol.Text, s.WarningColor);
-                    ImGui.Text($"! {missing.Count} {Loc.Get("overlay.reqShort")}");
-                    ImGui.PopStyleColor();
+                    using (ImRaii.PushColor(ImGuiCol.Text, s.WarningColor))
+                        ImGui.Text($"! {missing.Count} {Loc.Get("overlay.reqShort")}");
 
                     if (ImGui.IsItemHovered())
                     {
@@ -251,9 +239,8 @@ internal sealed class OverlayWindow : Window, IDisposable
                             foreach (var (name, _, isBlue) in missing)
                             {
                                 var tag = isBlue ? "" : Loc.Get("overlay.tagMsqSide");
-                                ImGui.PushStyleColor(ImGuiCol.Text, s.WarningColor);
+                                using (ImRaii.PushColor(ImGuiCol.Text, s.WarningColor))
                                 ImGui.Text($"  x {name}{tag}");
-                                ImGui.PopStyleColor();
                             }
                         }
                     }
