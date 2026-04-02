@@ -251,7 +251,7 @@ internal sealed class MainWindow : Window, IDisposable
         {
             ImGui.TableSetupColumn(Loc.Get("col.quest"), ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.DefaultSort, _afQuestW);
             ImGui.TableSetupColumn(Loc.Get("col.level"), ImGuiTableColumnFlags.WidthFixed, 28 * ImGuiHelpers.GlobalScale);
-            ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 50 * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn(Loc.Get("col.exp"), ImGuiTableColumnFlags.WidthFixed, 50 * ImGuiHelpers.GlobalScale);
             ImGui.TableSetupColumn(Loc.Get("col.location"), ImGuiTableColumnFlags.WidthFixed, _afLocW);
             ImGui.TableSetupColumn(Loc.Get("col.classjob"), ImGuiTableColumnFlags.WidthFixed, _afClassW);
             ImGui.TableSetupColumn(Loc.Get("col.unlocks"), ImGuiTableColumnFlags.WidthStretch, 0);
@@ -260,7 +260,7 @@ internal sealed class MainWindow : Window, IDisposable
         {
             ImGui.TableSetupColumn(Loc.Get("col.quest"), ImGuiTableColumnFlags.WidthStretch | ImGuiTableColumnFlags.DefaultSort, 0);
             ImGui.TableSetupColumn(Loc.Get("col.level"), ImGuiTableColumnFlags.WidthFixed, 28 * ImGuiHelpers.GlobalScale);
-            ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 50 * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn(Loc.Get("col.exp"), ImGuiTableColumnFlags.WidthFixed, 50 * ImGuiHelpers.GlobalScale);
             ImGui.TableSetupColumn(Loc.Get("col.location"), ImGuiTableColumnFlags.WidthFixed, 100 * ImGuiHelpers.GlobalScale);
             ImGui.TableSetupColumn(Loc.Get("col.classjob"), ImGuiTableColumnFlags.WidthFixed, 100 * ImGuiHelpers.GlobalScale);
             ImGui.TableSetupColumn(Loc.Get("col.unlocks"), ImGuiTableColumnFlags.WidthFixed, 170 * ImGuiHelpers.GlobalScale);
@@ -333,7 +333,7 @@ internal sealed class MainWindow : Window, IDisposable
 
             // "NEW" badge
             if (maxRowId > 0 && quest.RowId > maxRowId && !quest.IsCompleted)
-            { ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar); ImGui.Text("NEW"); ImGui.PopStyleColor(); ImGui.SameLine(); }
+            { ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar); ImGui.Text(Loc.Get("badge.new")); ImGui.PopStyleColor(); ImGui.SameLine(); }
 
             // Category icon
             Icons.DrawIcon(Icons.GetCategoryIcon(quest.Category), quest.IsCompleted ? Styles.TextDimmed : Styles.TextSecondary);
@@ -710,7 +710,7 @@ internal sealed class MainWindow : Window, IDisposable
         ImGui.SameLine();
         using (var width = ImRaii.ItemWidth(120 * ImGuiHelpers.GlobalScale))
         {
-            var sideLabels = new[] { "All", "Special Only", "Incomplete", "Complete" };
+            var sideLabels = new[] { Loc.Get("filter.all"), Loc.Get("filter.specialOnly"), Loc.Get("filter.incomplete"), Loc.Get("filter.complete") };
             ImGui.Combo("##sideFilter", ref _sideFilter, sideLabels, sideLabels.Length);
         }
         ImGui.SameLine();
@@ -773,10 +773,10 @@ internal sealed class MainWindow : Window, IDisposable
         if (!sideTable.Success) return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
-        ImGui.TableSetupColumn("Done", ImGuiTableColumnFlags.WidthFixed, 30 * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn(Loc.Get("col.done"), ImGuiTableColumnFlags.WidthFixed, 30 * ImGuiHelpers.GlobalScale);
         ImGui.TableSetupColumn(Loc.Get("col.quest"), ImGuiTableColumnFlags.WidthStretch, 0);
         ImGui.TableSetupColumn(Loc.Get("col.level"), ImGuiTableColumnFlags.WidthFixed, 28 * ImGuiHelpers.GlobalScale);
-        ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 45 * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn(Loc.Get("col.exp"), ImGuiTableColumnFlags.WidthFixed, 45 * ImGuiHelpers.GlobalScale);
         ImGui.TableSetupColumn(Loc.Get("col.special"), ImGuiTableColumnFlags.WidthFixed, 250 * ImGuiHelpers.GlobalScale);
         ImGui.TableSetupColumn("##toggle", ImGuiTableColumnFlags.WidthFixed, 28 * ImGuiHelpers.GlobalScale);
         ImGui.TableHeadersRow();

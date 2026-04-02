@@ -164,5 +164,8 @@ public static class Loc
         // ── Table Misc ──────────────────────────────────────────────────
         ["misc.autoFit"] = new() { ["en"] = "Auto-fit columns", ["de"] = "Spalten anpassen", ["fr"] = "Ajuster colonnes", ["ja"] = "\u5217\u3092\u81ea\u52d5\u8abf\u6574" },
         ["misc.resetColumns"] = new() { ["en"] = "Reset column widths", ["de"] = "Spaltenbreiten zur\u00fccksetzen", ["fr"] = "R\u00e9initialiser largeurs", ["ja"] = "\u5217\u5e45\u3092\u30ea\u30bb\u30c3\u30c8" },
+        ["col.exp"] = new() { ["en"] = "Exp.", ["de"] = "Erw.", ["fr"] = "Ext.", ["ja"] = "\u62e1\u5f35" },
+        ["col.done"] = new() { ["en"] = "Done", ["de"] = "Fertig", ["fr"] = "Fait", ["ja"] = "\u6e08" },
+        ["badge.new"] = new() { ["en"] = "NEW", ["de"] = "NEU", ["fr"] = "NOUV.", ["ja"] = "NEW" },
     };
 }
