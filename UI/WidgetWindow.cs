@@ -104,7 +104,7 @@ internal sealed class WidgetWindow : Window, IDisposable
                 IsOpen = false;
             ImGui.PopStyleColor();
             if (ImGui.IsItemHovered())
-            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text("Close"); }
+            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("misc.close")); }
         }
 
         // Popup must be rendered outside the hover check — ImGui manages its open state
@@ -143,7 +143,7 @@ internal sealed class WidgetWindow : Window, IDisposable
         var changed = false;
 
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
-        ImGui.Text("Widget Bars");
+        ImGui.Text(Loc.Get("settings.widgetBarsCfg"));
         ImGui.PopStyleColor();
         ImGui.Separator();
 
@@ -153,7 +153,7 @@ internal sealed class WidgetWindow : Window, IDisposable
 
         ImGui.Separator();
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text("Expansions");
+        ImGui.Text(Loc.Get("settings.expansions"));
         ImGui.PopStyleColor();
 
         // Expansion toggles

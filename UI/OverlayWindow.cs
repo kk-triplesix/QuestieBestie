@@ -114,7 +114,7 @@ internal sealed class OverlayWindow : Window, IDisposable
                 IsOpen = false;
             ImGui.PopStyleColor();
             if (ImGui.IsItemHovered())
-            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text("Close"); }
+            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("misc.close")); }
         }
     }
 
@@ -159,7 +159,7 @@ internal sealed class OverlayWindow : Window, IDisposable
         }
 
         // Plan Route button
-        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Route, "Plan Route"))
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Route, Loc.Get("misc.planRoute")))
         {
             var quests = activeList.QuestRowIds
                 .Where(id => _questService.BlueQuestLookup.TryGetValue(id, out var q) && !q.IsCompleted)
@@ -175,7 +175,7 @@ internal sealed class OverlayWindow : Window, IDisposable
             _trackingService.SaveOverlaySettings();
         }
         if (ImGui.IsItemHovered())
-        { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text("Sort by optimal route (nearest zone first)"); }
+        { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("misc.sortRoute")); }
 
         ImGui.Separator();
 
@@ -209,9 +209,9 @@ internal sealed class OverlayWindow : Window, IDisposable
                 {
                     var isManual = _trackingService.IsManuallyCompleted(quest.RowId);
                     if (isManual)
-                    { if (ImGui.MenuItem("Unmark Completed")) _trackingService.UnmarkCompleted(quest.RowId); }
+                    { if (ImGui.MenuItem(Loc.Get("misc.unmarkComplete"))) _trackingService.UnmarkCompleted(quest.RowId); }
                     else
-                    { if (ImGui.MenuItem("Mark as Completed")) _trackingService.MarkCompleted(quest.RowId, _questService); }
+                    { if (ImGui.MenuItem(Loc.Get("misc.markComplete"))) _trackingService.MarkCompleted(quest.RowId, _questService); }
                     ImGui.Separator();
                     if (ImGui.MenuItem(Loc.Get("ctx.remove")))
                         _trackingService.RemoveQuest(quest.RowId);
@@ -237,7 +237,7 @@ internal sealed class OverlayWindow : Window, IDisposable
                         using var tt = ImRaii.Tooltip();
                         if (tt.Success)
                         {
-                            ImGui.Text("Missing requirements:");
+                            ImGui.Text(Loc.Get("misc.missingReqs"));
                             foreach (var (name, _, isBlue) in missing)
                             {
                                 var tag = isBlue ? "" : " (MSQ/Side)";

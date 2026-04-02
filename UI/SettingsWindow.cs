@@ -75,7 +75,7 @@ internal sealed class SettingsWindow : Window, IDisposable
 
         // Widget Progress Bars
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text("Widget Progress Bars");
+        ImGui.Text(Loc.Get("settings.widgetBars"));
         ImGui.PopStyleColor();
 
         if (ImGui.Checkbox("Total", ref s.WidgetShowTotal))
@@ -112,18 +112,18 @@ internal sealed class SettingsWindow : Window, IDisposable
 
         // Sync with Game State
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.Text("Data");
+        ImGui.Text(Loc.Get("settings.data"));
         ImGui.PopStyleColor();
 
         var manualCount = _trackingService.ManuallyCompleted.Count;
         if (manualCount > 0)
         {
-            if (ImGui.Button("Sync with Game State"))
+            if (ImGui.Button(Loc.Get("settings.sync")))
                 ImGui.OpenPopup("##confirmSync");
 
             ImGui.SameLine();
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-            ImGui.Text($"({manualCount} manual overrides)");
+            ImGui.Text($"({manualCount} {Loc.Get("settings.manualOverrides")})");
             ImGui.PopStyleColor();
 
             using (var modal = ImRaii.PopupModal("##confirmSync", ref _syncPopupOpen, ImGuiWindowFlags.AlwaysAutoResize))
@@ -161,11 +161,11 @@ internal sealed class SettingsWindow : Window, IDisposable
         {
             using (ImRaii.Disabled())
             {
-                ImGui.Button("Sync with Game State");
+                ImGui.Button(Loc.Get("settings.sync"));
             }
             ImGui.SameLine();
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-            ImGui.Text("(no manual overrides)");
+            ImGui.Text(Loc.Get("settings.noOverrides"));
             ImGui.PopStyleColor();
         }
 

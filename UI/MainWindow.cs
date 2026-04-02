@@ -74,7 +74,7 @@ internal sealed class MainWindow : Window, IDisposable
         { if (tab.Success) { ImGui.Spacing(); DrawDutyUnlocks(); } }
         using (var tab = ImRaii.TabItem(Loc.Get("tab.side")))
         { if (tab.Success) { ImGui.Spacing(); DrawSideQuests(); } }
-        using (var tab = ImRaii.TabItem("Recent"))
+        using (var tab = ImRaii.TabItem(Loc.Get("tab.recent")))
         { if (tab.Success) { ImGui.Spacing(); DrawRecent(); } }
         using (var tab = ImRaii.TabItem(Loc.Get("tab.stats")))
         { if (tab.Success) { ImGui.Spacing(); DrawStatistics(); } }
@@ -168,7 +168,7 @@ internal sealed class MainWindow : Window, IDisposable
         ImGui.SameLine(); ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("Lv."); ImGui.PopStyleColor();
         ImGui.SameLine(); ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 6 * ImGuiHelpers.GlobalScale);
         if (ImGui.Button(Loc.Get("filter.nearest"))) _filtered = [.. _filtered.OrderBy(q => _questService.GetDistanceToPlayer(q))];
-        if (ImGui.IsItemHovered()) { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text("Sort by distance to player"); }
+        if (ImGui.IsItemHovered()) { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("misc.sortDistance")); }
 
         if (DrawSearchableCombo("##expansion", ref _expansionFilter, _expansionOptions, ref _expansionSearch, 130 * ImGuiHelpers.GlobalScale)) _dirty = true;
         ImGui.SameLine();
@@ -182,7 +182,7 @@ internal sealed class MainWindow : Window, IDisposable
         // Row 3: unlock filter + reset
         if (DrawSearchableCombo("##unlock", ref _unlockFilter, _unlockFilterOptions, ref _unlockSearch, 250 * ImGuiHelpers.GlobalScale)) _dirty = true;
         ImGui.SameLine();
-        if (ImGui.Button("Reset Filter"))
+        if (ImGui.Button(Loc.Get("misc.resetFilter")))
         {
             _searchText = string.Empty;
             _filterMode = 1;
@@ -206,7 +206,7 @@ internal sealed class MainWindow : Window, IDisposable
             if (combo.Success)
             {
                 using (var innerWidth = ImRaii.ItemWidth(width - 16 * ImGuiHelpers.GlobalScale))
-                    ImGui.InputTextWithHint($"{id}S", "Search...", ref search, 128);
+                    ImGui.InputTextWithHint($"{id}S", Loc.Get("misc.search"), ref search, 128);
                 var f = search.Trim();
                 for (var i = 0; i < options.Length; i++)
                 {
@@ -228,7 +228,7 @@ internal sealed class MainWindow : Window, IDisposable
         if (_selected.Count > 0)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
-            ImGui.Text($"{_selected.Count} selected");
+            ImGui.Text($"{_selected.Count} {Loc.Get("misc.selected")}");
             ImGui.PopStyleColor();
             ImGui.SameLine();
             for (var i = 0; i < _trackingService.Lists.Count; i++)
@@ -238,7 +238,7 @@ internal sealed class MainWindow : Window, IDisposable
                 { foreach (var id in _selected) _trackingService.AddQuest(id, i); _selected.Clear(); }
             }
             ImGui.SameLine();
-            if (ImGui.Button("Clear")) _selected.Clear();
+            if (ImGui.Button(Loc.Get("misc.clear"))) _selected.Clear();
         }
 
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable
@@ -369,7 +369,7 @@ internal sealed class MainWindow : Window, IDisposable
                     ImGui.Text($"{Loc.Get("detail.location")}:   {quest.Location}");
                     if (!string.IsNullOrEmpty(quest.NpcName)) ImGui.Text($"{Loc.Get("detail.npc")}:  {quest.NpcName}");
                     ImGui.Text($"{Loc.Get("detail.classjob")}:  {quest.RequiredClassJob}");
-                    ImGui.Text($"{Loc.Get("detail.type")}:       {quest.Category} {quest.Category}");
+                    ImGui.Text($"{Loc.Get("detail.type")}:       {quest.Category}");
                     if (!string.IsNullOrEmpty(quest.Unlocks)) ImGui.Text($"{Loc.Get("detail.unlocks")}:    {quest.Unlocks}");
                     if (quest.RewardGil > 0 || quest.RewardExp > 0)
                     { ImGui.Text($"{Loc.Get("detail.rewards")}:    {(quest.RewardGil > 0 ? $"{quest.RewardGil} Gil" : "")} {(quest.RewardExp > 0 ? $"{quest.RewardExp} EXP" : "")}"); }
@@ -419,7 +419,7 @@ internal sealed class MainWindow : Window, IDisposable
                 _dirty = true;
             }
             if (ImGui.IsItemHovered())
-            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(quest.IsCompleted ? "Unmark Completed" : "Mark as Completed"); }
+            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(quest.IsCompleted ? Loc.Get("misc.unmarkComplete") : Loc.Get("misc.markComplete")); }
         }
     }
 
@@ -447,12 +447,12 @@ internal sealed class MainWindow : Window, IDisposable
         var isManual = _trackingService.IsManuallyCompleted(quest.RowId);
         if (isManual)
         {
-            if (ImGui.MenuItem("Unmark Completed"))
+            if (ImGui.MenuItem(Loc.Get("misc.unmarkComplete")))
                 _trackingService.UnmarkCompleted(quest.RowId);
         }
         else
         {
-            if (ImGui.MenuItem("Mark as Completed"))
+            if (ImGui.MenuItem(Loc.Get("misc.markComplete")))
                 _trackingService.MarkCompleted(quest.RowId, _questService);
         }
 
@@ -556,7 +556,7 @@ internal sealed class MainWindow : Window, IDisposable
             .ToList();
 
         if (aetherQuests.Count == 0)
-        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed); ImGui.Text("No Aether Current quests found."); ImGui.PopStyleColor(); return; }
+        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed); ImGui.Text(Loc.Get("misc.noAether")); ImGui.PopStyleColor(); return; }
 
         foreach (var group in aetherQuests)
         {
@@ -604,12 +604,12 @@ internal sealed class MainWindow : Window, IDisposable
             .ToList();
 
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-        ImGui.TextWrapped("All blue quests that unlock content. MSQ dungeons and Savage/individual Extreme fights (NPC dialog) are not listed.");
+        ImGui.TextWrapped(Loc.Get("misc.dutyDesc"));
         ImGui.PopStyleColor();
         ImGui.Spacing();
 
         if (contentQuests.Count == 0)
-        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed); ImGui.Text("No content unlock quests found."); ImGui.PopStyleColor(); return; }
+        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed); ImGui.Text(Loc.Get("misc.noDuty")); ImGui.PopStyleColor(); return; }
 
         // Group by category, show all
         var groups = contentQuests.GroupBy(q => q.Category).OrderBy(g => g.Key).ToList();
@@ -670,7 +670,7 @@ internal sealed class MainWindow : Window, IDisposable
         if (recent.Count == 0)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed);
-            ImGui.Text("No recently viewed quests.");
+            ImGui.Text(Loc.Get("misc.noRecent"));
             ImGui.PopStyleColor();
             return;
         }
@@ -710,7 +710,7 @@ internal sealed class MainWindow : Window, IDisposable
     {
         // Filters
         using (var width = ImRaii.ItemWidth(180 * ImGuiHelpers.GlobalScale))
-            ImGui.InputTextWithHint("##sideSearch", "Search side quests...", ref _sideSearch, 256);
+            ImGui.InputTextWithHint("##sideSearch", Loc.Get("filter.searchSide"), ref _sideSearch, 256);
         ImGui.SameLine();
         using (var width = ImRaii.ItemWidth(120 * ImGuiHelpers.GlobalScale))
         {
@@ -737,7 +737,7 @@ internal sealed class MainWindow : Window, IDisposable
         ImGui.SameLine();
         DrawSearchableCombo("##sideSpecial", ref _sideSpecialFilter, _sideSpecialOptions, ref _sideSpecialSearch, 220 * ImGuiHelpers.GlobalScale);
         ImGui.SameLine();
-        if (ImGui.Button("Reset Filter##side"))
+        if (ImGui.Button($"{Loc.Get("misc.resetFilter")}##side"))
         {
             _sideSearch = string.Empty;
             _sideFilter = 0;
@@ -837,7 +837,7 @@ internal sealed class MainWindow : Window, IDisposable
                     _trackingService.MarkCompleted(quest.RowId, _questService);
             }
             if (ImGui.IsItemHovered())
-            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(quest.IsCompleted ? "Unmark Completed" : "Mark as Completed"); }
+            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(quest.IsCompleted ? Loc.Get("misc.unmarkComplete") : Loc.Get("misc.markComplete")); }
         }
     }
 
