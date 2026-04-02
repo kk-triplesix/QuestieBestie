@@ -32,11 +32,17 @@ internal sealed class WidgetWindow : Window, IDisposable
         ShowCloseButton = false;
     }
 
+    private bool _themePushed;
+
     public void Dispose() { }
 
     public override void PreDraw()
     {
         var s = _trackingService.OverlaySettings;
+
+        _themePushed = s.UseCustomTheme;
+        if (_themePushed) Styles.PushCustomTheme();
+
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, s.WindowRounding * ImGuiHelpers.GlobalScale);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(10, 6) * ImGuiHelpers.GlobalScale);
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 3) * ImGuiHelpers.GlobalScale);
@@ -50,6 +56,7 @@ internal sealed class WidgetWindow : Window, IDisposable
     {
         ImGui.PopStyleColor(2);
         ImGui.PopStyleVar(3);
+        if (_themePushed) Styles.PopCustomTheme();
     }
 
     public override void Draw()

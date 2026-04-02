@@ -42,11 +42,16 @@ internal sealed class OverlayWindow : Window, IDisposable
         };
     }
 
+    private bool _themePushed;
+
     public void Dispose() { }
 
     public override void PreDraw()
     {
         var s = _trackingService.OverlaySettings;
+
+        _themePushed = s.UseCustomTheme;
+        if (_themePushed) Styles.PushCustomTheme();
 
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, s.WindowRounding * ImGuiHelpers.GlobalScale);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14, 10) * ImGuiHelpers.GlobalScale);
@@ -70,6 +75,7 @@ internal sealed class OverlayWindow : Window, IDisposable
         ImGui.PopStyleColor(4);
         ImGui.PopStyleVar(3);
         ImGui.SetWindowFontScale(1.0f);
+        if (_themePushed) Styles.PopCustomTheme();
     }
 
     public override void Draw()
