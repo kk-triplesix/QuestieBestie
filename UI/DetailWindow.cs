@@ -45,10 +45,12 @@ internal sealed class DetailWindow : Window, IDisposable
         IsOpen = true;
     }
 
+    private bool _themePushed;
+
     public void Dispose() { }
 
-    public override void PreDraw() { if (_trackingService.OverlaySettings.UseCustomTheme) Styles.PushCustomTheme(); }
-    public override void PostDraw() { if (_trackingService.OverlaySettings.UseCustomTheme) Styles.PopCustomTheme(); }
+    public override void PreDraw() { _themePushed = _trackingService.OverlaySettings.UseCustomTheme; if (_themePushed) Styles.PushCustomTheme(); }
+    public override void PostDraw() { if (_themePushed) Styles.PopCustomTheme(); }
 
     public override void Draw()
     {
