@@ -9,18 +9,8 @@
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 	</PropertyGroup>
 
-<ItemGroup>
+	<ItemGroup>
 		<Using Include="Dalamud.Interface" />
 		<Using Include="Dalamud.Bindings.ImGui" />
 	</ItemGroup>
-
-	<!-- Auto-copy to devPlugins after build (skip in CI) -->
-	<Target Name="CopyToDevPlugins" AfterTargets="Build" Condition="'$(CI)' != 'true'">
-		<PropertyGroup>
-			<DevPluginDir>$(AppData)\XIVLauncher\devPlugins\QuestieBestie\</DevPluginDir>
-		</PropertyGroup>
-		<MakeDir Directories="$(DevPluginDir)" />
-		<Copy SourceFiles="$(OutputPath)QuestieBestie.dll" DestinationFolder="$(DevPluginDir)" SkipUnchangedFiles="true" />
-		<Message Text="Copied QuestieBestie to $(DevPluginDir)" Importance="high" />
-	</Target>
 </Project>
