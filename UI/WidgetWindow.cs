@@ -96,7 +96,7 @@ internal sealed class WidgetWindow : Window, IDisposable
             if (ImGuiComponents.IconButton("wCfg", FontAwesomeIcon.Cog))
                 ImGui.OpenPopup("##widgetCfg");
             if (ImGui.IsItemHovered())
-            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text("Settings"); }
+            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("header.settings")); }
 
             ImGui.SameLine();
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);

@@ -73,7 +73,7 @@ internal sealed class DetailWindow : Window, IDisposable
         else
         { Icons.DrawIcon(FontAwesomeIcon.TimesCircle, Styles.TextSecondary); ImGui.SameLine(); ImGui.Text(Loc.Get("detail.incomplete")); }
 
-        if (ImGui.Button("Show on Map"))
+        if (ImGui.Button(Loc.Get("ctx.map")))
             _questService.OpenQuestOnMap(_quest.RowId);
 
         // Favorite toggle
@@ -142,7 +142,7 @@ internal sealed class DetailWindow : Window, IDisposable
 
     private void DrawNotes()
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text("Notes"); ImGui.PopStyleColor();
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text(Loc.Get("detail.notes")); ImGui.PopStyleColor();
         ImGui.Spacing();
         ImGui.PushItemWidth(-1);
         if (ImGui.InputTextMultiline("##note", ref _noteText, 512, new Vector2(0, 60 * ImGuiHelpers.GlobalScale)))
@@ -152,11 +152,11 @@ internal sealed class DetailWindow : Window, IDisposable
 
     private void DrawPrerequisiteTree()
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text("Prerequisites"); ImGui.PopStyleColor();
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text(Loc.Get("detail.prereqs")); ImGui.PopStyleColor();
         ImGui.Spacing();
 
         if (_prereqTree.Count == 0)
-        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed); ImGui.Text("No prerequisites."); ImGui.PopStyleColor(); return; }
+        { ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed); ImGui.Text(Loc.Get("detail.noPrereqs")); ImGui.PopStyleColor(); return; }
 
         foreach (var node in _prereqTree)
             DrawNode(node, 0);
@@ -178,7 +178,7 @@ internal sealed class DetailWindow : Window, IDisposable
         }
         ImGui.PopStyleColor();
 
-        if (ImGui.IsItemHovered()) { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text("Click to show on map"); }
+        if (ImGui.IsItemHovered()) { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("misc.clickMap")); }
 
         foreach (var child in node.Children)
             DrawNode(child, indent + 1);

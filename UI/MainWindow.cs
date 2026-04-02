@@ -86,24 +86,25 @@ internal sealed class MainWindow : Window, IDisposable
     {
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text("QuestieBestie"); ImGui.PopStyleColor();
         ImGui.SameLine();
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("— Blue Quest Tracker"); ImGui.PopStyleColor();
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text($"— {Loc.Get("header.subtitle")}"); ImGui.PopStyleColor();
 
         // Right-aligned buttons
         ImGui.SameLine();
         var rightX = ImGui.GetWindowWidth() - 16 * ImGuiHelpers.GlobalScale;
-        var settingsW = ImGui.CalcTextSize("Settings").X + 16 * ImGuiHelpers.GlobalScale;
-        var widgetLabel = _widgetWindow.IsOpen ? "Hide Widget" : "Widget";
+        var settingsLabel = Loc.Get("header.settings");
+        var settingsW = ImGui.CalcTextSize(settingsLabel).X + 16 * ImGuiHelpers.GlobalScale;
+        var widgetLabel = _widgetWindow.IsOpen ? Loc.Get("header.hideWidget") : Loc.Get("header.widget");
         var widgetW = ImGui.CalcTextSize(widgetLabel).X + 16 * ImGuiHelpers.GlobalScale;
-        var overlayLabel = _overlayWindow.IsOpen ? "Hide Overlay" : "Overlay";
+        var overlayLabel = _overlayWindow.IsOpen ? Loc.Get("header.hideOverlay") : Loc.Get("header.overlay");
         var overlayW = ImGui.CalcTextSize(overlayLabel).X + 16 * ImGuiHelpers.GlobalScale;
         ImGui.SetCursorPosX(rightX - settingsW - widgetW - overlayW - 16 * ImGuiHelpers.GlobalScale);
         if (ImGui.Button(overlayLabel)) _overlayWindow.Toggle();
         ImGui.SameLine();
         if (ImGui.Button(widgetLabel)) _widgetWindow.Toggle();
         ImGui.SameLine();
-        if (ImGui.Button("Settings")) _settingsWindow.Toggle();
+        if (ImGui.Button(settingsLabel)) _settingsWindow.Toggle();
 
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("List:"); ImGui.PopStyleColor();
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text(Loc.Get("header.list")); ImGui.PopStyleColor();
         ImGui.SameLine();
         using (var width = ImRaii.ItemWidth(160 * ImGuiHelpers.GlobalScale))
         {
@@ -151,11 +152,11 @@ internal sealed class MainWindow : Window, IDisposable
     private void DrawFilterBar()
     {
         using (var width = ImRaii.ItemWidth(180 * ImGuiHelpers.GlobalScale))
-        { if (ImGui.InputTextWithHint("##search", "Search quests...", ref _searchText, 256)) _dirty = true; }
+        { if (ImGui.InputTextWithHint("##search", Loc.Get("filter.search"), ref _searchText, 256)) _dirty = true; }
         ImGui.SameLine();
         using (var width = ImRaii.ItemWidth(110 * ImGuiHelpers.GlobalScale))
         {
-            var filterLabels = new[] { "All", "Available", "Incomplete", "Complete" };
+            var filterLabels = new[] { Loc.Get("filter.all"), Loc.Get("filter.available"), Loc.Get("filter.incomplete"), Loc.Get("filter.complete") };
             if (ImGui.Combo("##filter", ref _filterMode, filterLabels, filterLabels.Length)) _dirty = true;
         }
         ImGui.SameLine();
@@ -166,7 +167,7 @@ internal sealed class MainWindow : Window, IDisposable
         { if (ImGui.InputInt("##lvlMax", ref _levelMax, 0, 0)) { _levelMax = Math.Clamp(_levelMax, 0, 100); _dirty = true; } }
         ImGui.SameLine(); ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("Lv."); ImGui.PopStyleColor();
         ImGui.SameLine(); ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 6 * ImGuiHelpers.GlobalScale);
-        if (ImGui.Button("Nearest")) _filtered = [.. _filtered.OrderBy(q => _questService.GetDistanceToPlayer(q))];
+        if (ImGui.Button(Loc.Get("filter.nearest"))) _filtered = [.. _filtered.OrderBy(q => _questService.GetDistanceToPlayer(q))];
         if (ImGui.IsItemHovered()) { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text("Sort by distance to player"); }
 
         if (DrawSearchableCombo("##expansion", ref _expansionFilter, _expansionOptions, ref _expansionSearch, 130 * ImGuiHelpers.GlobalScale)) _dirty = true;
@@ -252,21 +253,21 @@ internal sealed class MainWindow : Window, IDisposable
         ImGui.TableSetupColumn("*", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort, 24 * ImGuiHelpers.GlobalScale);
         if (_autoFitted)
         {
-            ImGui.TableSetupColumn("Quest", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.DefaultSort, _afQuestW);
-            ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 28 * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn(Loc.Get("col.quest"), ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.DefaultSort, _afQuestW);
+            ImGui.TableSetupColumn(Loc.Get("col.level"), ImGuiTableColumnFlags.WidthFixed, 28 * ImGuiHelpers.GlobalScale);
             ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 50 * ImGuiHelpers.GlobalScale);
-            ImGui.TableSetupColumn("Location", ImGuiTableColumnFlags.WidthFixed, _afLocW);
-            ImGui.TableSetupColumn("Class/Job", ImGuiTableColumnFlags.WidthFixed, _afClassW);
-            ImGui.TableSetupColumn("Unlocks", ImGuiTableColumnFlags.WidthStretch, 0);
+            ImGui.TableSetupColumn(Loc.Get("col.location"), ImGuiTableColumnFlags.WidthFixed, _afLocW);
+            ImGui.TableSetupColumn(Loc.Get("col.classjob"), ImGuiTableColumnFlags.WidthFixed, _afClassW);
+            ImGui.TableSetupColumn(Loc.Get("col.unlocks"), ImGuiTableColumnFlags.WidthStretch, 0);
         }
         else
         {
-            ImGui.TableSetupColumn("Quest", ImGuiTableColumnFlags.WidthStretch | ImGuiTableColumnFlags.DefaultSort, 0);
-            ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 28 * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn(Loc.Get("col.quest"), ImGuiTableColumnFlags.WidthStretch | ImGuiTableColumnFlags.DefaultSort, 0);
+            ImGui.TableSetupColumn(Loc.Get("col.level"), ImGuiTableColumnFlags.WidthFixed, 28 * ImGuiHelpers.GlobalScale);
             ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 50 * ImGuiHelpers.GlobalScale);
-            ImGui.TableSetupColumn("Location", ImGuiTableColumnFlags.WidthFixed, 100 * ImGuiHelpers.GlobalScale);
-            ImGui.TableSetupColumn("Class/Job", ImGuiTableColumnFlags.WidthFixed, 100 * ImGuiHelpers.GlobalScale);
-            ImGui.TableSetupColumn("Unlocks", ImGuiTableColumnFlags.WidthFixed, 170 * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn(Loc.Get("col.location"), ImGuiTableColumnFlags.WidthFixed, 100 * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn(Loc.Get("col.classjob"), ImGuiTableColumnFlags.WidthFixed, 100 * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn(Loc.Get("col.unlocks"), ImGuiTableColumnFlags.WidthFixed, 170 * ImGuiHelpers.GlobalScale);
         }
         ImGui.TableSetupColumn("##toggle", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort, 28 * ImGuiHelpers.GlobalScale);
 
@@ -282,9 +283,9 @@ internal sealed class MainWindow : Window, IDisposable
             }
             else
             {
-                _afQuestW = ImGui.CalcTextSize("Quest").X;
-                _afLocW = ImGui.CalcTextSize("Location").X;
-                _afClassW = ImGui.CalcTextSize("Class/Job").X;
+                _afQuestW = ImGui.CalcTextSize(Loc.Get("col.quest")).X;
+                _afLocW = ImGui.CalcTextSize(Loc.Get("col.location")).X;
+                _afClassW = ImGui.CalcTextSize(Loc.Get("col.classjob")).X;
                 foreach (var q in _filtered)
                 {
                     _afQuestW = Math.Max(_afQuestW, ImGui.CalcTextSize(q.Name).X);
@@ -431,13 +432,13 @@ internal sealed class MainWindow : Window, IDisposable
 
         // Favorite toggle
         var isFav = _trackingService.IsFavorite(quest.RowId);
-        if (ImGui.MenuItem(isFav ? "Remove Favorite" : "Add Favorite"))
+        if (ImGui.MenuItem(isFav ? Loc.Get("ctx.unfavorite") : Loc.Get("ctx.favorite")))
             _trackingService.ToggleFavorite(quest.RowId);
 
         // Map + Chat
-        if (ImGui.MenuItem("Show on Map"))
+        if (ImGui.MenuItem(Loc.Get("ctx.map")))
         { _questService.OpenQuestOnMap(quest.RowId); _detailWindow.ShowQuest(quest); }
-        if (ImGui.MenuItem("Copy & Show in Chat"))
+        if (ImGui.MenuItem(Loc.Get("ctx.chat")))
             _questService.SendQuestChatLink(quest.RowId);
 
         ImGui.Separator();
@@ -463,17 +464,17 @@ internal sealed class MainWindow : Window, IDisposable
             var list = _trackingService.Lists[i];
             var tracked = _trackingService.IsTracked(quest.RowId, i);
             if (tracked) { if (ImGui.MenuItem($"\u2713 {list.Name}")) _trackingService.RemoveQuest(quest.RowId, i); }
-            else { if (ImGui.MenuItem($"Add to {list.Name}")) _trackingService.AddQuest(quest.RowId, i); }
+            else { if (ImGui.MenuItem($"{Loc.Get("ctx.addTo")} {list.Name}")) _trackingService.AddQuest(quest.RowId, i); }
         }
 
         ImGui.Separator();
         using (var width = ImRaii.ItemWidth(140 * ImGuiHelpers.GlobalScale))
-            ImGui.InputTextWithHint("##newlist", "New list name...", ref _newListName, 64);
+            ImGui.InputTextWithHint("##newlist", Loc.Get("ctx.newList"), ref _newListName, 64);
         ImGui.SameLine();
         var ok = _newListName.Trim().Length > 0;
         using (var disabled = ImRaii.Disabled(!ok))
         {
-            if (ImGui.Button("Create"))
+            if (ImGui.Button(Loc.Get("ctx.create")))
             { _trackingService.CreateList(_newListName); _trackingService.AddQuest(quest.RowId, _trackingService.Lists.Count - 1); _newListName = string.Empty; ImGui.CloseCurrentPopup(); }
         }
     }
@@ -535,7 +536,7 @@ internal sealed class MainWindow : Window, IDisposable
 
     private void DrawStatusBar()
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text($"{_filtered.Count}/{_questService.TotalCount} shown"); ImGui.PopStyleColor();
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text($"{_filtered.Count}/{_questService.TotalCount} {Loc.Get("misc.shown")}"); ImGui.PopStyleColor();
 
         ImGui.SameLine();
         var text = $"{_questService.CompletedCount}/{_questService.TotalCount} complete ({_questService.CompletionPercent:F1}%)";
@@ -777,10 +778,10 @@ internal sealed class MainWindow : Window, IDisposable
 
         ImGui.TableSetupScrollFreeze(0, 1);
         ImGui.TableSetupColumn("Done", ImGuiTableColumnFlags.WidthFixed, 30 * ImGuiHelpers.GlobalScale);
-        ImGui.TableSetupColumn("Quest", ImGuiTableColumnFlags.WidthStretch, 0);
-        ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 28 * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn(Loc.Get("col.quest"), ImGuiTableColumnFlags.WidthStretch, 0);
+        ImGui.TableSetupColumn(Loc.Get("col.level"), ImGuiTableColumnFlags.WidthFixed, 28 * ImGuiHelpers.GlobalScale);
         ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 45 * ImGuiHelpers.GlobalScale);
-        ImGui.TableSetupColumn("Special", ImGuiTableColumnFlags.WidthFixed, 250 * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn(Loc.Get("col.special"), ImGuiTableColumnFlags.WidthFixed, 250 * ImGuiHelpers.GlobalScale);
         ImGui.TableSetupColumn("##toggle", ImGuiTableColumnFlags.WidthFixed, 28 * ImGuiHelpers.GlobalScale);
         ImGui.TableHeadersRow();
 
@@ -844,12 +845,12 @@ internal sealed class MainWindow : Window, IDisposable
 
     private void DrawStatistics()
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text("Overall Progress"); ImGui.PopStyleColor();
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text(Loc.Get("stats.overall")); ImGui.PopStyleColor();
         ImGui.Spacing();
-        DrawProgressBar("Total", _questService.CompletedCount, _questService.TotalCount, Styles.AccentGreen);
+        DrawProgressBar(Loc.Get("misc.total"), _questService.CompletedCount, _questService.TotalCount, Styles.AccentGreen);
         ImGui.Spacing(); ImGui.Separator(); ImGui.Spacing();
 
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text("By Expansion"); ImGui.PopStyleColor();
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text(Loc.Get("stats.byExpansion")); ImGui.PopStyleColor();
         ImGui.Spacing();
         foreach (var stat in _questService.GetExpansionStats())
         {
@@ -858,7 +859,7 @@ internal sealed class MainWindow : Window, IDisposable
         }
         ImGui.Spacing(); ImGui.Separator(); ImGui.Spacing();
 
-        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text("By Type"); ImGui.PopStyleColor();
+        ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text(Loc.Get("stats.byType")); ImGui.PopStyleColor();
         ImGui.Spacing();
         foreach (var stat in _questService.GetCategoryStats())
             DrawProgressBar(stat.Name, stat.Completed, stat.Total, Styles.AccentGreen);

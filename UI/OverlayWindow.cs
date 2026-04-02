@@ -107,7 +107,7 @@ internal sealed class OverlayWindow : Window, IDisposable
             if (ImGuiComponents.IconButton("ovSettings", FontAwesomeIcon.Cog))
                 _settingsWindow.Toggle();
             if (ImGui.IsItemHovered())
-            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text("Settings"); }
+            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("header.settings")); }
             ImGui.SameLine();
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);
             if (ImGuiComponents.IconButton("ovClose", FontAwesomeIcon.Times))
@@ -150,9 +150,9 @@ internal sealed class OverlayWindow : Window, IDisposable
         if (activeList.QuestRowIds.Count == 0)
         {
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextDimmed);
-            ImGui.Text("No tracked quests.");
+            ImGui.Text(Loc.Get("overlay.noQuests"));
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
-            ImGui.Text("Right-click quests in main window to add.");
+            ImGui.Text(Loc.Get("overlay.addHint"));
             ImGui.PopStyleColor();
             ImGui.PopStyleColor();
             return;
@@ -213,7 +213,7 @@ internal sealed class OverlayWindow : Window, IDisposable
                     else
                     { if (ImGui.MenuItem("Mark as Completed")) _trackingService.MarkCompleted(quest.RowId, _questService); }
                     ImGui.Separator();
-                    if (ImGui.MenuItem("Remove from list"))
+                    if (ImGui.MenuItem(Loc.Get("ctx.remove")))
                         _trackingService.RemoveQuest(quest.RowId);
                 }
             }
