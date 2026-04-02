@@ -1002,7 +1002,6 @@ public sealed class QuestService
             .AddText($" (Lv.{questData.RequiredLevel}){unlockInfo} ")
             .Add(payload)
             .AddText($"{payload.PlaceName} ({mapCoords.X:F1}, {mapCoords.Y:F1})")
-            .Add(RawPayload.LinkTerminator)
             .Build();
         QuestieBestiePlugin.Chat.Print(new Dalamud.Game.Text.XivChatEntry { Message = msg });
 
