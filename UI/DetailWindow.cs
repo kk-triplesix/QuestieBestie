@@ -145,10 +145,11 @@ internal sealed class DetailWindow : Window, IDisposable
     {
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text(Loc.Get("detail.notes")); ImGui.PopStyleColor();
         ImGui.Spacing();
-        ImGui.PushItemWidth(-1);
-        if (ImGui.InputTextMultiline("##note", ref _noteText, 512, new Vector2(0, 60 * ImGuiHelpers.GlobalScale)))
-            _trackingService.SetNote(_quest!.RowId, _noteText);
-        ImGui.PopItemWidth();
+        using (ImRaii.ItemWidth(-1))
+        {
+            if (ImGui.InputTextMultiline("##note", ref _noteText, 512, new Vector2(0, 60 * ImGuiHelpers.GlobalScale)))
+                _trackingService.SetNote(_quest!.RowId, _noteText);
+        }
     }
 
     private void DrawPrerequisiteTree()
