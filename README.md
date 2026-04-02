@@ -48,16 +48,6 @@
 4. Right-click to add to a tracking list or send to chat
 5. Open the overlay to track quests while playing
 
-## Installation
-
-Add this URL in Dalamud under **Settings > Experimental > Custom Plugin Repositories**:
-
-```
-https://raw.githubusercontent.com/kk-triplesix/QuestieBestie/repo/pluginmaster.json
-```
-
-Then search for **QuestieBestie** in the plugin installer.
-
 ---
 
 ## Contact
@@ -67,7 +57,7 @@ Then search for **QuestieBestie** in the plugin installer.
 
 ## AI Disclaimer
 
-This plugin was developed with the assistance of AI tools. The plugin icon was also generated using AI. All code has been reviewed, tested, and validated by the developer.
+This plugin was developed with the assistance of AI tools. The plugin icon was also generated using AI. All code has been reviewed, tested, and validated by the developer with the feedback of the dalamud reviewers.
 
 ## License
 
