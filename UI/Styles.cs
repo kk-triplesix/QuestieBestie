@@ -1,21 +1,14 @@
 using System.Numerics;
-using Dalamud.Interface.Utility;
 
 namespace QuestieBestie.UI;
 
 public static class Styles
 {
-    // Background colors
-    public static readonly Vector4 BgDark = new(0.10f, 0.10f, 0.18f, 1.00f);       // #1a1a2e
-    public static readonly Vector4 BgMedium = new(0.09f, 0.13f, 0.24f, 1.00f);      // #16213e
-    public static readonly Vector4 BgLight = new(0.12f, 0.16f, 0.28f, 1.00f);       // #1f2847
-
-    // Accent colors
-    public static readonly Vector4 AccentBlue = new(0.06f, 0.20f, 0.38f, 1.00f);    // #0f3460
+    // Semantic accent colors (for inline text highlighting)
     public static readonly Vector4 AccentCyan = new(0.33f, 0.79f, 0.79f, 1.00f);    // #53c9c9
     public static readonly Vector4 AccentGreen = new(0.31f, 0.80f, 0.64f, 1.00f);   // #4ecca3
 
-    // Text colors
+    // Semantic text colors (for inline highlighting, not theme overrides)
     public static readonly Vector4 TextPrimary = new(0.92f, 0.93f, 0.95f, 1.00f);   // #ebedf2
     public static readonly Vector4 TextSecondary = new(0.60f, 0.63f, 0.70f, 1.00f); // #99a0b3
     public static readonly Vector4 TextDimmed = new(0.40f, 0.42f, 0.48f, 1.00f);    // #666b7a
@@ -32,6 +25,9 @@ public static class Styles
     public static readonly Vector4 ExpOther = new(0.60f, 0.63f, 0.70f, 1.00f);    // fallback
 
     public static readonly Vector4 FavoriteStar = new(1.00f, 0.85f, 0.20f, 1.00f); // gold star
+
+    // Progress bar background (specific element override, not theme)
+    public static readonly Vector4 BgLight = new(0.12f, 0.16f, 0.28f, 1.00f);       // #1f2847
 
     // Shared expansion data
     public static readonly (uint Id, string Name)[] Expansions =
@@ -54,120 +50,5 @@ public static class Styles
             5 => ExpDt,
             _ => ExpOther,
         };
-    }
-
-    // UI element colors
-    public static readonly Vector4 BorderColor = new(0.18f, 0.22f, 0.34f, 1.00f);   // #2e3857
-    public static readonly Vector4 HeaderBg = new(0.08f, 0.11f, 0.20f, 1.00f);      // #141c33
-    public static readonly Vector4 RowBgAlt = new(0.11f, 0.14f, 0.24f, 0.50f);      // #1c243d (50%)
-    public static readonly Vector4 ScrollbarBg = new(0.08f, 0.10f, 0.17f, 1.00f);   // #141a2b
-    public static readonly Vector4 ButtonBg = new(0.06f, 0.20f, 0.38f, 1.00f);      // #0f3460
-    public static readonly Vector4 ButtonHover = new(0.10f, 0.28f, 0.48f, 1.00f);   // #1a477a
-    public static readonly Vector4 ButtonActive = new(0.15f, 0.35f, 0.55f, 1.00f);  // #26598c
-
-    // Overlay
-    public static readonly Vector4 OverlayBg = new(0.08f, 0.08f, 0.14f, 0.85f);    // semi-transparent dark
-
-    private static readonly Stack<(int Styles, int Colors)> StyleStack = new();
-    private static int _styleCount;
-    private static int _colorCount;
-
-    public static void PushMainStyle()
-    {
-        _styleCount = 0;
-        _colorCount = 0;
-
-        PushStyleVar(ImGuiStyleVar.WindowRounding, 8.0f * ImGuiHelpers.GlobalScale);
-        PushStyleVar(ImGuiStyleVar.FrameRounding, 4.0f * ImGuiHelpers.GlobalScale);
-        PushStyleVar(ImGuiStyleVar.GrabRounding, 4.0f * ImGuiHelpers.GlobalScale);
-        PushStyleVar(ImGuiStyleVar.ScrollbarRounding, 4.0f * ImGuiHelpers.GlobalScale);
-        PushStyleVar(ImGuiStyleVar.TabRounding, 4.0f * ImGuiHelpers.GlobalScale);
-        PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(12, 12) * ImGuiHelpers.GlobalScale);
-        PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(8, 4) * ImGuiHelpers.GlobalScale);
-        PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(8, 6) * ImGuiHelpers.GlobalScale);
-        PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(6, 4) * ImGuiHelpers.GlobalScale);
-
-        PushColor(ImGuiCol.WindowBg, BgDark);
-        PushColor(ImGuiCol.ChildBg, BgMedium);
-        PushColor(ImGuiCol.PopupBg, BgMedium);
-        PushColor(ImGuiCol.Border, BorderColor);
-        PushColor(ImGuiCol.FrameBg, BgLight);
-        PushColor(ImGuiCol.FrameBgHovered, AccentBlue);
-        PushColor(ImGuiCol.FrameBgActive, AccentBlue);
-        PushColor(ImGuiCol.TitleBg, BgDark);
-        PushColor(ImGuiCol.TitleBgActive, BgMedium);
-        PushColor(ImGuiCol.TitleBgCollapsed, BgDark);
-        PushColor(ImGuiCol.ScrollbarBg, ScrollbarBg);
-        PushColor(ImGuiCol.ScrollbarGrab, AccentBlue);
-        PushColor(ImGuiCol.ScrollbarGrabHovered, ButtonHover);
-        PushColor(ImGuiCol.ScrollbarGrabActive, ButtonActive);
-        PushColor(ImGuiCol.CheckMark, AccentCyan);
-        PushColor(ImGuiCol.Button, ButtonBg);
-        PushColor(ImGuiCol.ButtonHovered, ButtonHover);
-        PushColor(ImGuiCol.ButtonActive, ButtonActive);
-        PushColor(ImGuiCol.Header, AccentBlue);
-        PushColor(ImGuiCol.HeaderHovered, ButtonHover);
-        PushColor(ImGuiCol.HeaderActive, ButtonActive);
-        PushColor(ImGuiCol.Tab, BgMedium);
-        PushColor(ImGuiCol.TabHovered, AccentBlue);
-        PushColor(ImGuiCol.TableHeaderBg, HeaderBg);
-        PushColor(ImGuiCol.TableBorderStrong, BorderColor);
-        PushColor(ImGuiCol.TableBorderLight, new Vector4(BorderColor.X, BorderColor.Y, BorderColor.Z, 0.4f));
-        PushColor(ImGuiCol.TableRowBgAlt, RowBgAlt);
-        PushColor(ImGuiCol.Text, TextPrimary);
-        PushColor(ImGuiCol.TextDisabled, TextDimmed);
-        PushColor(ImGuiCol.Separator, BorderColor);
-        PushColor(ImGuiCol.SeparatorHovered, AccentCyan);
-
-        StyleStack.Push((_styleCount, _colorCount));
-    }
-
-    public static void PopMainStyle()
-    {
-        var (styles, colors) = StyleStack.Pop();
-        ImGui.PopStyleColor(colors);
-        ImGui.PopStyleVar(styles);
-    }
-
-    public static void PushOverlayStyle()
-    {
-        _styleCount = 0;
-        _colorCount = 0;
-
-        PushStyleVar(ImGuiStyleVar.WindowRounding, 10.0f * ImGuiHelpers.GlobalScale);
-        PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14, 10) * ImGuiHelpers.GlobalScale);
-        PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 4) * ImGuiHelpers.GlobalScale);
-
-        PushColor(ImGuiCol.WindowBg, OverlayBg);
-        PushColor(ImGuiCol.Border, new Vector4(AccentCyan.X, AccentCyan.Y, AccentCyan.Z, 0.3f));
-        PushColor(ImGuiCol.Text, TextPrimary);
-        PushColor(ImGuiCol.TextDisabled, TextDimmed);
-
-        StyleStack.Push((_styleCount, _colorCount));
-    }
-
-    public static void PopOverlayStyle()
-    {
-        var (styles, colors) = StyleStack.Pop();
-        ImGui.PopStyleColor(colors);
-        ImGui.PopStyleVar(styles);
-    }
-
-    private static void PushStyleVar(ImGuiStyleVar var, float val)
-    {
-        ImGui.PushStyleVar(var, val);
-        _styleCount++;
-    }
-
-    private static void PushStyleVar(ImGuiStyleVar var, Vector2 val)
-    {
-        ImGui.PushStyleVar(var, val);
-        _styleCount++;
-    }
-
-    private static void PushColor(ImGuiCol col, Vector4 val)
-    {
-        ImGui.PushStyleColor(col, val);
-        _colorCount++;
     }
 }

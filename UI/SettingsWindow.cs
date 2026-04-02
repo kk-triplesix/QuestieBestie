@@ -28,9 +28,6 @@ internal sealed class SettingsWindow : Window, IDisposable
 
     public void Dispose() { }
 
-    public override void PreDraw() => Styles.PushMainStyle();
-    public override void PostDraw() => Styles.PopMainStyle();
-
     public override void Draw()
     {
         var s = _trackingService.OverlaySettings;
