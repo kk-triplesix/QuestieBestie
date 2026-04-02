@@ -39,24 +39,30 @@ internal sealed class WidgetWindow : Window, IDisposable
     public override void PreDraw()
     {
         var s = _trackingService.OverlaySettings;
-
         _themePushed = s.UseCustomTheme;
-        if (_themePushed) Styles.PushCustomTheme();
 
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, s.WindowRounding * ImGuiHelpers.GlobalScale);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(10, 6) * ImGuiHelpers.GlobalScale);
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 3) * ImGuiHelpers.GlobalScale);
-        var bg = new Vector4(s.BackgroundColor.X, s.BackgroundColor.Y, s.BackgroundColor.Z, s.BackgroundAlpha);
-        var border = new Vector4(s.BorderColor.X, s.BorderColor.Y, s.BorderColor.Z, s.BorderAlpha);
-        ImGui.PushStyleColor(ImGuiCol.WindowBg, bg);
-        ImGui.PushStyleColor(ImGuiCol.Border, border);
+        if (_themePushed)
+        {
+            Styles.PushCustomTheme();
+
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, s.WindowRounding * ImGuiHelpers.GlobalScale);
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(10, 6) * ImGuiHelpers.GlobalScale);
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 3) * ImGuiHelpers.GlobalScale);
+            var bg = new Vector4(s.BackgroundColor.X, s.BackgroundColor.Y, s.BackgroundColor.Z, s.BackgroundAlpha);
+            var border = new Vector4(s.BorderColor.X, s.BorderColor.Y, s.BorderColor.Z, s.BorderAlpha);
+            ImGui.PushStyleColor(ImGuiCol.WindowBg, bg);
+            ImGui.PushStyleColor(ImGuiCol.Border, border);
+        }
     }
 
     public override void PostDraw()
     {
-        ImGui.PopStyleColor(2);
-        ImGui.PopStyleVar(3);
-        if (_themePushed) Styles.PopCustomTheme();
+        if (_themePushed)
+        {
+            ImGui.PopStyleColor(2);
+            ImGui.PopStyleVar(3);
+            Styles.PopCustomTheme();
+        }
     }
 
     public override void Draw()

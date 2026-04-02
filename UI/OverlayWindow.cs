@@ -49,22 +49,25 @@ internal sealed class OverlayWindow : Window, IDisposable
     public override void PreDraw()
     {
         var s = _trackingService.OverlaySettings;
-
         _themePushed = s.UseCustomTheme;
-        if (_themePushed) Styles.PushCustomTheme();
 
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, s.WindowRounding * ImGuiHelpers.GlobalScale);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14, 10) * ImGuiHelpers.GlobalScale);
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 4) * ImGuiHelpers.GlobalScale);
+        if (_themePushed)
+        {
+            Styles.PushCustomTheme();
 
-        var alpha = _showButtons ? Math.Max(s.BackgroundAlpha, 0.85f) : s.BackgroundAlpha;
-        var bg = new Vector4(s.BackgroundColor.X, s.BackgroundColor.Y, s.BackgroundColor.Z, alpha);
-        var border = new Vector4(s.BorderColor.X, s.BorderColor.Y, s.BorderColor.Z, s.BorderAlpha);
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, s.WindowRounding * ImGuiHelpers.GlobalScale);
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14, 10) * ImGuiHelpers.GlobalScale);
+            ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 4) * ImGuiHelpers.GlobalScale);
 
-        ImGui.PushStyleColor(ImGuiCol.WindowBg, bg);
-        ImGui.PushStyleColor(ImGuiCol.Border, border);
-        ImGui.PushStyleColor(ImGuiCol.Text, s.TextColor);
-        ImGui.PushStyleColor(ImGuiCol.TextDisabled, Styles.TextDimmed);
+            var alpha = _showButtons ? Math.Max(s.BackgroundAlpha, 0.85f) : s.BackgroundAlpha;
+            var bg = new Vector4(s.BackgroundColor.X, s.BackgroundColor.Y, s.BackgroundColor.Z, alpha);
+            var border = new Vector4(s.BorderColor.X, s.BorderColor.Y, s.BorderColor.Z, s.BorderAlpha);
+
+            ImGui.PushStyleColor(ImGuiCol.WindowBg, bg);
+            ImGui.PushStyleColor(ImGuiCol.Border, border);
+            ImGui.PushStyleColor(ImGuiCol.Text, s.TextColor);
+            ImGui.PushStyleColor(ImGuiCol.TextDisabled, Styles.TextDimmed);
+        }
 
         if (Math.Abs(s.FontScale - 1.0f) > 0.01f)
             ImGui.SetWindowFontScale(s.FontScale);
@@ -72,10 +75,14 @@ internal sealed class OverlayWindow : Window, IDisposable
 
     public override void PostDraw()
     {
-        ImGui.PopStyleColor(4);
-        ImGui.PopStyleVar(3);
         ImGui.SetWindowFontScale(1.0f);
-        if (_themePushed) Styles.PopCustomTheme();
+
+        if (_themePushed)
+        {
+            ImGui.PopStyleColor(4);
+            ImGui.PopStyleVar(3);
+            Styles.PopCustomTheme();
+        }
     }
 
     public override void Draw()
