@@ -113,8 +113,9 @@ public sealed class QuestService
             var issuerZ = issuerLoc?.Z ?? 0f;
             var territoryId = issuerLoc?.Territory.RowId ?? 0u;
 
-            // Determine category and unlock description
-            var (category, unlocks) = DetermineQuestCategory(quest);
+            // Determine category and unlock description (use local quest for display names)
+            var localQuestForCategory = localSheet.GetRowOrDefault(quest.RowId);
+            var (category, unlocks) = DetermineQuestCategory(quest, localQuestForCategory);
 
             // NPC name — IssuerStart is untyped RowRef, try to resolve as ENpcResident
             var npcName = "";
@@ -646,10 +647,13 @@ public sealed class QuestService
         return nodes;
     }
 
-    private (QuestCategory Category, string Unlocks) DetermineQuestCategory(Quest quest)
+    private (QuestCategory Category, string Unlocks) DetermineQuestCategory(Quest quest, Quest? localQuest = null)
     {
+        // Use local (client language) quest for display names, fall back to English
+        var displayQuest = localQuest ?? quest;
+
         // Job unlock
-        var jobUnlock = quest.ClassJobUnlock.ValueNullable;
+        var jobUnlock = displayQuest.ClassJobUnlock.ValueNullable;
         if (jobUnlock != null)
         {
             var jobName = jobUnlock.Value.Name.ExtractText();
@@ -671,7 +675,7 @@ public sealed class QuestService
         // General action rewards (glamour, dye, materia melding, desynthesis, treasure maps, etc.)
         for (var i = 0; i < 2; i++)
         {
-            var ga = quest.GeneralActionReward[i].ValueNullable;
+            var ga = displayQuest.GeneralActionReward[i].ValueNullable;
             if (ga != null)
             {
                 var gaName = ga.Value.Name.ExtractText();
@@ -681,7 +685,7 @@ public sealed class QuestService
         }
 
         // Other rewards (Aether Current, etc.)
-        var otherReward = quest.OtherReward.ValueNullable;
+        var otherReward = displayQuest.OtherReward.ValueNullable;
         if (otherReward != null)
         {
             var rewardName = otherReward.Value.Name.ExtractText();
@@ -690,7 +694,7 @@ public sealed class QuestService
         }
 
         // Emote reward
-        var emote = quest.EmoteReward.ValueNullable;
+        var emote = displayQuest.EmoteReward.ValueNullable;
         if (emote != null)
         {
             var emoteName = emote.Value.Name.ExtractText();
@@ -699,7 +703,7 @@ public sealed class QuestService
         }
 
         // Action reward
-        var action = quest.ActionReward.ValueNullable;
+        var action = displayQuest.ActionReward.ValueNullable;
         if (action != null)
         {
             var actionName = action.Value.Name.ExtractText();
@@ -710,7 +714,7 @@ public sealed class QuestService
         // Beast tribe
         if (quest.BeastTribe.RowId != 0)
         {
-            var tribeName = quest.BeastTribe.ValueNullable?.Name.ExtractText();
+            var tribeName = displayQuest.BeastTribe.ValueNullable?.Name.ExtractText();
             if (!string.IsNullOrWhiteSpace(tribeName))
                 return (QuestCategory.Feature, $"{Loc.Get("unlock.unlocks")} {tribeName}");
         }
@@ -755,15 +759,15 @@ public sealed class QuestService
             return manual.Value;
 
         // Smart fallback — use context to generate a meaningful description
-        return DetermineFromContext(quest);
+        return DetermineFromContext(quest, displayQuest);
     }
 
-    private static (QuestCategory Category, string Unlocks) DetermineFromContext(Quest quest)
+    private static (QuestCategory Category, string Unlocks) DetermineFromContext(Quest quest, Quest displayQuest)
     {
         // Job quest chain (has class requirement but didn't unlock a new job)
         if (quest.ClassJobRequired.RowId != 0)
         {
-            var jobName = quest.ClassJobRequired.ValueNullable?.Name.ExtractText();
+            var jobName = displayQuest.ClassJobRequired.ValueNullable?.Name.ExtractText();
             if (!string.IsNullOrWhiteSpace(jobName))
                 return (QuestCategory.JobUnlock, $"{jobName} ({Loc.Get("unlock.jobAbility")})");
         }
@@ -776,7 +780,7 @@ public sealed class QuestService
         // Tribal/Beast tribe related (follow-up quests in tribal chains)
         if (quest.BeastTribe.RowId != 0)
         {
-            var tribeName = quest.BeastTribe.ValueNullable?.Name.ExtractText();
+            var tribeName = displayQuest.BeastTribe.ValueNullable?.Name.ExtractText();
             return (QuestCategory.Feature, !string.IsNullOrWhiteSpace(tribeName) ? $"{tribeName} ({Loc.Get("unlock.tribalQuest")})" : Loc.Get("unlock.tribalQuest"));
         }
 
@@ -787,7 +791,7 @@ public sealed class QuestService
                 return (QuestCategory.Feature, Loc.Get("unlock.contentChain"));
         }
 
-        // Check JournalGenre for categorization hints
+        // Check JournalGenre for categorization hints (match against English, display local)
         var genre = quest.JournalGenre.ValueNullable;
         if (genre != null)
         {
@@ -808,7 +812,8 @@ public sealed class QuestService
                     genreName.Contains("Resistance", StringComparison.OrdinalIgnoreCase) ||
                     genreName.Contains("Manderville", StringComparison.OrdinalIgnoreCase))
                     return (QuestCategory.Feature, Loc.Get("unlock.relic"));
-                return (QuestCategory.Feature, $"{genreName}");
+                var localGenreName = displayQuest.JournalGenre.ValueNullable?.Name.ExtractText();
+                return (QuestCategory.Feature, $"{localGenreName ?? genreName}");
             }
         }
 
