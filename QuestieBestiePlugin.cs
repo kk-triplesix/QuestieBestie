@@ -5,7 +5,6 @@ using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using FFXIVClientStructs.FFXIV.Component.GUI;
 using QuestieBestie.Services;
 using QuestieBestie.UI;
 
@@ -21,7 +20,6 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
     [PluginService] internal static IDtrBar DtrBar { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
-    [PluginService] internal static IFramework Framework { get; private set; } = null!;
 
     private readonly WindowSystem _windowSystem;
     private readonly MainWindow _mainWindow;
@@ -33,7 +31,6 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     private readonly TrackingService _trackingService;
     private readonly IDtrBarEntry _dtrEntry;
     private DateTime _lastNotificationCheck = DateTime.MinValue;
-    private bool _wasJournalOpen;
 
     public QuestieBestiePlugin(IDalamudPluginInterface pluginInterface)
     {
@@ -70,9 +67,6 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         PluginInterface.UiBuilder.OpenMainUi += OnOpenMainUi;
         PluginInterface.UiBuilder.OpenConfigUi += OnOpenMainUi;
         PluginInterface.UiBuilder.Draw += OnDraw;
-        // Journal hook disabled — caused false triggers opening detail window
-        // Framework.Update += OnFrameworkUpdate;
-
         // Chat message handler — detect quest names in chat and offer to open detail
         Chat.ChatMessage += OnChatMessage;
 
@@ -170,53 +164,15 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     private void OnDraw()
     {
         if (GameGui.GameUiHidden) return;
+        _questService.RefreshCompletionStatus();
         _windowSystem.Draw();
         UpdateDtrText();
         CheckNotifications();
         AutoRemoveCompleted();
     }
 
-    private unsafe void OnFrameworkUpdate(object framework)
-    {
-        try
-        {
-            var addon = GameGui.GetAddonByName("JournalDetail");
-            var isOpen = !addon.IsNull && addon.IsVisible;
-
-            if (isOpen && !_wasJournalOpen)
-            {
-                var atkUnit = (AtkUnitBase*)addon.Address;
-                for (uint nodeId = 3; nodeId <= 8; nodeId++)
-                {
-                    var node = atkUnit->GetNodeById(nodeId);
-                    if (node == null || node->Type != NodeType.Text)
-                        continue;
-
-                    var textNode = (AtkTextNode*)node;
-                    var text = textNode->NodeText.ToString();
-                    if (string.IsNullOrWhiteSpace(text) || text.Length <= 3 || text.Length >= 100)
-                        continue;
-
-                    // Exact name match only
-                    var match = _questService.BlueQuests.FirstOrDefault(q =>
-                        q.Name.Equals(text, StringComparison.OrdinalIgnoreCase));
-
-                    if (match != null)
-                    {
-                        _detailWindow.ShowQuest(match);
-                        break;
-                    }
-                }
-            }
-
-            _wasJournalOpen = isOpen;
-        }
-        catch { /* Journal detection is best-effort */ }
-    }
-
     private void UpdateDtrText()
     {
-        _questService.RefreshCompletionStatus();
         _dtrEntry.Text = $"QB {_questService.CompletionPercent:F0}%";
         _dtrEntry.Tooltip = "QuestieBestie — Click to toggle";
     }

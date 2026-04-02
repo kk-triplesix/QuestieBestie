@@ -721,22 +721,19 @@ public sealed class QuestService
         // ScriptInstruction fallback — catches dungeon/trial/raid unlocks not in InstanceContentUnlock
         var hasUnlockInstruction = false;
         uint scriptInstanceId = 0;
-        for (var i = 0; i < 50; i++)
+        var paramCount = quest.QuestParams.Count;
+        for (var i = 0; i < paramCount; i++)
         {
-            try
-            {
-                var instruction = quest.QuestParams[i].ScriptInstruction.ExtractText();
-                if (string.IsNullOrEmpty(instruction))
-                    continue;
+            var instruction = quest.QuestParams[i].ScriptInstruction.ExtractText();
+            if (string.IsNullOrEmpty(instruction))
+                continue;
 
-                if (instruction.StartsWith("INSTANCEDUNGEON") && quest.QuestParams[i].ScriptArg != 0)
-                    scriptInstanceId = quest.QuestParams[i].ScriptArg;
+            if (instruction.StartsWith("INSTANCEDUNGEON") && quest.QuestParams[i].ScriptArg != 0)
+                scriptInstanceId = quest.QuestParams[i].ScriptArg;
 
-                if (instruction is "UNLOCK_ADD_NEW_CONTENT_TO_CF" or "UNLOCK_DUNGEON"
-                    || instruction.StartsWith("UNLOCK_ADD_NEW_CONTENT") || instruction.StartsWith("UNLOCK_DUNGEON"))
-                    hasUnlockInstruction = true;
-            }
-            catch { break; } // Expected: index out of range for ScriptInstruction/QuestParams
+            if (instruction is "UNLOCK_ADD_NEW_CONTENT_TO_CF" or "UNLOCK_DUNGEON"
+                || instruction.StartsWith("UNLOCK_ADD_NEW_CONTENT") || instruction.StartsWith("UNLOCK_DUNGEON"))
+                hasUnlockInstruction = true;
         }
 
         if (hasUnlockInstruction && scriptInstanceId != 0)
@@ -1005,8 +1002,7 @@ public sealed class QuestService
             .Build();
         QuestieBestiePlugin.Chat.Print(new Dalamud.Game.Text.XivChatEntry { Message = msg });
 
-        // Also copy flag command to clipboard so user can paste in chat for others
-        var flagCmd = $"/flag {payload.PlaceName} ({mapCoords.X:F1}, {mapCoords.Y:F1})";
+        // Copy quest info to clipboard so user can paste in chat for others
         ImGui.SetClipboardText($"{name} (Lv.{questData.RequiredLevel}){unlockInfo} - {payload.PlaceName} ({mapCoords.X:F1}, {mapCoords.Y:F1})");
 
         // Confirmation

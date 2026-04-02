@@ -206,27 +206,6 @@ public sealed class TrackingService
         }
     }
 
-    public List<(uint RowId, bool YouCompleted, bool TheyCompleted)> CompareWithImport(string json, QuestService questService)
-    {
-        var result = new List<(uint, bool, bool)>();
-        try
-        {
-            var doc = System.Text.Json.JsonDocument.Parse(json);
-            var ids = doc.RootElement.GetProperty("QuestRowIds").EnumerateArray()
-                .Select(e => e.GetUInt32()).ToHashSet();
-
-            foreach (var quest in questService.BlueQuests)
-            {
-                var youDone = quest.IsCompleted;
-                var theyDone = ids.Contains(quest.RowId);
-                if (youDone != theyDone)
-                    result.Add((quest.RowId, youDone, theyDone));
-            }
-        }
-        catch { /* JSON parse failure */ }
-        return result;
-    }
-
     public void SaveOverlaySettings()
     {
         Save();

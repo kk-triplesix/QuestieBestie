@@ -16,7 +16,6 @@ internal sealed class OverlayWindow : Window, IDisposable
     private readonly SettingsWindow _settingsWindow;
     private readonly DetailWindow _detailWindow;
 
-    private bool _fontScaled;
     private bool _showButtons;
     private DateTime _lastHovered = DateTime.MinValue;
 
@@ -49,7 +48,7 @@ internal sealed class OverlayWindow : Window, IDisposable
     {
         var s = _trackingService.OverlaySettings;
 
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, s.WindowRounding);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, s.WindowRounding * ImGuiHelpers.GlobalScale);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14, 10) * ImGuiHelpers.GlobalScale);
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 4) * ImGuiHelpers.GlobalScale);
 
@@ -61,18 +60,16 @@ internal sealed class OverlayWindow : Window, IDisposable
         ImGui.PushStyleColor(ImGuiCol.Border, border);
         ImGui.PushStyleColor(ImGuiCol.Text, s.TextColor);
         ImGui.PushStyleColor(ImGuiCol.TextDisabled, Styles.TextDimmed);
+
+        if (Math.Abs(s.FontScale - 1.0f) > 0.01f)
+            ImGui.SetWindowFontScale(s.FontScale);
     }
 
     public override void PostDraw()
     {
         ImGui.PopStyleColor(4);
         ImGui.PopStyleVar(3);
-
-        if (_fontScaled)
-        {
-            ImGui.SetWindowFontScale(1.0f);
-            _fontScaled = false;
-        }
+        ImGui.SetWindowFontScale(1.0f);
     }
 
     public override void Draw()
@@ -81,12 +78,6 @@ internal sealed class OverlayWindow : Window, IDisposable
         if (ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows | ImGuiHoveredFlags.AllowWhenBlockedByActiveItem))
             _lastHovered = DateTime.Now;
         _showButtons = (DateTime.Now - _lastHovered).TotalSeconds < 2.0;
-
-        if (Math.Abs(s.FontScale - 1.0f) > 0.01f)
-        {
-            ImGui.SetWindowFontScale(s.FontScale);
-            _fontScaled = true;
-        }
 
         _questService.RefreshCompletionStatus();
 

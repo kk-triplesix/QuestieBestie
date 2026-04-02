@@ -37,7 +37,7 @@ internal sealed class WidgetWindow : Window, IDisposable
     public override void PreDraw()
     {
         var s = _trackingService.OverlaySettings;
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, s.WindowRounding);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, s.WindowRounding * ImGuiHelpers.GlobalScale);
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(10, 6) * ImGuiHelpers.GlobalScale);
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 3) * ImGuiHelpers.GlobalScale);
         var bg = new Vector4(s.BackgroundColor.X, s.BackgroundColor.Y, s.BackgroundColor.Z, s.BackgroundAlpha);

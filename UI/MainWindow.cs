@@ -242,7 +242,7 @@ internal sealed class MainWindow : Window, IDisposable
 
         var flags = ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable
                     | ImGuiTableFlags.ScrollY | ImGuiTableFlags.Sortable | ImGuiTableFlags.SizingStretchProp;
-        var tableHeight = ImGui.GetContentRegionAvail().Y - 30;
+        var tableHeight = ImGui.GetContentRegionAvail().Y - 30 * ImGuiHelpers.GlobalScale;
 
         var tableId = _autoFitted ? "##questsAF" : "##quests";
         using var table = ImRaii.Table(tableId, 8, flags, new Vector2(0, tableHeight));
