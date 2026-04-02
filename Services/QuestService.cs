@@ -904,20 +904,24 @@ public sealed class QuestService
         return true;
     }
 
+    private static unsafe Vector3? GetPlayerPosition()
+    {
+        var player = FFXIVClientStructs.FFXIV.Client.Game.Object.GameObjectManager.Instance()->Objects.IndexSorted[0].Value;
+        return player == null ? null : player->Position;
+    }
+
     public float GetDistanceToPlayer(QuestData quest)
     {
-        #pragma warning disable CS0618
-        var player = QuestieBestiePlugin.ClientState.LocalPlayer;
-        #pragma warning restore CS0618
-        if (player == null)
+        var pos = GetPlayerPosition();
+        if (pos == null)
             return float.MaxValue;
 
         var playerTerritory = QuestieBestiePlugin.ClientState.TerritoryType;
         if (quest.TerritoryId != playerTerritory)
             return float.MaxValue;
 
-        var dx = quest.IssuerX - player.Position.X;
-        var dz = quest.IssuerZ - player.Position.Z;
+        var dx = quest.IssuerX - pos.Value.X;
+        var dz = quest.IssuerZ - pos.Value.Z;
         return MathF.Sqrt(dx * dx + dz * dz);
     }
 
@@ -927,12 +931,10 @@ public sealed class QuestService
             return quests;
 
         // Group by territory, sort groups by closest territory first, then nearest-neighbor within each group
-        #pragma warning disable CS0618
-        var player = QuestieBestiePlugin.ClientState.LocalPlayer;
-        #pragma warning restore CS0618
+        var pos = GetPlayerPosition();
         var playerTerritory = QuestieBestiePlugin.ClientState.TerritoryType;
-        var playerX = player?.Position.X ?? 0f;
-        var playerZ = player?.Position.Z ?? 0f;
+        var playerX = pos?.X ?? 0f;
+        var playerZ = pos?.Z ?? 0f;
 
         var groups = quests.GroupBy(q => q.TerritoryId).ToList();
 
@@ -1021,10 +1023,8 @@ public sealed class QuestService
 
     public (float DirectionRad, float Distance, string QuestName)? GetNearestTrackedQuestDirection(List<uint> trackedIds)
     {
-        #pragma warning disable CS0618
-        var player = QuestieBestiePlugin.ClientState.LocalPlayer;
-        #pragma warning restore CS0618
-        if (player == null || trackedIds.Count == 0)
+        var pos = GetPlayerPosition();
+        if (pos == null || trackedIds.Count == 0)
             return null;
 
         var territory = QuestieBestiePlugin.ClientState.TerritoryType;
@@ -1036,8 +1036,8 @@ public sealed class QuestService
             if (!BlueQuestLookup.TryGetValue(id, out var q) || q.IsCompleted || q.TerritoryId != territory)
                 continue;
 
-            var dx = q.IssuerX - player.Position.X;
-            var dz = q.IssuerZ - player.Position.Z;
+            var dx = q.IssuerX - pos.Value.X;
+            var dz = q.IssuerZ - pos.Value.Z;
             var dist = MathF.Sqrt(dx * dx + dz * dz);
             if (dist < minDist)
             {
@@ -1049,8 +1049,8 @@ public sealed class QuestService
         if (nearest == null)
             return null;
 
-        var dirX = nearest.IssuerX - player.Position.X;
-        var dirZ = nearest.IssuerZ - player.Position.Z;
+        var dirX = nearest.IssuerX - pos.Value.X;
+        var dirZ = nearest.IssuerZ - pos.Value.Z;
         var angle = MathF.Atan2(dirX, dirZ);
         return (angle, minDist, nearest.Name);
     }
