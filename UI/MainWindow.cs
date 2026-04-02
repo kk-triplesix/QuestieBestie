@@ -882,7 +882,7 @@ internal sealed class MainWindow : Window, IDisposable
             {
                 ImGui.SameLine();
                 ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar);
-                ImGui.Text(">>> COMPLETE! <<<");
+                ImGui.Text(Loc.Get("badge.complete"));
                 ImGui.PopStyleColor();
             }
         }

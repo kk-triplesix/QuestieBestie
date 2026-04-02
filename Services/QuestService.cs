@@ -1012,7 +1012,7 @@ public sealed class QuestService
         {
             Message = new Dalamud.Game.Text.SeStringHandling.SeStringBuilder()
                 .AddUiForeground("[QuestieBestie] ", 35)
-                .AddText("Quest info copied to clipboard. Paste in chat to share!")
+                .AddText(Loc.Get("chat.copied"))
                 .Build(),
         });
     }

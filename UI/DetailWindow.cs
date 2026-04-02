@@ -76,7 +76,7 @@ internal sealed class DetailWindow : Window, IDisposable
         ImGui.SameLine();
         var isFav = _trackingService.IsFavorite(_quest.RowId);
         ImGui.PushStyleColor(ImGuiCol.Text, isFav ? Styles.FavoriteStar : Styles.TextDimmed);
-        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Star, isFav ? "Favorited" : "Favorite"))
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Star, isFav ? Loc.Get("detail.favorited") : Loc.Get("detail.favorite")))
             _trackingService.ToggleFavorite(_quest.RowId);
         ImGui.PopStyleColor();
     }
@@ -111,7 +111,7 @@ internal sealed class DetailWindow : Window, IDisposable
             if (msqPrereq != null)
             {
                 var msqStatus = msqPrereq.IsCompleted ? "v" : "x";
-                DrawInfoLine("MSQ Req.", $"{msqStatus} {msqPrereq.Name}", msqPrereq.IsCompleted ? Styles.TextGreen : Styles.TextRed);
+                DrawInfoLine(Loc.Get("detail.msqReq"), $"{msqStatus} {msqPrereq.Name}", msqPrereq.IsCompleted ? Styles.TextGreen : Styles.TextRed);
             }
         }
     }
@@ -163,7 +163,7 @@ internal sealed class DetailWindow : Window, IDisposable
         if (indent > 0) { ImGui.Text(new string(' ', indent * 3)); ImGui.SameLine(); }
         Icons.DrawCheck(node.IsCompleted);
         var nameColor = node.IsCompleted ? Styles.TextDimmed : Styles.TextPrimary;
-        var typeTag = node.IsMsq ? " (MSQ)" : node.IsBlueQuest ? "" : " (Side)";
+        var typeTag = node.IsMsq ? Loc.Get("detail.tagMsq") : node.IsBlueQuest ? "" : Loc.Get("detail.tagSide");
         ImGui.SameLine();
         ImGui.PushStyleColor(ImGuiCol.Text, nameColor);
         if (ImGui.Selectable($"{node.Name}{typeTag}###{node.RowId}", false, ImGuiSelectableFlags.None, new Vector2(0, 0)))

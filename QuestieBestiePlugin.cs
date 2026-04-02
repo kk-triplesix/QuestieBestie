@@ -126,7 +126,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
             {
                 Message = new SeStringBuilder()
                     .AddUiForeground("[QuestieBestie] ", 35)
-                    .AddText($"No blue quest found matching \"{searchTerm}\"")
+                    .AddText(string.Format(Loc.Get("chat.noMatch"), searchTerm))
                     .Build(),
             });
         }
@@ -193,7 +193,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
             {
                 Message = new SeStringBuilder()
                     .AddUiForeground("[QuestieBestie] ", 35)
-                    .AddText("New quest available: ")
+                    .AddText(Loc.Get("chat.newQuest"))
                     .AddUiForeground(quest.Name, 34)
                     .AddText($" (Lv.{quest.RequiredLevel})")
                     .Build(),

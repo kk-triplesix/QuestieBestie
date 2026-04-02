@@ -167,6 +167,23 @@ public static class Loc
         ["col.exp"] = new() { ["en"] = "Exp.", ["de"] = "Erw.", ["fr"] = "Ext.", ["ja"] = "\u62e1\u5f35" },
         ["col.done"] = new() { ["en"] = "Done", ["de"] = "Fertig", ["fr"] = "Fait", ["ja"] = "\u6e08" },
         ["badge.new"] = new() { ["en"] = "NEW", ["de"] = "NEU", ["fr"] = "NOUV.", ["ja"] = "NEW" },
+        ["badge.complete"] = new() { ["en"] = ">>> COMPLETE! <<<", ["de"] = ">>> GESCHAFFT! <<<", ["fr"] = ">>> TERMIN\u00c9 ! <<<", ["ja"] = ">>> \u5b8c\u4e86\uff01 <<<" },
+
+        // ── Detail Tags ─────────────────────────────────────────────────
+        ["detail.favorited"] = new() { ["en"] = "Favorited", ["de"] = "Favorisiert", ["fr"] = "Favori", ["ja"] = "\u304a\u6c17\u306b\u5165\u308a" },
+        ["detail.favorite"] = new() { ["en"] = "Favorite", ["de"] = "Favorit", ["fr"] = "Favori", ["ja"] = "\u304a\u6c17\u306b\u5165\u308a" },
+        ["detail.msqReq"] = new() { ["en"] = "MSQ Req.", ["de"] = "MSQ Voraus.", ["fr"] = "Pr\u00e9requis MSQ", ["ja"] = "MSQ\u524d\u63d0" },
+        ["detail.tagMsq"] = new() { ["en"] = " (MSQ)", ["de"] = " (MSQ)", ["fr"] = " (MSQ)", ["ja"] = " (MSQ)" },
+        ["detail.tagSide"] = new() { ["en"] = " (Side)", ["de"] = " (Neben)", ["fr"] = " (Annexe)", ["ja"] = " (\u30b5\u30d6)" },
+
+        // ── Overlay Misc ────────────────────────────────────────────────
+        ["overlay.reqShort"] = new() { ["en"] = "req", ["de"] = "Bed.", ["fr"] = "pr\u00e9r.", ["ja"] = "\u8981\u4ef6" },
+        ["overlay.tagMsqSide"] = new() { ["en"] = " (MSQ/Side)", ["de"] = " (MSQ/Neben)", ["fr"] = " (MSQ/Annexe)", ["ja"] = " (MSQ/\u30b5\u30d6)" },
+
+        // ── Chat Messages ───────────────────────────────────────────────
+        ["chat.noMatch"] = new() { ["en"] = "No blue quest found matching \"{0}\"", ["de"] = "Keine blaue Quest gefunden f\u00fcr \"{0}\"", ["fr"] = "Aucune qu\u00eate bleue trouv\u00e9e pour \"{0}\"", ["ja"] = "\"{0}\"\u306b\u4e00\u81f4\u3059\u308b\u9752\u30af\u30a8\u30b9\u30c8\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093" },
+        ["chat.newQuest"] = new() { ["en"] = "New quest available: ", ["de"] = "Neue Quest verf\u00fcgbar: ", ["fr"] = "Nouvelle qu\u00eate disponible : ", ["ja"] = "\u65b0\u3057\u3044\u30af\u30a8\u30b9\u30c8: " },
+        ["chat.copied"] = new() { ["en"] = "Quest info copied to clipboard. Paste in chat to share!", ["de"] = "Quest-Info in Zwischenablage kopiert. Im Chat einf\u00fcgen zum Teilen!", ["fr"] = "Info de qu\u00eate copi\u00e9e. Collez dans le chat pour partager !", ["ja"] = "\u30af\u30a8\u30b9\u30c8\u60c5\u5831\u3092\u30af\u30ea\u30c3\u30d7\u30dc\u30fc\u30c9\u306b\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f\u3002" },
 
         // ── Filter Defaults ─────────────────────────────────────────────
         ["filter.allClasses"] = new() { ["en"] = "All Classes", ["de"] = "Alle Klassen", ["fr"] = "Toutes les classes", ["ja"] = "\u5168\u30af\u30e9\u30b9" },

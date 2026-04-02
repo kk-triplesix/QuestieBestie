@@ -227,7 +227,7 @@ internal sealed class OverlayWindow : Window, IDisposable
                 {
                     ImGui.SameLine();
                     ImGui.PushStyleColor(ImGuiCol.Text, s.WarningColor);
-                    ImGui.Text($"! {missing.Count} req");
+                    ImGui.Text($"! {missing.Count} {Loc.Get("overlay.reqShort")}");
                     ImGui.PopStyleColor();
 
                     if (ImGui.IsItemHovered())
@@ -238,7 +238,7 @@ internal sealed class OverlayWindow : Window, IDisposable
                             ImGui.Text(Loc.Get("misc.missingReqs"));
                             foreach (var (name, _, isBlue) in missing)
                             {
-                                var tag = isBlue ? "" : " (MSQ/Side)";
+                                var tag = isBlue ? "" : Loc.Get("overlay.tagMsqSide");
                                 ImGui.PushStyleColor(ImGuiCol.Text, s.WarningColor);
                                 ImGui.Text($"  x {name}{tag}");
                                 ImGui.PopStyleColor();
