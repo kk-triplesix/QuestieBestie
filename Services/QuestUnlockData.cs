@@ -9,9 +9,16 @@ public static class QuestUnlockData
         foreach (var (pattern, category, unlocks) in ManualEntries)
         {
             if (questName.Contains(pattern, StringComparison.OrdinalIgnoreCase))
-                return (category, unlocks);
+                return (category, LocalizeUnlockDescription(unlocks));
         }
         return null;
+    }
+
+    private static string LocalizeUnlockDescription(string desc)
+    {
+        if (desc.StartsWith("Unlocks "))
+            return $"{Loc.Get("unlock.unlocks")} {desc[8..]}";
+        return desc;
     }
 
     private static readonly (string Pattern, QuestCategory Category, string Unlocks)[] ManualEntries =

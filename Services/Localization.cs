@@ -185,6 +185,23 @@ public static class Loc
         ["chat.newQuest"] = new() { ["en"] = "New quest available: ", ["de"] = "Neue Quest verf\u00fcgbar: ", ["fr"] = "Nouvelle qu\u00eate disponible : ", ["ja"] = "\u65b0\u3057\u3044\u30af\u30a8\u30b9\u30c8: " },
         ["chat.copied"] = new() { ["en"] = "Quest info copied to clipboard. Paste in chat to share!", ["de"] = "Quest-Info in Zwischenablage kopiert. Im Chat einf\u00fcgen zum Teilen!", ["fr"] = "Info de qu\u00eate copi\u00e9e. Collez dans le chat pour partager !", ["ja"] = "\u30af\u30a8\u30b9\u30c8\u60c5\u5831\u3092\u30af\u30ea\u30c3\u30d7\u30dc\u30fc\u30c9\u306b\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f\u3002" },
 
+        // ── Unlock Prefixes ─────────────────────────────────────────────
+        ["unlock.unlocks"] = new() { ["en"] = "Unlocks", ["de"] = "Schaltet frei:", ["fr"] = "D\u00e9bloque", ["ja"] = "\u89e3\u653e:" },
+        ["unlock.rewards"] = new() { ["en"] = "Rewards", ["de"] = "Belohnung:", ["fr"] = "R\u00e9compense", ["ja"] = "\u5831\u916c:" },
+        ["unlock.chain"] = new() { ["en"] = "Chain:", ["de"] = "Kette:", ["fr"] = "Cha\u00eene :", ["ja"] = "\u30c1\u30a7\u30fc\u30f3:" },
+        ["unlock.leadsTo"] = new() { ["en"] = "Leads to:", ["de"] = "F\u00fchrt zu:", ["fr"] = "M\u00e8ne \u00e0 :", ["ja"] = "\u6b21\u306b:" },
+        ["unlock.feature"] = new() { ["en"] = "Feature unlock", ["de"] = "Feature-Freischaltung", ["fr"] = "Fonctionnalit\u00e9", ["ja"] = "\u6a5f\u80fd\u89e3\u653e" },
+        ["unlock.content"] = new() { ["en"] = "Unlocks content", ["de"] = "Schaltet Inhalt frei", ["fr"] = "D\u00e9bloque du contenu", ["ja"] = "\u30b3\u30f3\u30c6\u30f3\u30c4\u89e3\u653e" },
+        ["unlock.contentChain"] = new() { ["en"] = "Content quest chain", ["de"] = "Inhalts-Questkette", ["fr"] = "Cha\u00eene de contenu", ["ja"] = "\u30b3\u30f3\u30c6\u30f3\u30c4\u30c1\u30a7\u30fc\u30f3" },
+        ["unlock.questChain"] = new() { ["en"] = "quest chain", ["de"] = "Questkette", ["fr"] = "cha\u00eene de qu\u00eates", ["ja"] = "\u30af\u30a8\u30b9\u30c8\u30c1\u30a7\u30fc\u30f3" },
+        ["unlock.jobAbility"] = new() { ["en"] = "job ability", ["de"] = "Job-F\u00e4higkeit", ["fr"] = "aptitude de job", ["ja"] = "\u30b8\u30e7\u30d6\u30a2\u30d3\u30ea\u30c6\u30a3" },
+        ["unlock.roleQuest"] = new() { ["en"] = "Role quest chain", ["de"] = "Rollenquest-Kette", ["fr"] = "Cha\u00eene de qu\u00eates de r\u00f4le", ["ja"] = "\u30ed\u30fc\u30eb\u30af\u30a8\u30b9\u30c8" },
+        ["unlock.tribalQuest"] = new() { ["en"] = "Tribal quest", ["de"] = "Stammes-Quest", ["fr"] = "Qu\u00eate tribale", ["ja"] = "\u86ee\u65cf\u30af\u30a8\u30b9\u30c8" },
+        ["unlock.chronicles"] = new() { ["en"] = "Chronicles quest", ["de"] = "Chroniken-Quest", ["fr"] = "Chroniques", ["ja"] = "\u30af\u30ed\u30cb\u30af\u30eb\u30af\u30a8\u30b9\u30c8" },
+        ["unlock.crafterDelivery"] = new() { ["en"] = "Crafter/Gatherer delivery quest", ["de"] = "Handwerker-/Sammler-Abgabequest", ["fr"] = "Qu\u00eate de livraison", ["ja"] = "\u30ae\u30e3\u30b6\u30fc\u7d0d\u54c1\u30af\u30a8\u30b9\u30c8" },
+        ["unlock.hildibrand"] = new() { ["en"] = "Hildibrand adventures", ["de"] = "Hildibrand-Abenteuer", ["fr"] = "Aventures d'Hildibrand", ["ja"] = "\u30d2\u30eb\u30c7\u30a3\u30d6\u30e9\u30f3\u30c9" },
+        ["unlock.relic"] = new() { ["en"] = "Relic weapon quest", ["de"] = "Relikt-Waffen-Quest", ["fr"] = "Qu\u00eate d'arme relique", ["ja"] = "\u30ec\u30ea\u30c3\u30af\u30a6\u30a7\u30dd\u30f3\u30af\u30a8\u30b9\u30c8" },
+
         // ── Filter Defaults ─────────────────────────────────────────────
         ["filter.allClasses"] = new() { ["en"] = "All Classes", ["de"] = "Alle Klassen", ["fr"] = "Toutes les classes", ["ja"] = "\u5168\u30af\u30e9\u30b9" },
         ["filter.allLocations"] = new() { ["en"] = "All Locations", ["de"] = "Alle Orte", ["fr"] = "Tous les lieux", ["ja"] = "\u5168\u5834\u6240" },

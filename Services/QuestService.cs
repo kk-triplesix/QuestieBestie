@@ -197,11 +197,11 @@ public sealed class QuestService
         // 2. Same unlock target → keep completed, or newest
         // Only for specific content unlocks (e.g. same dungeon name), not generic/chain descriptions
         foreach (var group in BlueQuests
-            .Where(q => !string.IsNullOrEmpty(q.Unlocks) && q.Unlocks != "Feature unlock"
-                && q.Unlocks != "Unlocks content"
-                && !q.Unlocks.Contains("(job ability)")
-                && !q.Unlocks.Contains("quest chain")
-                && !q.Unlocks.Contains("Content quest chain")
+            .Where(q => !string.IsNullOrEmpty(q.Unlocks) && q.Unlocks != Loc.Get("unlock.feature")
+                && q.Unlocks != Loc.Get("unlock.content")
+                && !q.Unlocks.Contains(Loc.Get("unlock.jobAbility"))
+                && !q.Unlocks.Contains(Loc.Get("unlock.questChain"))
+                && !q.Unlocks.Contains(Loc.Get("unlock.contentChain"))
                 && q.Category is QuestCategory.JobUnlock or QuestCategory.Dungeon or QuestCategory.Trial or QuestCategory.Raid)
             .GroupBy(q => q.Unlocks)
             .Where(g => g.Count() >= 2 && g.Count() <= 4))
@@ -214,9 +214,9 @@ public sealed class QuestService
         // Only applies to small groups (2-3) at same level to avoid false positives
         foreach (var group in BlueQuests
             .Where(q => !toRemove.Contains(q.RowId) && !string.IsNullOrEmpty(q.Unlocks)
-                && q.Unlocks != "Feature unlock" && !q.Unlocks.Contains("job ability")
-                && !q.Unlocks.Contains("quest chain") && !q.Unlocks.StartsWith("Chain:")
-                && !q.Unlocks.StartsWith("Leads to:"))
+                && q.Unlocks != Loc.Get("unlock.feature") && !q.Unlocks.Contains(Loc.Get("unlock.jobAbility"))
+                && !q.Unlocks.Contains(Loc.Get("unlock.questChain")) && !q.Unlocks.StartsWith(Loc.Get("unlock.chain"))
+                && !q.Unlocks.StartsWith(Loc.Get("unlock.leadsTo")))
             .GroupBy(q => (q.Unlocks, q.RequiredLevel))
             .Where(g => g.Count() >= 2 && g.Count() <= 4))
         {
@@ -264,9 +264,9 @@ public sealed class QuestService
             // Find the best unlock description in the chain (most specific, not generic)
             var bestUnlock = chain
                 .Where(q => !string.IsNullOrEmpty(q.Unlocks)
-                    && q.Unlocks != "Feature unlock"
-                    && !q.Unlocks.EndsWith("quest chain")
-                    && !q.Unlocks.EndsWith("(job ability)"))
+                    && q.Unlocks != Loc.Get("unlock.feature")
+                    && !q.Unlocks.EndsWith(Loc.Get("unlock.questChain"))
+                    && !q.Unlocks.EndsWith(Loc.Get("unlock.jobAbility")))
                 .Select(q => (q.Category, q.Unlocks))
                 .FirstOrDefault();
 
@@ -276,10 +276,10 @@ public sealed class QuestService
             // Propagate to all quests in the chain that have a generic description
             foreach (var quest in chain)
             {
-                if (quest.Unlocks is "Feature unlock" or "Content quest chain"
-                    || quest.Unlocks.EndsWith("quest chain"))
+                if (quest.Unlocks == Loc.Get("unlock.feature") || quest.Unlocks == Loc.Get("unlock.contentChain")
+                    || quest.Unlocks.EndsWith(Loc.Get("unlock.questChain")))
                 {
-                    quest.Unlocks = $"Chain: {bestUnlock.Unlocks}";
+                    quest.Unlocks = $"{Loc.Get("unlock.chain")} {bestUnlock.Unlocks}";
                     if (bestUnlock.Category is QuestCategory.Dungeon or QuestCategory.Trial or QuestCategory.Raid)
                         quest.Category = bestUnlock.Category;
                 }
@@ -289,18 +289,18 @@ public sealed class QuestService
         // Also propagate for non-chain quests: if a blue quest's prerequisite chain leads to a dungeon unlock
         foreach (var quest in BlueQuests)
         {
-            if (quest.Unlocks != "Feature unlock" || quest.PrerequisiteIds.Length == 0)
+            if (quest.Unlocks != Loc.Get("unlock.feature") || quest.PrerequisiteIds.Length == 0)
                 continue;
 
             // Check if any quest that has THIS quest as a prerequisite has a specific unlock
             var dependent = BlueQuests.FirstOrDefault(q =>
                 q.PrerequisiteIds.Contains(quest.RowId)
                 && !string.IsNullOrEmpty(q.Unlocks)
-                && q.Unlocks != "Feature unlock");
+                && q.Unlocks != Loc.Get("unlock.feature"));
 
             if (dependent != null)
             {
-                quest.Unlocks = $"Leads to: {dependent.Unlocks}";
+                quest.Unlocks = $"{Loc.Get("unlock.leadsTo")} {dependent.Unlocks}";
                 if (dependent.Category is QuestCategory.Dungeon or QuestCategory.Trial or QuestCategory.Raid)
                     quest.Category = dependent.Category;
             }
@@ -654,7 +654,7 @@ public sealed class QuestService
         {
             var jobName = jobUnlock.Value.Name.ExtractText();
             if (!string.IsNullOrWhiteSpace(jobName))
-                return (QuestCategory.JobUnlock, $"Unlocks {jobName}");
+                return (QuestCategory.JobUnlock, $"{Loc.Get("unlock.unlocks")} {jobName}");
         }
 
         // Instance content unlock (dungeon/trial/raid)
@@ -665,7 +665,7 @@ public sealed class QuestService
                 return result.Value;
 
             // Fallback: InstanceContentUnlock is set but no CFC match found
-            return (QuestCategory.Dungeon, "Unlocks content");
+            return (QuestCategory.Dungeon, Loc.Get("unlock.content"));
         }
 
         // General action rewards (glamour, dye, materia melding, desynthesis, treasure maps, etc.)
@@ -676,7 +676,7 @@ public sealed class QuestService
             {
                 var gaName = ga.Value.Name.ExtractText();
                 if (!string.IsNullOrWhiteSpace(gaName))
-                    return (QuestCategory.Feature, $"Unlocks {gaName}");
+                    return (QuestCategory.Feature, $"{Loc.Get("unlock.unlocks")} {gaName}");
             }
         }
 
@@ -686,7 +686,7 @@ public sealed class QuestService
         {
             var rewardName = otherReward.Value.Name.ExtractText();
             if (!string.IsNullOrWhiteSpace(rewardName) && rewardName != "???")
-                return (QuestCategory.Feature, $"Rewards {rewardName}");
+                return (QuestCategory.Feature, $"{Loc.Get("unlock.rewards")} {rewardName}");
         }
 
         // Emote reward
@@ -695,7 +695,7 @@ public sealed class QuestService
         {
             var emoteName = emote.Value.Name.ExtractText();
             if (!string.IsNullOrWhiteSpace(emoteName))
-                return (QuestCategory.Feature, $"Unlocks /{emoteName} emote");
+                return (QuestCategory.Feature, $"{Loc.Get("unlock.unlocks")} /{emoteName}");
         }
 
         // Action reward
@@ -704,7 +704,7 @@ public sealed class QuestService
         {
             var actionName = action.Value.Name.ExtractText();
             if (!string.IsNullOrWhiteSpace(actionName))
-                return (QuestCategory.Feature, $"Unlocks {actionName}");
+                return (QuestCategory.Feature, $"{Loc.Get("unlock.unlocks")} {actionName}");
         }
 
         // Beast tribe
@@ -712,7 +712,7 @@ public sealed class QuestService
         {
             var tribeName = quest.BeastTribe.ValueNullable?.Name.ExtractText();
             if (!string.IsNullOrWhiteSpace(tribeName))
-                return (QuestCategory.Feature, $"Unlocks {tribeName} tribe");
+                return (QuestCategory.Feature, $"{Loc.Get("unlock.unlocks")} {tribeName}");
         }
 
         // Known umbrella quests (quest is already English)
@@ -747,7 +747,7 @@ public sealed class QuestService
 
         // Even without instance ID, if UNLOCK instructions exist, mark as content unlock
         if (hasUnlockInstruction)
-            return (QuestCategory.Dungeon, "Unlocks content");
+            return (QuestCategory.Dungeon, Loc.Get("unlock.content"));
 
         // Manual lookup (quest is already English)
         var manual = QuestUnlockData.Lookup(quest.Name.ExtractText());
@@ -765,26 +765,26 @@ public sealed class QuestService
         {
             var jobName = quest.ClassJobRequired.ValueNullable?.Name.ExtractText();
             if (!string.IsNullOrWhiteSpace(jobName))
-                return (QuestCategory.JobUnlock, $"{jobName} quest (job ability)");
+                return (QuestCategory.JobUnlock, $"{jobName} ({Loc.Get("unlock.jobAbility")})");
         }
 
         // Role quest chains
         var questName = quest.Name.ExtractText();
         if (questName.Contains("Role Quest", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Feature, "Role quest chain");
+            return (QuestCategory.Feature, Loc.Get("unlock.roleQuest"));
 
         // Tribal/Beast tribe related (follow-up quests in tribal chains)
         if (quest.BeastTribe.RowId != 0)
         {
             var tribeName = quest.BeastTribe.ValueNullable?.Name.ExtractText();
-            return (QuestCategory.Feature, !string.IsNullOrWhiteSpace(tribeName) ? $"{tribeName} tribe quest" : "Tribal quest");
+            return (QuestCategory.Feature, !string.IsNullOrWhiteSpace(tribeName) ? $"{tribeName} ({Loc.Get("unlock.tribalQuest")})" : Loc.Get("unlock.tribalQuest"));
         }
 
         // Check if quest has instance content prerequisites — likely part of a content chain
         for (var i = 0; i < 3; i++)
         {
             if (quest.InstanceContent[i].RowId != 0)
-                return (QuestCategory.Feature, "Content quest chain");
+                return (QuestCategory.Feature, Loc.Get("unlock.contentChain"));
         }
 
         // Check JournalGenre for categorization hints
@@ -795,24 +795,24 @@ public sealed class QuestService
             if (!string.IsNullOrWhiteSpace(genreName))
             {
                 if (genreName.Contains("Chronicles", StringComparison.OrdinalIgnoreCase))
-                    return (QuestCategory.Feature, "Chronicles quest");
+                    return (QuestCategory.Feature, Loc.Get("unlock.chronicles"));
                 if (genreName.Contains("Crystalline", StringComparison.OrdinalIgnoreCase) ||
                     genreName.Contains("Studium", StringComparison.OrdinalIgnoreCase) ||
                     genreName.Contains("Wachumeqimeqi", StringComparison.OrdinalIgnoreCase))
-                    return (QuestCategory.Feature, "Crafter/Gatherer delivery quest");
+                    return (QuestCategory.Feature, Loc.Get("unlock.crafterDelivery"));
                 if (genreName.Contains("Hildibrand", StringComparison.OrdinalIgnoreCase))
-                    return (QuestCategory.Feature, "Hildibrand adventures");
+                    return (QuestCategory.Feature, Loc.Get("unlock.hildibrand"));
                 if (genreName.Contains("Relic", StringComparison.OrdinalIgnoreCase) ||
                     genreName.Contains("Zodiac", StringComparison.OrdinalIgnoreCase) ||
                     genreName.Contains("Anima", StringComparison.OrdinalIgnoreCase) ||
                     genreName.Contains("Resistance", StringComparison.OrdinalIgnoreCase) ||
                     genreName.Contains("Manderville", StringComparison.OrdinalIgnoreCase))
-                    return (QuestCategory.Feature, "Relic weapon quest");
+                    return (QuestCategory.Feature, Loc.Get("unlock.relic"));
                 return (QuestCategory.Feature, $"{genreName}");
             }
         }
 
-        return (QuestCategory.Feature, "Feature unlock");
+        return (QuestCategory.Feature, Loc.Get("unlock.feature"));
     }
 
     private (QuestCategory Category, string Unlocks)? LookupInstanceContent(uint instanceContentId)
@@ -839,10 +839,10 @@ public sealed class QuestService
         var contentTypeId = match.ContentType.RowId;
         return contentTypeId switch
         {
-            2 => (QuestCategory.Dungeon, $"Unlocks {contentName}"),
-            4 => (QuestCategory.Trial, $"Unlocks {contentName}"),
-            5 or 28 or 37 => (QuestCategory.Raid, $"Unlocks {contentName}"),
-            _ => (QuestCategory.Other, $"Unlocks {contentName}"),
+            2 => (QuestCategory.Dungeon, $"{Loc.Get("unlock.unlocks")} {contentName}"),
+            4 => (QuestCategory.Trial, $"{Loc.Get("unlock.unlocks")} {contentName}"),
+            5 or 28 or 37 => (QuestCategory.Raid, $"{Loc.Get("unlock.unlocks")} {contentName}"),
+            _ => (QuestCategory.Other, $"{Loc.Get("unlock.unlocks")} {contentName}"),
         };
     }
 
@@ -854,31 +854,31 @@ public sealed class QuestService
 
         // Wandering Minstrel — Extreme Trials + Ultimates per expansion
         if (name.Contains("Songs in the Key of Kugane", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Trial, "Unlocks SB Extremes + UCoB/UWU/TEA Ultimates");
+            return (QuestCategory.Trial, $"{Loc.Get("unlock.unlocks")} SB Extremes + UCoB/UWU/TEA Ultimates");
 
         if (name.Contains("Minstrel from Another Mother", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Trial, "Unlocks ShB Extreme Trials (Titania/Innocence/Hades/WoL)");
+            return (QuestCategory.Trial, $"{Loc.Get("unlock.unlocks")} ShB Extreme Trials (Titania/Innocence/Hades/WoL)");
 
         if (name.Contains("Weapon of Choice", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Trial, "Unlocks ShB Weapon Extremes (Ruby/Emerald/Diamond)");
+            return (QuestCategory.Trial, $"{Loc.Get("unlock.unlocks")} ShB Weapon Extremes (Ruby/Emerald/Diamond)");
 
         if (name.Contains("I Wandered Sharlayan as a Minstrel", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Trial, "Unlocks EW Extremes + DSR/TOP Ultimates");
+            return (QuestCategory.Trial, $"{Loc.Get("unlock.unlocks")} EW Extremes + DSR/TOP Ultimates");
 
         if (name.Contains("How the West Was Sung", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Trial, "Unlocks DT Extremes + FRU Ultimate");
+            return (QuestCategory.Trial, $"{Loc.Get("unlock.unlocks")} DT Extremes + FRU Ultimate");
 
         // Faux Hollows / Unreal
         if (name.Contains("Fantastic Mr. Faux", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Trial, "Unlocks Faux Hollows / Unreal Trials");
+            return (QuestCategory.Trial, $"{Loc.Get("unlock.unlocks")} Faux Hollows / Unreal Trials");
 
         // Alliance Raids
         if (name.Contains("Legacy of Allag", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Raid, "Unlocks Labyrinth of the Ancients");
+            return (QuestCategory.Raid, $"{Loc.Get("unlock.unlocks")} Labyrinth of the Ancients");
 
         // Generic Minstrel fallback
         if (name.Contains("Minstrel", StringComparison.OrdinalIgnoreCase) && !name.Contains("Ballad", StringComparison.OrdinalIgnoreCase))
-            return (QuestCategory.Trial, "Unlocks Extreme Trials via Wandering Minstrel");
+            return (QuestCategory.Trial, $"{Loc.Get("unlock.unlocks")} Extreme Trials via Wandering Minstrel");
 
         return null;
     }
