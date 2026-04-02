@@ -6,6 +6,5 @@ obj/
 .idea/
 packages/
 *.nupkg
-packages.lock.json
 DISCORD.md
 TESTPLAN.md
