@@ -46,65 +46,62 @@ public static class Styles
 
     // ── Optional custom theme (off by default, user opt-in) ────────────
 
-    private static int _customStyleCount;
-    private static int _customColorCount;
+    private const int CustomStyleCount = 9;
+    private const int CustomColorCount = 31;
 
     public static void PushCustomTheme()
     {
-        _customStyleCount = 0;
-        _customColorCount = 0;
         var s = ImGuiHelpers.GlobalScale;
 
-        Push(ImGuiStyleVar.WindowRounding, 8.0f * s);
-        Push(ImGuiStyleVar.FrameRounding, 4.0f * s);
-        Push(ImGuiStyleVar.GrabRounding, 4.0f * s);
-        Push(ImGuiStyleVar.ScrollbarRounding, 4.0f * s);
-        Push(ImGuiStyleVar.TabRounding, 4.0f * s);
-        Push(ImGuiStyleVar.WindowPadding, new Vector2(12, 12) * s);
-        Push(ImGuiStyleVar.FramePadding, new Vector2(8, 4) * s);
-        Push(ImGuiStyleVar.ItemSpacing, new Vector2(8, 6) * s);
-        Push(ImGuiStyleVar.CellPadding, new Vector2(6, 4) * s);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 8.0f * s);
+        ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 4.0f * s);
+        ImGui.PushStyleVar(ImGuiStyleVar.GrabRounding, 4.0f * s);
+        ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarRounding, 4.0f * s);
+        ImGui.PushStyleVar(ImGuiStyleVar.TabRounding, 4.0f * s);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(12, 12) * s);
+        ImGui.PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(8, 4) * s);
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(8, 6) * s);
+        ImGui.PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(6, 4) * s);
 
-        PushC(ImGuiCol.WindowBg, new(0.10f, 0.10f, 0.18f, 1.00f));
-        PushC(ImGuiCol.ChildBg, new(0.09f, 0.13f, 0.24f, 1.00f));
-        PushC(ImGuiCol.PopupBg, new(0.09f, 0.13f, 0.24f, 1.00f));
-        PushC(ImGuiCol.Border, new(0.18f, 0.22f, 0.34f, 1.00f));
-        PushC(ImGuiCol.FrameBg, BgLight);
-        PushC(ImGuiCol.FrameBgHovered, new(0.06f, 0.20f, 0.38f, 1.00f));
-        PushC(ImGuiCol.FrameBgActive, new(0.06f, 0.20f, 0.38f, 1.00f));
-        PushC(ImGuiCol.TitleBg, new(0.10f, 0.10f, 0.18f, 1.00f));
-        PushC(ImGuiCol.TitleBgActive, new(0.09f, 0.13f, 0.24f, 1.00f));
-        PushC(ImGuiCol.TitleBgCollapsed, new(0.10f, 0.10f, 0.18f, 1.00f));
-        PushC(ImGuiCol.ScrollbarBg, new(0.08f, 0.10f, 0.17f, 1.00f));
-        PushC(ImGuiCol.ScrollbarGrab, new(0.06f, 0.20f, 0.38f, 1.00f));
-        PushC(ImGuiCol.ScrollbarGrabHovered, new(0.10f, 0.28f, 0.48f, 1.00f));
-        PushC(ImGuiCol.ScrollbarGrabActive, new(0.15f, 0.35f, 0.55f, 1.00f));
-        PushC(ImGuiCol.CheckMark, AccentCyan);
-        PushC(ImGuiCol.Button, new(0.06f, 0.20f, 0.38f, 1.00f));
-        PushC(ImGuiCol.ButtonHovered, new(0.10f, 0.28f, 0.48f, 1.00f));
-        PushC(ImGuiCol.ButtonActive, new(0.15f, 0.35f, 0.55f, 1.00f));
-        PushC(ImGuiCol.Header, new(0.06f, 0.20f, 0.38f, 1.00f));
-        PushC(ImGuiCol.HeaderHovered, new(0.10f, 0.28f, 0.48f, 1.00f));
-        PushC(ImGuiCol.HeaderActive, new(0.15f, 0.35f, 0.55f, 1.00f));
-        PushC(ImGuiCol.Tab, new(0.09f, 0.13f, 0.24f, 1.00f));
-        PushC(ImGuiCol.TabHovered, new(0.06f, 0.20f, 0.38f, 1.00f));
-        PushC(ImGuiCol.TableHeaderBg, new(0.08f, 0.11f, 0.20f, 1.00f));
-        PushC(ImGuiCol.TableBorderStrong, new(0.18f, 0.22f, 0.34f, 1.00f));
-        PushC(ImGuiCol.TableBorderLight, new(0.18f, 0.22f, 0.34f, 0.40f));
-        PushC(ImGuiCol.TableRowBgAlt, new(0.11f, 0.14f, 0.24f, 0.50f));
-        PushC(ImGuiCol.Text, TextPrimary);
-        PushC(ImGuiCol.TextDisabled, TextDimmed);
-        PushC(ImGuiCol.Separator, new(0.18f, 0.22f, 0.34f, 1.00f));
-        PushC(ImGuiCol.SeparatorHovered, AccentCyan);
+        Col(ImGuiCol.WindowBg,           0.10f, 0.10f, 0.18f, 1.00f);
+        Col(ImGuiCol.ChildBg,            0.09f, 0.13f, 0.24f, 1.00f);
+        Col(ImGuiCol.PopupBg,            0.09f, 0.13f, 0.24f, 1.00f);
+        Col(ImGuiCol.Border,             0.18f, 0.22f, 0.34f, 1.00f);
+        ImGui.PushStyleColor(ImGuiCol.FrameBg, BgLight);
+        Col(ImGuiCol.FrameBgHovered,     0.06f, 0.20f, 0.38f, 1.00f);
+        Col(ImGuiCol.FrameBgActive,      0.06f, 0.20f, 0.38f, 1.00f);
+        Col(ImGuiCol.TitleBg,            0.10f, 0.10f, 0.18f, 1.00f);
+        Col(ImGuiCol.TitleBgActive,      0.09f, 0.13f, 0.24f, 1.00f);
+        Col(ImGuiCol.TitleBgCollapsed,   0.10f, 0.10f, 0.18f, 1.00f);
+        Col(ImGuiCol.ScrollbarBg,        0.08f, 0.10f, 0.17f, 1.00f);
+        Col(ImGuiCol.ScrollbarGrab,      0.06f, 0.20f, 0.38f, 1.00f);
+        Col(ImGuiCol.ScrollbarGrabHovered, 0.10f, 0.28f, 0.48f, 1.00f);
+        Col(ImGuiCol.ScrollbarGrabActive, 0.15f, 0.35f, 0.55f, 1.00f);
+        ImGui.PushStyleColor(ImGuiCol.CheckMark, AccentCyan);
+        Col(ImGuiCol.Button,             0.06f, 0.20f, 0.38f, 1.00f);
+        Col(ImGuiCol.ButtonHovered,      0.10f, 0.28f, 0.48f, 1.00f);
+        Col(ImGuiCol.ButtonActive,       0.15f, 0.35f, 0.55f, 1.00f);
+        Col(ImGuiCol.Header,             0.06f, 0.20f, 0.38f, 1.00f);
+        Col(ImGuiCol.HeaderHovered,      0.10f, 0.28f, 0.48f, 1.00f);
+        Col(ImGuiCol.HeaderActive,       0.15f, 0.35f, 0.55f, 1.00f);
+        Col(ImGuiCol.Tab,                0.09f, 0.13f, 0.24f, 1.00f);
+        Col(ImGuiCol.TabHovered,         0.06f, 0.20f, 0.38f, 1.00f);
+        Col(ImGuiCol.TableHeaderBg,      0.08f, 0.11f, 0.20f, 1.00f);
+        Col(ImGuiCol.TableBorderStrong,  0.18f, 0.22f, 0.34f, 1.00f);
+        Col(ImGuiCol.TableBorderLight,   0.18f, 0.22f, 0.34f, 0.40f);
+        Col(ImGuiCol.TableRowBgAlt,      0.11f, 0.14f, 0.24f, 0.50f);
+        ImGui.PushStyleColor(ImGuiCol.Text, TextPrimary);
+        ImGui.PushStyleColor(ImGuiCol.TextDisabled, TextDimmed);
+        Col(ImGuiCol.Separator,          0.18f, 0.22f, 0.34f, 1.00f);
+        ImGui.PushStyleColor(ImGuiCol.SeparatorHovered, AccentCyan);
     }
 
     public static void PopCustomTheme()
     {
-        ImGui.PopStyleColor(_customColorCount);
-        ImGui.PopStyleVar(_customStyleCount);
+        ImGui.PopStyleColor(CustomColorCount);
+        ImGui.PopStyleVar(CustomStyleCount);
     }
 
-    private static void Push(ImGuiStyleVar v, float val) { ImGui.PushStyleVar(v, val); _customStyleCount++; }
-    private static void Push(ImGuiStyleVar v, Vector2 val) { ImGui.PushStyleVar(v, val); _customStyleCount++; }
-    private static void PushC(ImGuiCol c, Vector4 val) { ImGui.PushStyleColor(c, val); _customColorCount++; }
+    private static void Col(ImGuiCol target, float r, float g, float b, float a)
+        => ImGui.PushStyleColor(target, new Vector4(r, g, b, a));
 }
