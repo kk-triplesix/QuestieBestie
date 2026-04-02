@@ -1,4 +1,5 @@
 using System.Numerics;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using QuestieBestie.Models;
@@ -19,8 +20,8 @@ internal sealed class SettingsWindow : Window
         _questService = questService;
         SizeConstraints = new WindowSizeConstraints
         {
-            MinimumSize = new Vector2(420, 600),
-            MaximumSize = new Vector2(520, 900),
+            MinimumSize = new Vector2(420, 600) * ImGuiHelpers.GlobalScale,
+            MaximumSize = new Vector2(520, 900) * ImGuiHelpers.GlobalScale,
         };
         IsOpen = false;
     }
@@ -140,7 +141,7 @@ internal sealed class SettingsWindow : Window
 
                     ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.7f, 0.15f, 0.15f, 1f));
                     ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.9f, 0.2f, 0.2f, 1f));
-                    if (ImGui.Button("Ja, alle lokalen Aenderungen entfernen", new Vector2(300, 0)))
+                    if (ImGui.Button("Ja, alle lokalen Aenderungen entfernen", new Vector2(300 * ImGuiHelpers.GlobalScale, 0)))
                     {
                         _trackingService.ClearManualCompletions();
                         _questService.RefreshCompletionStatus();
@@ -149,7 +150,7 @@ internal sealed class SettingsWindow : Window
                     ImGui.PopStyleColor(2);
 
                     ImGui.SameLine();
-                    if (ImGui.Button("Abbrechen", new Vector2(100, 0)))
+                    if (ImGui.Button("Abbrechen", new Vector2(100 * ImGuiHelpers.GlobalScale, 0)))
                         ImGui.CloseCurrentPopup();
                 }
             }

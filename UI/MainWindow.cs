@@ -1,6 +1,7 @@
 using System.Numerics;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using QuestieBestie.Models;
@@ -41,7 +42,7 @@ internal sealed class MainWindow : Window
         _overlayWindow = overlayWindow;
         _settingsWindow = settingsWindow;
         _widgetWindow = widgetWindow;
-        SizeConstraints = new WindowSizeConstraints { MinimumSize = new Vector2(750, 500), MaximumSize = new Vector2(9999, 9999) };
+        SizeConstraints = new WindowSizeConstraints { MinimumSize = new Vector2(750, 500) * ImGuiHelpers.GlobalScale, MaximumSize = new Vector2(9999, 9999) };
 
         _classJobOptions = ["All Classes", .. questService.BlueQuests.Select(q => q.RequiredClassJob).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().OrderBy(c => c)];
         _locationOptions = ["All Locations", .. questService.BlueQuests.Select(q => q.Location).Where(l => !string.IsNullOrWhiteSpace(l)).Distinct().OrderBy(l => l)];
@@ -87,13 +88,13 @@ internal sealed class MainWindow : Window
 
         // Right-aligned buttons
         ImGui.SameLine();
-        var rightX = ImGui.GetWindowWidth() - 16;
-        var settingsW = ImGui.CalcTextSize("Settings").X + 16;
+        var rightX = ImGui.GetWindowWidth() - 16 * ImGuiHelpers.GlobalScale;
+        var settingsW = ImGui.CalcTextSize("Settings").X + 16 * ImGuiHelpers.GlobalScale;
         var widgetLabel = _widgetWindow.IsOpen ? "Hide Widget" : "Widget";
-        var widgetW = ImGui.CalcTextSize(widgetLabel).X + 16;
+        var widgetW = ImGui.CalcTextSize(widgetLabel).X + 16 * ImGuiHelpers.GlobalScale;
         var overlayLabel = _overlayWindow.IsOpen ? "Hide Overlay" : "Overlay";
-        var overlayW = ImGui.CalcTextSize(overlayLabel).X + 16;
-        ImGui.SetCursorPosX(rightX - settingsW - widgetW - overlayW - 16);
+        var overlayW = ImGui.CalcTextSize(overlayLabel).X + 16 * ImGuiHelpers.GlobalScale;
+        ImGui.SetCursorPosX(rightX - settingsW - widgetW - overlayW - 16 * ImGuiHelpers.GlobalScale);
         if (ImGui.Button(overlayLabel)) _overlayWindow.Toggle();
         ImGui.SameLine();
         if (ImGui.Button(widgetLabel)) _widgetWindow.Toggle();
@@ -102,7 +103,7 @@ internal sealed class MainWindow : Window
 
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("List:"); ImGui.PopStyleColor();
         ImGui.SameLine();
-        using (var width = ImRaii.ItemWidth(160))
+        using (var width = ImRaii.ItemWidth(160 * ImGuiHelpers.GlobalScale))
         {
             var activeIdx = _trackingService.ActiveListIndex;
             var listNames = _trackingService.Lists.Select(l => l.Name).ToArray();
@@ -120,7 +121,7 @@ internal sealed class MainWindow : Window
         {
             if (popup.Success)
             {
-                using (var width = ImRaii.ItemWidth(140))
+                using (var width = ImRaii.ItemWidth(140 * ImGuiHelpers.GlobalScale))
                     ImGui.InputTextWithHint("##renameList", Loc.Get("ctx.rename"), ref _newListName, 64);
                 ImGui.SameLine();
                 if (_newListName.Trim().Length > 0 && ImGui.Button(Loc.Get("ctx.rename")))
@@ -147,36 +148,36 @@ internal sealed class MainWindow : Window
 
     private void DrawFilterBar()
     {
-        using (var width = ImRaii.ItemWidth(180))
+        using (var width = ImRaii.ItemWidth(180 * ImGuiHelpers.GlobalScale))
         { if (ImGui.InputTextWithHint("##search", "Search quests...", ref _searchText, 256)) _dirty = true; }
         ImGui.SameLine();
-        using (var width = ImRaii.ItemWidth(110))
+        using (var width = ImRaii.ItemWidth(110 * ImGuiHelpers.GlobalScale))
         {
             var filterLabels = new[] { "All", "Available", "Incomplete", "Complete" };
             if (ImGui.Combo("##filter", ref _filterMode, filterLabels, filterLabels.Length)) _dirty = true;
         }
         ImGui.SameLine();
-        using (var width = ImRaii.ItemWidth(50))
+        using (var width = ImRaii.ItemWidth(50 * ImGuiHelpers.GlobalScale))
         { if (ImGui.InputInt("##lvlMin", ref _levelMin, 0, 0)) { _levelMin = Math.Clamp(_levelMin, 0, 100); _dirty = true; } }
         ImGui.SameLine(); ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("-"); ImGui.PopStyleColor(); ImGui.SameLine();
-        using (var width = ImRaii.ItemWidth(50))
+        using (var width = ImRaii.ItemWidth(50 * ImGuiHelpers.GlobalScale))
         { if (ImGui.InputInt("##lvlMax", ref _levelMax, 0, 0)) { _levelMax = Math.Clamp(_levelMax, 0, 100); _dirty = true; } }
         ImGui.SameLine(); ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text("Lv."); ImGui.PopStyleColor();
-        ImGui.SameLine(); ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 6);
+        ImGui.SameLine(); ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 6 * ImGuiHelpers.GlobalScale);
         if (ImGui.Button("Nearest")) _filtered = [.. _filtered.OrderBy(q => _questService.GetDistanceToPlayer(q))];
         if (ImGui.IsItemHovered()) { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text("Sort by distance to player"); }
 
-        if (DrawSearchableCombo("##expansion", ref _expansionFilter, _expansionOptions, ref _expansionSearch, 130)) _dirty = true;
+        if (DrawSearchableCombo("##expansion", ref _expansionFilter, _expansionOptions, ref _expansionSearch, 130 * ImGuiHelpers.GlobalScale)) _dirty = true;
         ImGui.SameLine();
-        if (DrawSearchableCombo("##classjob", ref _classJobFilter, _classJobOptions, ref _classJobSearch, 130)) _dirty = true;
+        if (DrawSearchableCombo("##classjob", ref _classJobFilter, _classJobOptions, ref _classJobSearch, 130 * ImGuiHelpers.GlobalScale)) _dirty = true;
         ImGui.SameLine();
-        if (DrawSearchableCombo("##location", ref _locationFilter, _locationOptions, ref _locationSearch, 130)) _dirty = true;
+        if (DrawSearchableCombo("##location", ref _locationFilter, _locationOptions, ref _locationSearch, 130 * ImGuiHelpers.GlobalScale)) _dirty = true;
         ImGui.SameLine();
-        using (var width = ImRaii.ItemWidth(110))
+        using (var width = ImRaii.ItemWidth(110 * ImGuiHelpers.GlobalScale))
         { if (ImGui.Combo("##category", ref _categoryFilter, _categoryOptions, _categoryOptions.Length)) _dirty = true; }
 
         // Row 3: unlock filter + reset
-        if (DrawSearchableCombo("##unlock", ref _unlockFilter, _unlockFilterOptions, ref _unlockSearch, 250)) _dirty = true;
+        if (DrawSearchableCombo("##unlock", ref _unlockFilter, _unlockFilterOptions, ref _unlockSearch, 250 * ImGuiHelpers.GlobalScale)) _dirty = true;
         ImGui.SameLine();
         if (ImGui.Button("Reset Filter"))
         {
@@ -201,7 +202,7 @@ internal sealed class MainWindow : Window
             using var combo = ImRaii.Combo(id, options[selected]);
             if (combo.Success)
             {
-                using (var innerWidth = ImRaii.ItemWidth(width - 16))
+                using (var innerWidth = ImRaii.ItemWidth(width - 16 * ImGuiHelpers.GlobalScale))
                     ImGui.InputTextWithHint($"{id}S", "Search...", ref search, 128);
                 var f = search.Trim();
                 for (var i = 0; i < options.Length; i++)
@@ -246,12 +247,12 @@ internal sealed class MainWindow : Window
         if (!table.Success) return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
-        ImGui.TableSetupColumn("*", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort, 24);
+        ImGui.TableSetupColumn("*", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort, 24 * ImGuiHelpers.GlobalScale);
         if (_autoFitted)
         {
             ImGui.TableSetupColumn("Quest", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.DefaultSort, _afQuestW);
-            ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 28);
-            ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 50);
+            ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 28 * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 50 * ImGuiHelpers.GlobalScale);
             ImGui.TableSetupColumn("Location", ImGuiTableColumnFlags.WidthFixed, _afLocW);
             ImGui.TableSetupColumn("Class/Job", ImGuiTableColumnFlags.WidthFixed, _afClassW);
             ImGui.TableSetupColumn("Unlocks", ImGuiTableColumnFlags.WidthStretch, 0);
@@ -259,13 +260,13 @@ internal sealed class MainWindow : Window
         else
         {
             ImGui.TableSetupColumn("Quest", ImGuiTableColumnFlags.WidthStretch | ImGuiTableColumnFlags.DefaultSort, 0);
-            ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 28);
-            ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 50);
-            ImGui.TableSetupColumn("Location", ImGuiTableColumnFlags.WidthFixed, 100);
-            ImGui.TableSetupColumn("Class/Job", ImGuiTableColumnFlags.WidthFixed, 100);
-            ImGui.TableSetupColumn("Unlocks", ImGuiTableColumnFlags.WidthFixed, 170);
+            ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 28 * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 50 * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn("Location", ImGuiTableColumnFlags.WidthFixed, 100 * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn("Class/Job", ImGuiTableColumnFlags.WidthFixed, 100 * ImGuiHelpers.GlobalScale);
+            ImGui.TableSetupColumn("Unlocks", ImGuiTableColumnFlags.WidthFixed, 170 * ImGuiHelpers.GlobalScale);
         }
-        ImGui.TableSetupColumn("##toggle", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort, 28);
+        ImGui.TableSetupColumn("##toggle", ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoSort, 28 * ImGuiHelpers.GlobalScale);
 
         // Manual header row: clickable auto-fit button in first column
         ImGui.TableNextRow(ImGuiTableRowFlags.Headers);
@@ -288,9 +289,9 @@ internal sealed class MainWindow : Window
                     _afLocW = Math.Max(_afLocW, ImGui.CalcTextSize(q.Location).X);
                     _afClassW = Math.Max(_afClassW, ImGui.CalcTextSize(q.RequiredClassJob).X);
                 }
-                _afQuestW += 52; // icons, checkmarks, chain indent
-                _afLocW += 16;
-                _afClassW += 16;
+                _afQuestW += 52 * ImGuiHelpers.GlobalScale; // icons, checkmarks, chain indent
+                _afLocW += 16 * ImGuiHelpers.GlobalScale;
+                _afClassW += 16 * ImGuiHelpers.GlobalScale;
                 _autoFitted = true;
             }
         }
@@ -323,7 +324,7 @@ internal sealed class MainWindow : Window
             var isChainChild = !string.IsNullOrEmpty(quest.ChainName) && quest.ChainIndex > 1;
             if (isChainChild)
             {
-                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 16);
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + 16 * ImGuiHelpers.GlobalScale);
                 Icons.DrawIcon(FontAwesomeIcon.LongArrowAltRight, Styles.TextDimmed);
                 ImGui.SameLine();
             }
@@ -464,7 +465,7 @@ internal sealed class MainWindow : Window
         }
 
         ImGui.Separator();
-        using (var width = ImRaii.ItemWidth(140))
+        using (var width = ImRaii.ItemWidth(140 * ImGuiHelpers.GlobalScale))
             ImGui.InputTextWithHint("##newlist", "New list name...", ref _newListName, 64);
         ImGui.SameLine();
         var ok = _newListName.Trim().Length > 0;
@@ -536,7 +537,7 @@ internal sealed class MainWindow : Window
 
         ImGui.SameLine();
         var text = $"{_questService.CompletedCount}/{_questService.TotalCount} complete ({_questService.CompletionPercent:F1}%)";
-        ImGui.SetCursorPosX(ImGui.GetWindowWidth() - ImGui.CalcTextSize(text).X - 20);
+        ImGui.SetCursorPosX(ImGui.GetWindowWidth() - ImGui.CalcTextSize(text).X - 20 * ImGuiHelpers.GlobalScale);
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentGreen); ImGui.Text(text); ImGui.PopStyleColor();
     }
 
@@ -564,10 +565,10 @@ internal sealed class MainWindow : Window
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.GetExpansionColor(expId));
             ImGui.Text(group.Key);
             ImGui.PopStyleColor();
-            ImGui.SameLine(); ImGui.SetCursorPosX(200);
+            ImGui.SameLine(); ImGui.SetCursorPosX(200 * ImGuiHelpers.GlobalScale);
             ImGui.PushStyleColor(ImGuiCol.PlotHistogram, Styles.GetExpansionColor(expId));
             ImGui.PushStyleColor(ImGuiCol.FrameBg, Styles.BgLight);
-            ImGui.ProgressBar(fraction, new Vector2(200, 16), "");
+            ImGui.ProgressBar(fraction, new Vector2(200, 16) * ImGuiHelpers.GlobalScale, "");
             ImGui.PopStyleColor(2);
             ImGui.SameLine();
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text($"{done}/{total}"); ImGui.PopStyleColor();
@@ -705,16 +706,16 @@ internal sealed class MainWindow : Window
     private void DrawSideQuests()
     {
         // Filters
-        using (var width = ImRaii.ItemWidth(180))
+        using (var width = ImRaii.ItemWidth(180 * ImGuiHelpers.GlobalScale))
             ImGui.InputTextWithHint("##sideSearch", "Search side quests...", ref _sideSearch, 256);
         ImGui.SameLine();
-        using (var width = ImRaii.ItemWidth(120))
+        using (var width = ImRaii.ItemWidth(120 * ImGuiHelpers.GlobalScale))
         {
             var sideLabels = new[] { "All", "Special Only", "Incomplete", "Complete" };
             ImGui.Combo("##sideFilter", ref _sideFilter, sideLabels, sideLabels.Length);
         }
         ImGui.SameLine();
-        using (var width = ImRaii.ItemWidth(140))
+        using (var width = ImRaii.ItemWidth(140 * ImGuiHelpers.GlobalScale))
             ImGui.Combo("##sideExp", ref _sideExpansion, _expansionOptions, _expansionOptions.Length);
 
         // Location + Special tag filters
@@ -729,9 +730,9 @@ internal sealed class MainWindow : Window
                 .Where(q => q.IsSpecial && !string.IsNullOrWhiteSpace(q.SpecialTag))
                 .Select(q => q.SpecialTag).Distinct().OrderBy(s => s)];
         }
-        DrawSearchableCombo("##sideLocation", ref _sideLocationFilter, _sideLocationOptions, ref _sideLocationSearch, 150);
+        DrawSearchableCombo("##sideLocation", ref _sideLocationFilter, _sideLocationOptions, ref _sideLocationSearch, 150 * ImGuiHelpers.GlobalScale);
         ImGui.SameLine();
-        DrawSearchableCombo("##sideSpecial", ref _sideSpecialFilter, _sideSpecialOptions, ref _sideSpecialSearch, 220);
+        DrawSearchableCombo("##sideSpecial", ref _sideSpecialFilter, _sideSpecialOptions, ref _sideSpecialSearch, 220 * ImGuiHelpers.GlobalScale);
         ImGui.SameLine();
         if (ImGui.Button("Reset Filter##side"))
         {
@@ -773,12 +774,12 @@ internal sealed class MainWindow : Window
         if (!sideTable.Success) return;
 
         ImGui.TableSetupScrollFreeze(0, 1);
-        ImGui.TableSetupColumn("Done", ImGuiTableColumnFlags.WidthFixed, 30);
+        ImGui.TableSetupColumn("Done", ImGuiTableColumnFlags.WidthFixed, 30 * ImGuiHelpers.GlobalScale);
         ImGui.TableSetupColumn("Quest", ImGuiTableColumnFlags.WidthStretch, 0);
-        ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 28);
-        ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 45);
-        ImGui.TableSetupColumn("Special", ImGuiTableColumnFlags.WidthFixed, 250);
-        ImGui.TableSetupColumn("##toggle", ImGuiTableColumnFlags.WidthFixed, 28);
+        ImGui.TableSetupColumn("Lv.", ImGuiTableColumnFlags.WidthFixed, 28 * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("Exp.", ImGuiTableColumnFlags.WidthFixed, 45 * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("Special", ImGuiTableColumnFlags.WidthFixed, 250 * ImGuiHelpers.GlobalScale);
+        ImGui.TableSetupColumn("##toggle", ImGuiTableColumnFlags.WidthFixed, 28 * ImGuiHelpers.GlobalScale);
         ImGui.TableHeadersRow();
 
         foreach (var quest in filtered)
@@ -866,10 +867,10 @@ internal sealed class MainWindow : Window
     {
         var fraction = total > 0 ? (float)completed / total : 0f;
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextPrimary); ImGui.Text(label); ImGui.PopStyleColor();
-        ImGui.SameLine(); ImGui.SetCursorPosX(200);
+        ImGui.SameLine(); ImGui.SetCursorPosX(200 * ImGuiHelpers.GlobalScale);
         ImGui.PushStyleColor(ImGuiCol.PlotHistogram, color);
         ImGui.PushStyleColor(ImGuiCol.FrameBg, Styles.BgLight);
-        ImGui.ProgressBar(fraction, new Vector2(250, 18), "");
+        ImGui.ProgressBar(fraction, new Vector2(250, 18) * ImGuiHelpers.GlobalScale, "");
         ImGui.PopStyleColor(2);
         ImGui.SameLine();
         if (completed == total && total > 0)

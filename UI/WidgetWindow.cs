@@ -1,6 +1,7 @@
 using System.Numerics;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using QuestieBestie.Services;
@@ -35,8 +36,8 @@ internal sealed class WidgetWindow : Window
     {
         var s = _trackingService.OverlaySettings;
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, s.WindowRounding);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(10, 6));
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 3));
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(10, 6) * ImGuiHelpers.GlobalScale);
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 3) * ImGuiHelpers.GlobalScale);
         var bg = new Vector4(s.BackgroundColor.X, s.BackgroundColor.Y, s.BackgroundColor.Z, s.BackgroundAlpha);
         var border = new Vector4(s.BorderColor.X, s.BorderColor.Y, s.BorderColor.Z, s.BorderAlpha);
         ImGui.PushStyleColor(ImGuiCol.WindowBg, bg);
@@ -117,14 +118,14 @@ internal sealed class WidgetWindow : Window
         ImGui.PopStyleColor();
 
         ImGui.SameLine();
-        ImGui.SetCursorPosX(80);
+        ImGui.SetCursorPosX(80 * ImGuiHelpers.GlobalScale);
         ImGui.PushStyleColor(ImGuiCol.PlotHistogram, color);
         ImGui.PushStyleColor(ImGuiCol.FrameBg, Styles.BgLight);
-        ImGui.ProgressBar(fraction, new Vector2(100, 14), "");
+        ImGui.ProgressBar(fraction, new Vector2(100, 14) * ImGuiHelpers.GlobalScale, "");
         ImGui.PopStyleColor(2);
 
         ImGui.SameLine();
-        ImGui.SetCursorPosX(190);
+        ImGui.SetCursorPosX(190 * ImGuiHelpers.GlobalScale);
         ImGui.PushStyleColor(ImGuiCol.Text, s.TextColor);
         ImGui.Text($"{fraction * 100f:F0}%");
         ImGui.PopStyleColor();

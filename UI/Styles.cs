@@ -1,4 +1,5 @@
 using System.Numerics;
+using Dalamud.Interface.Utility;
 
 namespace QuestieBestie.UI;
 
@@ -76,15 +77,15 @@ public static class Styles
         _styleCount = 0;
         _colorCount = 0;
 
-        PushStyleVar(ImGuiStyleVar.WindowRounding, 8.0f);
-        PushStyleVar(ImGuiStyleVar.FrameRounding, 4.0f);
-        PushStyleVar(ImGuiStyleVar.GrabRounding, 4.0f);
-        PushStyleVar(ImGuiStyleVar.ScrollbarRounding, 4.0f);
-        PushStyleVar(ImGuiStyleVar.TabRounding, 4.0f);
-        PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(12, 12));
-        PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(8, 4));
-        PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(8, 6));
-        PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(6, 4));
+        PushStyleVar(ImGuiStyleVar.WindowRounding, 8.0f * ImGuiHelpers.GlobalScale);
+        PushStyleVar(ImGuiStyleVar.FrameRounding, 4.0f * ImGuiHelpers.GlobalScale);
+        PushStyleVar(ImGuiStyleVar.GrabRounding, 4.0f * ImGuiHelpers.GlobalScale);
+        PushStyleVar(ImGuiStyleVar.ScrollbarRounding, 4.0f * ImGuiHelpers.GlobalScale);
+        PushStyleVar(ImGuiStyleVar.TabRounding, 4.0f * ImGuiHelpers.GlobalScale);
+        PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(12, 12) * ImGuiHelpers.GlobalScale);
+        PushStyleVar(ImGuiStyleVar.FramePadding, new Vector2(8, 4) * ImGuiHelpers.GlobalScale);
+        PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(8, 6) * ImGuiHelpers.GlobalScale);
+        PushStyleVar(ImGuiStyleVar.CellPadding, new Vector2(6, 4) * ImGuiHelpers.GlobalScale);
 
         PushColor(ImGuiCol.WindowBg, BgDark);
         PushColor(ImGuiCol.ChildBg, BgMedium);
@@ -133,9 +134,9 @@ public static class Styles
         _styleCount = 0;
         _colorCount = 0;
 
-        PushStyleVar(ImGuiStyleVar.WindowRounding, 10.0f);
-        PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14, 10));
-        PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 4));
+        PushStyleVar(ImGuiStyleVar.WindowRounding, 10.0f * ImGuiHelpers.GlobalScale);
+        PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14, 10) * ImGuiHelpers.GlobalScale);
+        PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 4) * ImGuiHelpers.GlobalScale);
 
         PushColor(ImGuiCol.WindowBg, OverlayBg);
         PushColor(ImGuiCol.Border, new Vector4(AccentCyan.X, AccentCyan.Y, AccentCyan.Z, 0.3f));

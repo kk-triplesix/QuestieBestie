@@ -1,6 +1,7 @@
 using System.Numerics;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using QuestieBestie.Models;
@@ -22,7 +23,7 @@ internal sealed class DetailWindow : Window
     {
         _questService = questService;
         _trackingService = trackingService;
-        SizeConstraints = new WindowSizeConstraints { MinimumSize = new Vector2(380, 320), MaximumSize = new Vector2(650, 900) };
+        SizeConstraints = new WindowSizeConstraints { MinimumSize = new Vector2(380, 320) * ImGuiHelpers.GlobalScale, MaximumSize = new Vector2(650, 900) * ImGuiHelpers.GlobalScale };
         IsOpen = false;
         AllowClickthrough = false;
         AllowPinning = false;
@@ -131,7 +132,7 @@ internal sealed class DetailWindow : Window
     private static void DrawInfoLine(string label, string value, Vector4? valueColor = null)
     {
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary); ImGui.Text($"{label}:"); ImGui.PopStyleColor();
-        ImGui.SameLine(); ImGui.SetCursorPosX(100);
+        ImGui.SameLine(); ImGui.SetCursorPosX(100 * ImGuiHelpers.GlobalScale);
         if (valueColor.HasValue) ImGui.PushStyleColor(ImGuiCol.Text, valueColor.Value);
         ImGui.Text(value);
         if (valueColor.HasValue) ImGui.PopStyleColor();
@@ -142,7 +143,7 @@ internal sealed class DetailWindow : Window
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text("Notes"); ImGui.PopStyleColor();
         ImGui.Spacing();
         ImGui.PushItemWidth(-1);
-        if (ImGui.InputTextMultiline("##note", ref _noteText, 512, new Vector2(0, 60)))
+        if (ImGui.InputTextMultiline("##note", ref _noteText, 512, new Vector2(0, 60 * ImGuiHelpers.GlobalScale)))
             _trackingService.SetNote(_quest!.RowId, _noteText);
         ImGui.PopItemWidth();
     }

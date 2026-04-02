@@ -1,6 +1,7 @@
 using System.Numerics;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using QuestieBestie.Models;
@@ -37,8 +38,8 @@ internal sealed class OverlayWindow : Window
         ShowCloseButton = false;
         SizeConstraints = new WindowSizeConstraints
         {
-            MinimumSize = new Vector2(200, 80),
-            MaximumSize = new Vector2(800, 1200),
+            MinimumSize = new Vector2(200, 80) * ImGuiHelpers.GlobalScale,
+            MaximumSize = new Vector2(800, 1200) * ImGuiHelpers.GlobalScale,
         };
     }
 
@@ -47,8 +48,8 @@ internal sealed class OverlayWindow : Window
         var s = _trackingService.OverlaySettings;
 
         ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, s.WindowRounding);
-        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14, 10));
-        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 4));
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(14, 10) * ImGuiHelpers.GlobalScale);
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 4) * ImGuiHelpers.GlobalScale);
 
         var alpha = _showButtons ? Math.Max(s.BackgroundAlpha, 0.85f) : s.BackgroundAlpha;
         var bg = new Vector4(s.BackgroundColor.X, s.BackgroundColor.Y, s.BackgroundColor.Z, alpha);
@@ -109,7 +110,7 @@ internal sealed class OverlayWindow : Window
         if (_showButtons)
         {
             ImGui.SameLine();
-            ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 64);
+            ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 64 * ImGuiHelpers.GlobalScale);
             if (ImGuiComponents.IconButton("ovSettings", FontAwesomeIcon.Cog))
                 _settingsWindow.Toggle();
             if (ImGui.IsItemHovered())
@@ -142,7 +143,7 @@ internal sealed class OverlayWindow : Window
             var isActive = i == _trackingService.ActiveListIndex;
             ImGui.PushStyleColor(ImGuiCol.Text, isActive ? s.HeaderColor : Styles.TextDimmed);
 
-            if (ImGui.Selectable($"{lists[i].Name}###list{i}", isActive, ImGuiSelectableFlags.None, new Vector2(ImGui.CalcTextSize(lists[i].Name).X + 8, 0)))
+            if (ImGui.Selectable($"{lists[i].Name}###list{i}", isActive, ImGuiSelectableFlags.None, new Vector2(ImGui.CalcTextSize(lists[i].Name).X + 8 * ImGuiHelpers.GlobalScale, 0)))
                 _trackingService.ActiveListIndex = i;
 
             ImGui.PopStyleColor();
