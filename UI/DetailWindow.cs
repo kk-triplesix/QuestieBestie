@@ -1,6 +1,7 @@
 using System.Numerics;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using QuestieBestie.Models;
 using QuestieBestie.Services;
@@ -10,16 +11,17 @@ namespace QuestieBestie.UI;
 internal sealed class DetailWindow : Window
 {
     private readonly QuestService _questService;
-    private TrackingService? _trackingService;
+    private readonly TrackingService _trackingService;
 
     private QuestData? _quest;
     private List<PrerequisiteNode> _prereqTree = [];
     private string _noteText = string.Empty;
 
-    public DetailWindow(QuestService questService)
+    public DetailWindow(QuestService questService, TrackingService trackingService)
         : base("Quest Details###QuestieBestieDetail", ImGuiWindowFlags.None)
     {
         _questService = questService;
+        _trackingService = trackingService;
         SizeConstraints = new WindowSizeConstraints { MinimumSize = new Vector2(380, 320), MaximumSize = new Vector2(650, 900) };
         IsOpen = false;
         AllowClickthrough = false;
@@ -31,8 +33,6 @@ internal sealed class DetailWindow : Window
         _quest = null;
     }
 
-    public void SetTrackingService(TrackingService ts) => _trackingService = ts;
-
     public void ShowQuest(QuestData? quest)
     {
         if (quest == null || string.IsNullOrEmpty(quest.Name))
@@ -40,7 +40,7 @@ internal sealed class DetailWindow : Window
 
         _quest = quest;
         _prereqTree = _questService.GetPrerequisiteTree(quest.RowId);
-        _noteText = _trackingService?.GetNote(quest.RowId) ?? string.Empty;
+        _noteText = _trackingService.GetNote(quest.RowId);
         IsOpen = true;
     }
 
@@ -74,15 +74,12 @@ internal sealed class DetailWindow : Window
             _questService.OpenQuestOnMap(_quest.RowId);
 
         // Favorite toggle
-        if (_trackingService != null)
-        {
-            ImGui.SameLine();
-            var isFav = _trackingService.IsFavorite(_quest.RowId);
-            ImGui.PushStyleColor(ImGuiCol.Text, isFav ? Styles.FavoriteStar : Styles.TextDimmed);
-            if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Star, isFav ? "Favorited" : "Favorite"))
-                _trackingService.ToggleFavorite(_quest.RowId);
-            ImGui.PopStyleColor();
-        }
+        ImGui.SameLine();
+        var isFav = _trackingService.IsFavorite(_quest.RowId);
+        ImGui.PushStyleColor(ImGuiCol.Text, isFav ? Styles.FavoriteStar : Styles.TextDimmed);
+        if (ImGuiComponents.IconButtonWithText(FontAwesomeIcon.Star, isFav ? "Favorited" : "Favorite"))
+            _trackingService.ToggleFavorite(_quest.RowId);
+        ImGui.PopStyleColor();
     }
 
     private void DrawQuestInfo()
@@ -97,9 +94,8 @@ internal sealed class DetailWindow : Window
         DrawInfoLine(Loc.Get("detail.type"), $"{q.Category}");
         if (!string.IsNullOrEmpty(q.Unlocks))
             DrawInfoLine(Loc.Get("detail.unlocks"), q.Unlocks, Styles.AccentCyan);
-        if (!string.IsNullOrEmpty(q.ChainName))
+        if (!string.IsNullOrEmpty(q.ChainName) && _questService.ChainLookup.TryGetValue(q.ChainName, out var chainQuests))
         {
-            var chainQuests = _questService.BlueQuests.Where(bq => bq.ChainName == q.ChainName).ToList();
             var chainDone = chainQuests.Count(bq => bq.IsCompleted);
             DrawInfoLine(Loc.Get("detail.chain"), $"{q.ChainName} ({Loc.Get("misc.step")} {q.ChainIndex}, {chainDone}/{chainQuests.Count})");
         }
@@ -143,8 +139,6 @@ internal sealed class DetailWindow : Window
 
     private void DrawNotes()
     {
-        if (_trackingService == null) return;
-
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan); ImGui.Text("Notes"); ImGui.PopStyleColor();
         ImGui.Spacing();
         ImGui.PushItemWidth(-1);
@@ -181,7 +175,7 @@ internal sealed class DetailWindow : Window
         }
         ImGui.PopStyleColor();
 
-        if (ImGui.IsItemHovered()) { ImGui.BeginTooltip(); ImGui.Text("Click to show on map"); ImGui.EndTooltip(); }
+        if (ImGui.IsItemHovered()) { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text("Click to show on map"); }
 
         foreach (var child in node.Children)
             DrawNode(child, indent + 1);

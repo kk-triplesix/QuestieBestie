@@ -32,6 +32,15 @@ public static class Styles
 
     public static readonly Vector4 FavoriteStar = new(1.00f, 0.85f, 0.20f, 1.00f); // gold star
 
+    // Shared expansion data
+    public static readonly (uint Id, string Name)[] Expansions =
+        [(0, "A Realm Reborn"), (1, "Heavensward"), (2, "Stormblood"), (3, "Shadowbringers"), (4, "Endwalker"), (5, "Dawntrail")];
+
+    public static string GetExpansionAbbrev(uint expansionId) => expansionId switch
+    {
+        0 => "ARR", 1 => "HW", 2 => "SB", 3 => "ShB", 4 => "EW", 5 => "DT", _ => "?"
+    };
+
     public static Vector4 GetExpansionColor(uint expansionId)
     {
         return expansionId switch
@@ -58,6 +67,7 @@ public static class Styles
     // Overlay
     public static readonly Vector4 OverlayBg = new(0.08f, 0.08f, 0.14f, 0.85f);    // semi-transparent dark
 
+    private static readonly Stack<(int Styles, int Colors)> StyleStack = new();
     private static int _styleCount;
     private static int _colorCount;
 
@@ -107,14 +117,15 @@ public static class Styles
         PushColor(ImGuiCol.TextDisabled, TextDimmed);
         PushColor(ImGuiCol.Separator, BorderColor);
         PushColor(ImGuiCol.SeparatorHovered, AccentCyan);
+
+        StyleStack.Push((_styleCount, _colorCount));
     }
 
     public static void PopMainStyle()
     {
-        ImGui.PopStyleColor(_colorCount);
-        ImGui.PopStyleVar(_styleCount);
-        _colorCount = 0;
-        _styleCount = 0;
+        var (styles, colors) = StyleStack.Pop();
+        ImGui.PopStyleColor(colors);
+        ImGui.PopStyleVar(styles);
     }
 
     public static void PushOverlayStyle()
@@ -130,14 +141,15 @@ public static class Styles
         PushColor(ImGuiCol.Border, new Vector4(AccentCyan.X, AccentCyan.Y, AccentCyan.Z, 0.3f));
         PushColor(ImGuiCol.Text, TextPrimary);
         PushColor(ImGuiCol.TextDisabled, TextDimmed);
+
+        StyleStack.Push((_styleCount, _colorCount));
     }
 
     public static void PopOverlayStyle()
     {
-        ImGui.PopStyleColor(_colorCount);
-        ImGui.PopStyleVar(_styleCount);
-        _colorCount = 0;
-        _styleCount = 0;
+        var (styles, colors) = StyleStack.Pop();
+        ImGui.PopStyleColor(colors);
+        ImGui.PopStyleVar(styles);
     }
 
     private static void PushStyleVar(ImGuiStyleVar var, float val)

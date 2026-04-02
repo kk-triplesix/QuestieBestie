@@ -1,4 +1,5 @@
 using System.Numerics;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using QuestieBestie.Models;
 using QuestieBestie.Services;
@@ -8,13 +9,14 @@ namespace QuestieBestie.UI;
 internal sealed class SettingsWindow : Window
 {
     private readonly TrackingService _trackingService;
-    private QuestService? _questService;
+    private readonly QuestService _questService;
     private bool _syncPopupOpen = true;
 
-    public SettingsWindow(TrackingService trackingService)
+    public SettingsWindow(TrackingService trackingService, QuestService questService)
         : base("QuestieBestie Settings###QuestieBestieSettings", ImGuiWindowFlags.None)
     {
         _trackingService = trackingService;
+        _questService = questService;
         SizeConstraints = new WindowSizeConstraints
         {
             MinimumSize = new Vector2(420, 600),
@@ -22,8 +24,6 @@ internal sealed class SettingsWindow : Window
         };
         IsOpen = false;
     }
-
-    public void SetQuestService(QuestService qs) => _questService = qs;
 
     public override void PreDraw() => Styles.PushMainStyle();
     public override void PostDraw() => Styles.PopMainStyle();
@@ -78,10 +78,7 @@ internal sealed class SettingsWindow : Window
         if (ImGui.Checkbox("Total", ref s.WidgetShowTotal))
             changed = true;
 
-        var expansions = new (uint Id, string Name)[]
-        { (0, "A Realm Reborn"), (1, "Heavensward"), (2, "Stormblood"), (3, "Shadowbringers"), (4, "Endwalker"), (5, "Dawntrail") };
-
-        foreach (var (id, name) in expansions)
+        foreach (var (id, name) in Styles.Expansions)
         {
             var enabled = s.WidgetExpansions.Contains(id);
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.GetExpansionColor(id));
@@ -126,41 +123,43 @@ internal sealed class SettingsWindow : Window
             ImGui.Text($"({manualCount} manual overrides)");
             ImGui.PopStyleColor();
 
-            if (ImGui.BeginPopupModal("##confirmSync", ref _syncPopupOpen, ImGuiWindowFlags.AlwaysAutoResize))
+            using (var modal = ImRaii.PopupModal("##confirmSync", ref _syncPopupOpen, ImGuiWindowFlags.AlwaysAutoResize))
             {
-                ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar);
-                ImGui.Text("WARNUNG");
-                ImGui.PopStyleColor();
-                ImGui.Spacing();
-                ImGui.TextWrapped($"Alle {manualCount} manuellen Completion-Aenderungen werden unwiderruflich entfernt und der Quest-Status wird mit dem Gamestate synchronisiert.");
-                ImGui.Spacing();
-                ImGui.TextWrapped("Dieser Vorgang kann nicht rueckgaengig gemacht werden!");
-                ImGui.Spacing();
-                ImGui.Separator();
-                ImGui.Spacing();
-
-                ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.7f, 0.15f, 0.15f, 1f));
-                ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.9f, 0.2f, 0.2f, 1f));
-                if (ImGui.Button("Ja, alle lokalen Aenderungen entfernen", new Vector2(300, 0)))
+                if (modal.Success)
                 {
-                    _trackingService.ClearManualCompletions();
-                    _questService?.RefreshCompletionStatus();
-                    ImGui.CloseCurrentPopup();
+                    ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar);
+                    ImGui.Text("WARNUNG");
+                    ImGui.PopStyleColor();
+                    ImGui.Spacing();
+                    ImGui.TextWrapped($"Alle {manualCount} manuellen Completion-Aenderungen werden unwiderruflich entfernt und der Quest-Status wird mit dem Gamestate synchronisiert.");
+                    ImGui.Spacing();
+                    ImGui.TextWrapped("Dieser Vorgang kann nicht rueckgaengig gemacht werden!");
+                    ImGui.Spacing();
+                    ImGui.Separator();
+                    ImGui.Spacing();
+
+                    ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.7f, 0.15f, 0.15f, 1f));
+                    ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.9f, 0.2f, 0.2f, 1f));
+                    if (ImGui.Button("Ja, alle lokalen Aenderungen entfernen", new Vector2(300, 0)))
+                    {
+                        _trackingService.ClearManualCompletions();
+                        _questService.RefreshCompletionStatus();
+                        ImGui.CloseCurrentPopup();
+                    }
+                    ImGui.PopStyleColor(2);
+
+                    ImGui.SameLine();
+                    if (ImGui.Button("Abbrechen", new Vector2(100, 0)))
+                        ImGui.CloseCurrentPopup();
                 }
-                ImGui.PopStyleColor(2);
-
-                ImGui.SameLine();
-                if (ImGui.Button("Abbrechen", new Vector2(100, 0)))
-                    ImGui.CloseCurrentPopup();
-
-                ImGui.EndPopup();
             }
         }
         else
         {
-            ImGui.BeginDisabled();
-            ImGui.Button("Sync with Game State");
-            ImGui.EndDisabled();
+            using (ImRaii.Disabled())
+            {
+                ImGui.Button("Sync with Game State");
+            }
             ImGui.SameLine();
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextSecondary);
             ImGui.Text("(no manual overrides)");

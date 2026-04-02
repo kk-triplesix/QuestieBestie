@@ -1,6 +1,7 @@
 using System.Numerics;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using QuestieBestie.Models;
 using QuestieBestie.Services;
@@ -11,14 +12,14 @@ internal sealed class OverlayWindow : Window
 {
     private readonly QuestService _questService;
     private readonly TrackingService _trackingService;
-    private SettingsWindow? _settingsWindow;
-    private DetailWindow? _detailWindow;
+    private readonly SettingsWindow _settingsWindow;
+    private readonly DetailWindow _detailWindow;
 
     private bool _fontScaled;
     private bool _showButtons;
     private DateTime _lastHovered = DateTime.MinValue;
 
-    public OverlayWindow(QuestService questService, TrackingService trackingService)
+    public OverlayWindow(QuestService questService, TrackingService trackingService, SettingsWindow settingsWindow, DetailWindow detailWindow)
         : base("##QuestieBestieOverlay",
             ImGuiWindowFlags.NoTitleBar
             | ImGuiWindowFlags.NoScrollbar
@@ -27,6 +28,8 @@ internal sealed class OverlayWindow : Window
     {
         _questService = questService;
         _trackingService = trackingService;
+        _settingsWindow = settingsWindow;
+        _detailWindow = detailWindow;
         IsOpen = false;
         RespectCloseHotkey = false;
         AllowClickthrough = false;
@@ -37,12 +40,6 @@ internal sealed class OverlayWindow : Window
             MinimumSize = new Vector2(200, 80),
             MaximumSize = new Vector2(800, 1200),
         };
-    }
-
-    public void SetDetailWindow(DetailWindow detailWindow) => _detailWindow = detailWindow;
-    public void SetSettingsWindow(SettingsWindow settingsWindow)
-    {
-        _settingsWindow = settingsWindow;
     }
 
     public override void PreDraw()
@@ -114,16 +111,16 @@ internal sealed class OverlayWindow : Window
             ImGui.SameLine();
             ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 64);
             if (ImGuiComponents.IconButton("ovSettings", FontAwesomeIcon.Cog))
-                _settingsWindow?.Toggle();
+                _settingsWindow.Toggle();
             if (ImGui.IsItemHovered())
-            { ImGui.BeginTooltip(); ImGui.Text("Settings"); ImGui.EndTooltip(); }
+            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text("Settings"); }
             ImGui.SameLine();
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);
             if (ImGuiComponents.IconButton("ovClose", FontAwesomeIcon.Times))
                 IsOpen = false;
             ImGui.PopStyleColor();
             if (ImGui.IsItemHovered())
-            { ImGui.BeginTooltip(); ImGui.Text("Close"); ImGui.EndTooltip(); }
+            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text("Close"); }
         }
     }
 
@@ -184,7 +181,7 @@ internal sealed class OverlayWindow : Window
             _trackingService.SaveOverlaySettings();
         }
         if (ImGui.IsItemHovered())
-        { ImGui.BeginTooltip(); ImGui.Text("Sort by optimal route (nearest zone first)"); ImGui.EndTooltip(); }
+        { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text("Sort by optimal route (nearest zone first)"); }
 
         ImGui.Separator();
 
@@ -212,17 +209,19 @@ internal sealed class OverlayWindow : Window
                 _questService.OpenQuestOnMap(quest.RowId);
             ImGui.PopStyleColor();
 
-            if (ImGui.BeginPopupContextItem($"ovctx###{quest.RowId}"))
+            using (var popup = ImRaii.ContextPopupItem($"ovctx###{quest.RowId}"))
             {
-                var isManual = _trackingService.IsManuallyCompleted(quest.RowId);
-                if (isManual)
-                { if (ImGui.MenuItem("Unmark Completed")) _trackingService.UnmarkCompleted(quest.RowId); }
-                else
-                { if (ImGui.MenuItem("Mark as Completed")) _trackingService.MarkCompleted(quest.RowId, _questService); }
-                ImGui.Separator();
-                if (ImGui.MenuItem("Remove from list"))
-                    _trackingService.RemoveQuest(quest.RowId);
-                ImGui.EndPopup();
+                if (popup.Success)
+                {
+                    var isManual = _trackingService.IsManuallyCompleted(quest.RowId);
+                    if (isManual)
+                    { if (ImGui.MenuItem("Unmark Completed")) _trackingService.UnmarkCompleted(quest.RowId); }
+                    else
+                    { if (ImGui.MenuItem("Mark as Completed")) _trackingService.MarkCompleted(quest.RowId, _questService); }
+                    ImGui.Separator();
+                    if (ImGui.MenuItem("Remove from list"))
+                        _trackingService.RemoveQuest(quest.RowId);
+                }
             }
 
             if (!quest.IsCompleted && quest.PrerequisiteIds.Length > 0)
@@ -241,16 +240,18 @@ internal sealed class OverlayWindow : Window
 
                     if (ImGui.IsItemHovered())
                     {
-                        ImGui.BeginTooltip();
-                        ImGui.Text("Missing requirements:");
-                        foreach (var (name, _, isBlue) in missing)
+                        using var tt = ImRaii.Tooltip();
+                        if (tt.Success)
                         {
-                            var tag = isBlue ? "" : " (MSQ/Side)";
-                            ImGui.PushStyleColor(ImGuiCol.Text, s.WarningColor);
-                            ImGui.Text($"  x {name}{tag}");
-                            ImGui.PopStyleColor();
+                            ImGui.Text("Missing requirements:");
+                            foreach (var (name, _, isBlue) in missing)
+                            {
+                                var tag = isBlue ? "" : " (MSQ/Side)";
+                                ImGui.PushStyleColor(ImGuiCol.Text, s.WarningColor);
+                                ImGui.Text($"  x {name}{tag}");
+                                ImGui.PopStyleColor();
+                            }
                         }
-                        ImGui.EndTooltip();
                     }
                 }
             }

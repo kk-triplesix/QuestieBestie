@@ -1,6 +1,7 @@
 using System.Numerics;
 using Dalamud.Interface;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using QuestieBestie.Services;
 
@@ -61,15 +62,17 @@ internal sealed class WidgetWindow : Window
         if (s.WidgetShowTotal)
             DrawBar("Total", _questService.CompletedCount, _questService.TotalCount, s.CompletedColor, s);
 
-        // Per-expansion progress bars
-        foreach (var stat in _questService.GetExpansionStats())
+        // Per-expansion progress bars (only iterate selected expansions)
+        foreach (var (expId, expName) in Styles.Expansions)
         {
-            var expId = _questService.BlueQuests.FirstOrDefault(q => q.Expansion == stat.Name)?.ExpansionId ?? 0u;
             if (!s.WidgetExpansions.Contains(expId))
                 continue;
 
-            var abbrev = expId switch { 0 => "ARR", 1 => "HW", 2 => "SB", 3 => "ShB", 4 => "EW", 5 => "DT", _ => "?" };
-            DrawBar(abbrev, stat.Completed, stat.Total, Styles.GetExpansionColor(expId), s);
+            var stat = _questService.GetExpansionStats().FirstOrDefault(st => st.Name == expName);
+            if (stat == null)
+                continue;
+
+            DrawBar(Styles.GetExpansionAbbrev(expId), stat.Completed, stat.Total, Styles.GetExpansionColor(expId), s);
         }
 
         // Direction arrow
@@ -90,7 +93,7 @@ internal sealed class WidgetWindow : Window
             if (ImGuiComponents.IconButton("wCfg", FontAwesomeIcon.Cog))
                 ImGui.OpenPopup("##widgetCfg");
             if (ImGui.IsItemHovered())
-            { ImGui.BeginTooltip(); ImGui.Text("Settings"); ImGui.EndTooltip(); }
+            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text("Settings"); }
 
             ImGui.SameLine();
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);
@@ -98,7 +101,7 @@ internal sealed class WidgetWindow : Window
                 IsOpen = false;
             ImGui.PopStyleColor();
             if (ImGui.IsItemHovered())
-            { ImGui.BeginTooltip(); ImGui.Text("Close"); ImGui.EndTooltip(); }
+            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text("Close"); }
         }
 
         // Popup must be rendered outside the hover check — ImGui manages its open state
@@ -129,7 +132,8 @@ internal sealed class WidgetWindow : Window
 
     private void DrawConfigPopup()
     {
-        if (!ImGui.BeginPopup("##widgetCfg"))
+        using var popup = ImRaii.Popup("##widgetCfg");
+        if (!popup.Success)
             return;
 
         var s = _trackingService.OverlaySettings;
@@ -150,10 +154,7 @@ internal sealed class WidgetWindow : Window
         ImGui.PopStyleColor();
 
         // Expansion toggles
-        var expansionNames = new (uint Id, string Name)[]
-        { (0, "A Realm Reborn"), (1, "Heavensward"), (2, "Stormblood"), (3, "Shadowbringers"), (4, "Endwalker"), (5, "Dawntrail") };
-
-        foreach (var (id, name) in expansionNames)
+        foreach (var (id, name) in Styles.Expansions)
         {
             var enabled = s.WidgetExpansions.Contains(id);
             ImGui.PushStyleColor(ImGuiCol.Text, Styles.GetExpansionColor(id));
@@ -165,11 +166,8 @@ internal sealed class WidgetWindow : Window
             ImGui.PopStyleColor();
         }
 
-
         if (changed)
             _trackingService.SaveOverlaySettings();
-
-        ImGui.EndPopup();
     }
 
     private static string GetDirectionArrow(float angleRad)
