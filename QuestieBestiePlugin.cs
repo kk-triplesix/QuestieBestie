@@ -31,7 +31,6 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     private readonly QuestService _questService;
     private readonly TrackingService _trackingService;
     private readonly IDtrBarEntry _dtrEntry;
-    private DateTime _lastNotificationCheck = DateTime.MinValue;
     private float _lastDtrPercent = -1f;
 
     public QuestieBestiePlugin(IDalamudPluginInterface pluginInterface)
@@ -76,7 +75,6 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
             HelpMessage = "/questie — Toggle main window | /questie overlay — Toggle overlay | /questie widget — Toggle widget | /questie search <name> — Search quest"
         });
 
-        _questService.CheckNewlyAvailable();
         Log.Information("QuestieBestie loaded — {Count} blue quests found", _questService.BlueQuests.Count);
     }
 
@@ -169,7 +167,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
         _questService.RefreshCompletionStatus();
         UpdateDtrText();
-        CheckNotifications();
+
         AutoRemoveCompleted();
     }
 
@@ -179,26 +177,6 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         if (Math.Abs(percent - _lastDtrPercent) < 0.01f) return;
         _lastDtrPercent = percent;
         _dtrEntry.Text = $"QB {percent:F0}%";
-    }
-
-    private void CheckNotifications()
-    {
-        if (!_trackingService.OverlaySettings.ChatNotifications) return;
-        if ((DateTime.Now - _lastNotificationCheck).TotalSeconds < 10) return;
-        _lastNotificationCheck = DateTime.Now;
-
-        foreach (var quest in _questService.CheckNewlyAvailable())
-        {
-            Chat.Print(new XivChatEntry
-            {
-                Message = new SeStringBuilder()
-                    .AddUiForeground("[QuestieBestie] ", 35)
-                    .AddText(Loc.Get("chat.newQuest"))
-                    .AddUiForeground(quest.Name, 34)
-                    .AddText($" (Lv.{quest.RequiredLevel})")
-                    .Build(),
-            });
-        }
     }
 
     private void AutoRemoveCompleted()

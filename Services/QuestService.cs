@@ -1082,27 +1082,4 @@ public sealed class QuestService
             .Select(g => new CategoryStats(g.Key.ToString(), g.Count(), g.Count(q => q.IsCompleted)))
             .ToList();
     }
-
-    private HashSet<uint> _previouslyAvailable = [];
-
-    public List<QuestData> CheckNewlyAvailable()
-    {
-        var nowAvailable = BlueQuests
-            .Where(q => !q.IsCompleted && ArePrerequisitesMet(q))
-            .Select(q => q.RowId)
-            .ToHashSet();
-
-        var newQuests = new List<QuestData>();
-        if (_previouslyAvailable.Count > 0)
-        {
-            foreach (var id in nowAvailable)
-            {
-                if (!_previouslyAvailable.Contains(id) && BlueQuestLookup.TryGetValue(id, out var q))
-                    newQuests.Add(q);
-            }
-        }
-
-        _previouslyAvailable = nowAvailable;
-        return newQuests;
-    }
 }

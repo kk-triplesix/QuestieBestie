@@ -39,8 +39,6 @@ public sealed class OverlaySettings
     public Vector4 BorderColor = new(0.33f, 0.79f, 0.79f, 1.00f);
     public bool UseCustomTheme;
     public bool AutoRemoveCompleted;
-    public bool ChatNotifications;
-    public bool SoundNotifications;
     public bool WidgetShowTotal = true;
     public HashSet<uint> WidgetExpansions = [];
     public HashSet<string> WidgetChains = [];

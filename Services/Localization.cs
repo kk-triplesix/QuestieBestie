@@ -104,8 +104,6 @@ public static class Loc
         ["settings.colors"] = new() { ["en"] = "Colors", ["de"] = "Farben", ["fr"] = "Couleurs", ["ja"] = "\u30ab\u30e9\u30fc" },
         ["settings.behavior"] = new() { ["en"] = "Behavior", ["de"] = "Verhalten", ["fr"] = "Comportement", ["ja"] = "\u52d5\u4f5c" },
         ["settings.autoRemove"] = new() { ["en"] = "Auto-remove completed quests from lists", ["de"] = "Erledigte Quests automatisch entfernen", ["fr"] = "Retirer automatiquement les qu\u00eates termin\u00e9es", ["ja"] = "\u5b8c\u4e86\u3057\u305f\u30af\u30a8\u30b9\u30c8\u3092\u81ea\u52d5\u524a\u9664" },
-        ["settings.chatNotify"] = new() { ["en"] = "Chat notifications for newly available quests", ["de"] = "Chat-Benachrichtigung bei neuen Quests", ["fr"] = "Notifications chat pour nouvelles qu\u00eates", ["ja"] = "\u65b0\u898f\u30af\u30a8\u30b9\u30c8\u306e\u30c1\u30e3\u30c3\u30c8\u901a\u77e5" },
-        ["settings.soundNotify"] = new() { ["en"] = "Sound notification for newly available quests", ["de"] = "Sound-Benachrichtigung bei neuen Quests", ["fr"] = "Notification sonore", ["ja"] = "\u30b5\u30a6\u30f3\u30c9\u901a\u77e5" },
         ["settings.reset"] = new() { ["en"] = "Reset to Defaults", ["de"] = "Zur\u00fccksetzen", ["fr"] = "R\u00e9initialiser", ["ja"] = "\u30c7\u30d5\u30a9\u30eb\u30c8\u306b\u623b\u3059" },
         ["settings.syncWarning"] = new() { ["en"] = "WARNING", ["de"] = "WARNUNG", ["fr"] = "ATTENTION", ["ja"] = "\u8b66\u544a" },
         ["settings.syncDesc"] = new() { ["en"] = "All {0} manual completion changes will be permanently removed and the quest status will be synchronized with the game state.", ["de"] = "Alle {0} manuellen Completion-\u00c4nderungen werden unwiderruflich entfernt und der Quest-Status wird mit dem Spielstand synchronisiert.", ["fr"] = "Les {0} modifications manuelles seront d\u00e9finitivement supprim\u00e9es et le statut des qu\u00eates sera synchronis\u00e9 avec l'\u00e9tat du jeu.", ["ja"] = "\u624b\u52d5\u3067\u5909\u66f4\u3057\u305f{0}\u4ef6\u306e\u5b8c\u4e86\u30b9\u30c6\u30fc\u30bf\u30b9\u304c\u5b8c\u5168\u306b\u524a\u9664\u3055\u308c\u3001\u30b2\u30fc\u30e0\u306e\u72b6\u614b\u3068\u540c\u671f\u3055\u308c\u307e\u3059\u3002" },
@@ -183,7 +181,6 @@ public static class Loc
 
         // ── Chat Messages ───────────────────────────────────────────────
         ["chat.noMatch"] = new() { ["en"] = "No blue quest found matching \"{0}\"", ["de"] = "Keine blaue Quest gefunden f\u00fcr \"{0}\"", ["fr"] = "Aucune qu\u00eate bleue trouv\u00e9e pour \"{0}\"", ["ja"] = "\"{0}\"\u306b\u4e00\u81f4\u3059\u308b\u9752\u30af\u30a8\u30b9\u30c8\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093" },
-        ["chat.newQuest"] = new() { ["en"] = "New quest available: ", ["de"] = "Neue Quest verf\u00fcgbar: ", ["fr"] = "Nouvelle qu\u00eate disponible : ", ["ja"] = "\u65b0\u3057\u3044\u30af\u30a8\u30b9\u30c8: " },
         ["chat.copied"] = new() { ["en"] = "Quest info copied to clipboard. Paste in chat to share!", ["de"] = "Quest-Info in Zwischenablage kopiert. Im Chat einf\u00fcgen zum Teilen!", ["fr"] = "Info de qu\u00eate copi\u00e9e. Collez dans le chat pour partager !", ["ja"] = "\u30af\u30a8\u30b9\u30c8\u60c5\u5831\u3092\u30af\u30ea\u30c3\u30d7\u30dc\u30fc\u30c9\u306b\u30b3\u30d4\u30fc\u3057\u307e\u3057\u305f\u3002" },
 
         // ── Unlock Prefixes ─────────────────────────────────────────────

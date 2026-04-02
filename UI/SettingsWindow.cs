@@ -112,8 +112,6 @@ internal sealed class SettingsWindow : Window, IDisposable
         ImGui.PopStyleColor();
 
         changed |= ImGui.Checkbox(Loc.Get("settings.autoRemove"), ref s.AutoRemoveCompleted);
-        changed |= ImGui.Checkbox(Loc.Get("settings.chatNotify"), ref s.ChatNotifications);
-        changed |= ImGui.Checkbox(Loc.Get("settings.soundNotify"), ref s.SoundNotifications);
 
         ImGui.Spacing();
         ImGui.Separator();
