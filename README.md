@@ -142,6 +142,12 @@ Then search for **QuestieBestie** in the plugin installer.
 
 ---
 
+## AI Disclaimer
+
+This plugin was developed with the assistance of AI tools. The plugin icon was also generated using AI. All code has been reviewed, tested, and validated by the developer.
+
+---
+
 ## License
 
 This project is provided as-is for personal use with FFXIV.
