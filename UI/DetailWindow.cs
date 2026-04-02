@@ -100,7 +100,7 @@ internal sealed class DetailWindow : Window, IDisposable
         }
         if (q.RewardGil > 0 || q.RewardExp > 0)
         {
-            var rewards = $"{(q.RewardGil > 0 ? $"{q.RewardGil} Gil" : "")} {(q.RewardExp > 0 ? $"{q.RewardExp} EXP" : "")}".Trim();
+            var rewards = $"{(q.RewardGil > 0 ? $"{q.RewardGil} {Loc.Get("reward.gil")}" : "")} {(q.RewardExp > 0 ? $"{q.RewardExp} {Loc.Get("reward.exp")}" : "")}".Trim();
             DrawInfoLine(Loc.Get("detail.rewards"), rewards);
         }
 
@@ -110,7 +110,7 @@ internal sealed class DetailWindow : Window, IDisposable
             var msqPrereq = FindFirstMsq(_prereqTree);
             if (msqPrereq != null)
             {
-                var msqStatus = msqPrereq.IsCompleted ? "v" : "x";
+                var msqStatus = msqPrereq.IsCompleted ? "\u2713" : "\u2717";
                 DrawInfoLine(Loc.Get("detail.msqReq"), $"{msqStatus} {msqPrereq.Name}", msqPrereq.IsCompleted ? Styles.TextGreen : Styles.TextRed);
             }
         }

@@ -202,6 +202,33 @@ public static class Loc
         ["unlock.hildibrand"] = new() { ["en"] = "Hildibrand adventures", ["de"] = "Hildibrand-Abenteuer", ["fr"] = "Aventures d'Hildibrand", ["ja"] = "\u30d2\u30eb\u30c7\u30a3\u30d6\u30e9\u30f3\u30c9" },
         ["unlock.relic"] = new() { ["en"] = "Relic weapon quest", ["de"] = "Relikt-Waffen-Quest", ["fr"] = "Qu\u00eate d'arme relique", ["ja"] = "\u30ec\u30ea\u30c3\u30af\u30a6\u30a7\u30dd\u30f3\u30af\u30a8\u30b9\u30c8" },
 
+        // ── Quest Data Fallbacks ────────────────────────────────────────
+        ["data.allClasses"] = new() { ["en"] = "All Classes", ["de"] = "Alle Klassen", ["fr"] = "Toutes les classes", ["ja"] = "\u5168\u30af\u30e9\u30b9" },
+        ["data.unknown"] = new() { ["en"] = "Unknown", ["de"] = "Unbekannt", ["fr"] = "Inconnu", ["ja"] = "\u4e0d\u660e" },
+
+        // ── Side Quest Tags ─────────────────────────────────────────────
+        ["side.requiredFor"] = new() { ["en"] = "Required for:", ["de"] = "Ben\u00f6tigt f\u00fcr:", ["fr"] = "Requis pour :", ["ja"] = "\u5fc5\u8981:" },
+        ["side.emote"] = new() { ["en"] = "Emote:", ["de"] = "Emote:", ["fr"] = "\u00c9mote :", ["ja"] = "\u30a8\u30e2\u30fc\u30c8:" },
+        ["side.unlocks"] = new() { ["en"] = "Unlocks:", ["de"] = "Schaltet frei:", ["fr"] = "D\u00e9bloque :", ["ja"] = "\u89e3\u653e:" },
+        ["side.tribe"] = new() { ["en"] = "Tribe:", ["de"] = "Stamm:", ["fr"] = "Tribu :", ["ja"] = "\u86ee\u65cf:" },
+
+        // ── Chain Suffixes ──────────────────────────────────────────────
+        ["chain.quests"] = new() { ["en"] = "Quests", ["de"] = "Quests", ["fr"] = "Qu\u00eates", ["ja"] = "\u30af\u30a8\u30b9\u30c8" },
+        ["chain.chain"] = new() { ["en"] = "Chain", ["de"] = "Kette", ["fr"] = "Cha\u00eene", ["ja"] = "\u30c1\u30a7\u30fc\u30f3" },
+
+        // ── Rewards/Currency ────────────────────────────────────────────
+        ["reward.gil"] = new() { ["en"] = "Gil", ["de"] = "Gil", ["fr"] = "Gils", ["ja"] = "\u30ae\u30eb" },
+        ["reward.exp"] = new() { ["en"] = "EXP", ["de"] = "EP", ["fr"] = "EXP", ["ja"] = "EXP" },
+
+        // ── Direction/Units ─────────────────────────────────────────────
+        ["dir.n"] = new() { ["en"] = "N", ["de"] = "N", ["fr"] = "N", ["ja"] = "\u5317" },
+        ["dir.e"] = new() { ["en"] = "E", ["de"] = "O", ["fr"] = "E", ["ja"] = "\u6771" },
+        ["dir.s"] = new() { ["en"] = "S", ["de"] = "S", ["fr"] = "S", ["ja"] = "\u5357" },
+        ["dir.w"] = new() { ["en"] = "W", ["de"] = "W", ["fr"] = "O", ["ja"] = "\u897f" },
+
+        // ── Plugin Info ─────────────────────────────────────────────────
+        ["plugin.dtrTooltip"] = new() { ["en"] = "QuestieBestie \u2014 Click to toggle", ["de"] = "QuestieBestie \u2014 Klicken zum Umschalten", ["fr"] = "QuestieBestie \u2014 Cliquer pour basculer", ["ja"] = "QuestieBestie \u2014 \u30af\u30ea\u30c3\u30af\u3067\u5207\u66ff" },
+
         // ── Filter Defaults ─────────────────────────────────────────────
         ["filter.allClasses"] = new() { ["en"] = "All Classes", ["de"] = "Alle Klassen", ["fr"] = "Toutes les classes", ["ja"] = "\u5168\u30af\u30e9\u30b9" },
         ["filter.allLocations"] = new() { ["en"] = "All Locations", ["de"] = "Alle Orte", ["fr"] = "Tous les lieux", ["ja"] = "\u5168\u5834\u6240" },

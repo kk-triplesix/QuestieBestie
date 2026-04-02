@@ -63,7 +63,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
         _dtrEntry = DtrBar.Get("QuestieBestie");
         _dtrEntry.OnClick += OnDtrClick;
-        _dtrEntry.Tooltip = "QuestieBestie — Click to toggle";
+        _dtrEntry.Tooltip = Loc.Get("plugin.dtrTooltip");
 
         PluginInterface.UiBuilder.OpenMainUi += OnOpenMainUi;
         PluginInterface.UiBuilder.OpenConfigUi += OnOpenConfigUi;

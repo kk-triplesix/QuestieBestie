@@ -368,7 +368,7 @@ internal sealed class MainWindow : Window, IDisposable
                     ImGui.Text($"{Loc.Get("detail.type")}:       {quest.Category}");
                     if (!string.IsNullOrEmpty(quest.Unlocks)) ImGui.Text($"{Loc.Get("detail.unlocks")}:    {quest.Unlocks}");
                     if (quest.RewardGil > 0 || quest.RewardExp > 0)
-                    { ImGui.Text($"{Loc.Get("detail.rewards")}:    {(quest.RewardGil > 0 ? $"{quest.RewardGil} Gil" : "")} {(quest.RewardExp > 0 ? $"{quest.RewardExp} EXP" : "")}"); }
+                    { ImGui.Text($"{Loc.Get("detail.rewards")}:    {(quest.RewardGil > 0 ? $"{quest.RewardGil} {Loc.Get("reward.gil")}" : "")} {(quest.RewardExp > 0 ? $"{quest.RewardExp} {Loc.Get("reward.exp")}" : "")}"); }
                     if (quest.PrerequisiteIds.Length > 0) ImGui.Text($"{Loc.Get("detail.prereqs")}:    {quest.PrerequisiteIds.Length}");
                     if (!string.IsNullOrEmpty(quest.ChainName) && _questService.ChainLookup.TryGetValue(quest.ChainName, out var chainQuests))
                     {

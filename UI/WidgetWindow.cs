@@ -177,11 +177,11 @@ internal sealed class WidgetWindow : Window, IDisposable
         var a = ((angleRad % (2 * MathF.PI)) + 2 * MathF.PI) % (2 * MathF.PI);
         return (a / (MathF.PI / 4)) switch
         {
-            < 1 => "N",
-            < 3 => "E",
-            < 5 => "S",
-            < 7 => "W",
-            _ => "N",
+            < 1 => Loc.Get("dir.n"),
+            < 3 => Loc.Get("dir.e"),
+            < 5 => Loc.Get("dir.s"),
+            < 7 => Loc.Get("dir.w"),
+            _ => Loc.Get("dir.n"),
         };
     }
 }

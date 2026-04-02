@@ -93,7 +93,7 @@ public sealed class QuestService
             if (quest.PreviousQuest[1].RowId != 0) prereqs.Add(quest.PreviousQuest[1].RowId);
             if (quest.PreviousQuest[2].RowId != 0) prereqs.Add(quest.PreviousQuest[2].RowId);
 
-            var classJob = quest.ClassJobCategory0.ValueNullable?.Name.ExtractText() ?? "All Classes";
+            var classJob = quest.ClassJobCategory0.ValueNullable?.Name.ExtractText() ?? Loc.Get("data.allClasses");
             var isClassQuest = quest.ClassJobRequired.RowId != 0;
 
             // Location from quest PlaceName
@@ -341,9 +341,9 @@ public sealed class QuestService
             if (string.IsNullOrEmpty(chainName))
             {
                 var sharedClass = chain.Select(q => q.RequiredClassJob).Distinct().ToList();
-                chainName = sharedClass.Count == 1 && sharedClass[0] != "All Classes"
-                    ? $"{sharedClass[0]} Quests"
-                    : $"{chain[0].Name} Chain";
+                chainName = sharedClass.Count == 1 && sharedClass[0] != Loc.Get("data.allClasses")
+                    ? $"{sharedClass[0]} {Loc.Get("chain.quests")}"
+                    : $"{chain[0].Name} {Loc.Get("chain.chain")}";
             }
 
             for (var i = 0; i < chain.Count; i++)
@@ -428,7 +428,7 @@ public sealed class QuestService
             if (unlocksBlueQuest.TryGetValue(quest.RowId, out var blueQuestName))
             {
                 isSpecial = true;
-                specialTags.Add($"Required for: {blueQuestName}");
+                specialTags.Add($"{Loc.Get("side.requiredFor")} {blueQuestName}");
             }
 
             // Emote reward
@@ -437,7 +437,7 @@ public sealed class QuestService
             {
                 var emoteName = emote.Value.Name.ExtractText();
                 if (!string.IsNullOrWhiteSpace(emoteName))
-                { isSpecial = true; specialTags.Add($"Emote: /{emoteName}"); }
+                { isSpecial = true; specialTags.Add($"{Loc.Get("side.emote")} /{emoteName}"); }
             }
 
             // General action reward (mount, companion related)
@@ -448,7 +448,7 @@ public sealed class QuestService
                 {
                     var gaName = ga.Value.Name.ExtractText();
                     if (!string.IsNullOrWhiteSpace(gaName))
-                    { isSpecial = true; specialTags.Add($"Unlocks: {gaName}"); }
+                    { isSpecial = true; specialTags.Add($"{Loc.Get("side.unlocks")} {gaName}"); }
                 }
             }
 
@@ -457,10 +457,10 @@ public sealed class QuestService
             {
                 var tribeName = quest.BeastTribe.ValueNullable?.Name.ExtractText();
                 if (!string.IsNullOrWhiteSpace(tribeName))
-                { isSpecial = true; specialTags.Add($"Tribe: {tribeName}"); }
+                { isSpecial = true; specialTags.Add($"{Loc.Get("side.tribe")} {tribeName}"); }
             }
 
-            var classJob = quest.ClassJobCategory0.ValueNullable?.Name.ExtractText() ?? "All Classes";
+            var classJob = quest.ClassJobCategory0.ValueNullable?.Name.ExtractText() ?? Loc.Get("data.allClasses");
             var location = quest.PlaceName.ValueNullable?.Name.ExtractText() ?? "";
             if (string.IsNullOrWhiteSpace(location))
                 location = quest.IssuerLocation.ValueNullable?.Territory.ValueNullable?.PlaceName.ValueNullable?.Name.ExtractText() ?? "";
@@ -552,15 +552,15 @@ public sealed class QuestService
             return (blueQuest.Name, blueQuest.IsCompleted, true);
 
         if (_questSheet == null)
-            return ("Unknown", false, false);
+            return (Loc.Get("data.unknown"), false, false);
 
         var quest = _questSheet.GetRowOrDefault(rowId);
         if (quest == null)
-            return ("Unknown", false, false);
+            return (Loc.Get("data.unknown"), false, false);
 
         var name = quest.Value.Name.ExtractText();
         if (string.IsNullOrWhiteSpace(name))
-            return ("Unknown", false, false);
+            return (Loc.Get("data.unknown"), false, false);
 
         bool isCompleted;
         unsafe
@@ -625,7 +625,7 @@ public sealed class QuestService
                 continue;
 
             var (name, isCompleted, isBlueQuest) = GetPrerequisiteInfo(prereqId);
-            if (name == "Unknown")
+            if (name == Loc.Get("data.unknown"))
                 continue;
 
             // Check if this prereq is an MSQ — show it but don't recurse deeper
