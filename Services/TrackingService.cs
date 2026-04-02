@@ -1,4 +1,3 @@
-using ECommons.DalamudServices;
 using QuestieBestie.Models;
 
 namespace QuestieBestie.Services;
@@ -9,7 +8,7 @@ public sealed class TrackingService
 
     public TrackingService()
     {
-        _config = Svc.PluginInterface.GetPluginConfig() as TrackingConfig ?? new TrackingConfig();
+        _config = QuestieBestiePlugin.PluginInterface.GetPluginConfig() as TrackingConfig ?? new TrackingConfig();
         if (_config.Lists.Count == 0)
             _config.Lists.Add(new TrackingList { Name = "Default" });
     }
@@ -185,6 +184,9 @@ public sealed class TrackingService
 
     public bool ImportList(string json)
     {
+        if (string.IsNullOrWhiteSpace(json) || json.Length > 1_000_000)
+            return false;
+
         try
         {
             var doc = System.Text.Json.JsonDocument.Parse(json);
@@ -221,7 +223,7 @@ public sealed class TrackingService
                     result.Add((quest.RowId, youDone, theyDone));
             }
         }
-        catch { }
+        catch { /* JSON parse failure */ }
         return result;
     }
 
@@ -232,6 +234,6 @@ public sealed class TrackingService
 
     private void Save()
     {
-        Svc.PluginInterface.SavePluginConfig(_config);
+        QuestieBestiePlugin.PluginInterface.SavePluginConfig(_config);
     }
 }

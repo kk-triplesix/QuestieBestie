@@ -1,8 +1,8 @@
 using System.Numerics;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Utility;
-using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using QuestieBestie.Models;
 
@@ -15,14 +15,30 @@ public sealed class QuestService
     public List<QuestData> BlueQuests { get; } = [];
     public Dictionary<uint, QuestData> BlueQuestLookup { get; } = [];
     public List<QuestData> SideQuests { get; } = [];
+    public Dictionary<string, List<QuestData>> ChainLookup { get; } = [];
+    public int SpecialSideQuestCount { get; private set; }
+
+    private readonly ExcelSheet<Quest>? _questSheet;
+    private readonly ExcelSheet<Quest>? _enQuestSheet;
+    private Dictionary<uint, ContentFinderCondition>? _cfcByContentId;
 
     private DateTime _lastRefresh = DateTime.MinValue;
     private HashSet<uint>? _manuallyCompleted;
 
+    // Cached stats - updated in RefreshCompletionStatus()
+    private int _cachedCompletedCount;
+    private int _cachedTotalCount;
+    private float _cachedCompletionPercent;
+    private List<ExpansionStats>? _cachedExpansionStats;
+    private List<CategoryStats>? _cachedCategoryStats;
+
     public QuestService()
     {
+        _questSheet = QuestieBestiePlugin.Data.GetExcelSheet<Quest>();
+        _enQuestSheet = QuestieBestiePlugin.Data.GetExcelSheet<Quest>(Dalamud.Game.ClientLanguage.English);
         LoadBlueQuests();
         LoadSideQuests();
+        _cachedTotalCount = BlueQuests.Count;
     }
 
     public void SetManuallyCompleted(HashSet<uint> manuallyCompleted)
@@ -33,10 +49,12 @@ public sealed class QuestService
     private void LoadBlueQuests()
     {
         // Use English sheet for categorization/dedup, client sheet for display names
-        var enSheet = Svc.Data.GetExcelSheet<Quest>(Dalamud.Game.ClientLanguage.English);
-        var localSheet = Svc.Data.GetExcelSheet<Quest>();
+        var enSheet = _enQuestSheet;
+        var localSheet = _questSheet;
         if (enSheet == null || localSheet == null)
             return;
+
+        var npcSheet = QuestieBestiePlugin.Data.GetExcelSheet<ENpcResident>();
 
         foreach (var quest in enSheet)
         {
@@ -100,12 +118,11 @@ public sealed class QuestService
             var npcName = "";
             try
             {
-                var npcSheet = Svc.Data.GetExcelSheet<Lumina.Excel.Sheets.ENpcResident>();
                 var npcRow = npcSheet?.GetRowOrDefault(quest.IssuerStart.RowId);
                 if (npcRow != null)
                     npcName = npcRow.Value.Singular.ExtractText();
             }
-            catch { }
+            catch { /* NPC resolution is best-effort */ }
 
             // Rewards
             var rewardGil = quest.GilReward;
@@ -290,6 +307,13 @@ public sealed class QuestService
 
     private void BuildQuestChains()
     {
+        // Build reverse lookup: prerequisiteId -> quests that depend on it
+        var dependents = new Dictionary<uint, List<QuestData>>();
+        foreach (var q in BlueQuests)
+            foreach (var pid in q.PrerequisiteIds)
+                if (BlueQuestLookup.ContainsKey(pid))
+                    (dependents.TryGetValue(pid, out var list) ? list : (dependents[pid] = [])).Add(q);
+
         // Build chains by following PreviousQuest links between blue quests
         var visited = new HashSet<uint>();
 
@@ -300,7 +324,7 @@ public sealed class QuestService
 
             // Walk backwards to find the chain root
             var chain = new List<QuestData>();
-            CollectChain(quest.RowId, chain, visited);
+            CollectChain(quest.RowId, chain, visited, dependents);
 
             if (chain.Count <= 1)
                 continue;
@@ -326,33 +350,41 @@ public sealed class QuestService
                 chain[i].ChainIndex = i + 1;
             }
         }
+
+        // Build ChainLookup for fast chain queries
+        foreach (var quest in BlueQuests)
+        {
+            if (string.IsNullOrEmpty(quest.ChainName))
+                continue;
+            if (!ChainLookup.TryGetValue(quest.ChainName, out var list))
+                ChainLookup[quest.ChainName] = list = [];
+            list.Add(quest);
+        }
     }
 
-    private void CollectChain(uint rowId, List<QuestData> chain, HashSet<uint> visited)
+    private void CollectChain(uint rowId, List<QuestData> chain, HashSet<uint> visited, Dictionary<uint, List<QuestData>> dependents)
     {
         if (!visited.Add(rowId) || !BlueQuestLookup.TryGetValue(rowId, out var quest))
             return;
 
         chain.Add(quest);
 
-        // Follow quests that have this quest as a prerequisite
-        foreach (var other in BlueQuests)
-        {
-            if (other.PrerequisiteIds.Contains(rowId))
-                CollectChain(other.RowId, chain, visited);
-        }
+        // Follow quests that have this quest as a prerequisite (O(1) lookup)
+        if (dependents.TryGetValue(rowId, out var deps))
+            foreach (var dep in deps)
+                CollectChain(dep.RowId, chain, visited, dependents);
 
         // Follow this quest's prerequisites if they're blue quests
         foreach (var prereqId in quest.PrerequisiteIds)
         {
             if (BlueQuestLookup.ContainsKey(prereqId))
-                CollectChain(prereqId, chain, visited);
+                CollectChain(prereqId, chain, visited, dependents);
         }
     }
 
     private void LoadSideQuests()
     {
-        var questSheet = Svc.Data.GetExcelSheet<Quest>();
+        var questSheet = QuestieBestiePlugin.Data.GetExcelSheet<Quest>();
         if (questSheet == null)
             return;
 
@@ -463,6 +495,8 @@ public sealed class QuestService
         var dupes = SideQuests.GroupBy(q => q.Name).Where(g => g.Count() > 1)
             .SelectMany(g => g.OrderByDescending(q => q.RowId).Skip(1)).Select(q => q.RowId).ToHashSet();
         if (dupes.Count > 0) SideQuests.RemoveAll(q => dupes.Contains(q.RowId));
+
+        SpecialSideQuestCount = SideQuests.Count(q => q.IsSpecial);
     }
 
     public void RefreshCompletionStatus()
@@ -501,6 +535,13 @@ public sealed class QuestService
             foreach (var quest in SideQuests)
                 quest.IsCompleted = QuestManager.IsQuestComplete(quest.QuestId);
         }
+
+        // Update cached stats
+        _cachedCompletedCount = BlueQuests.Count(q => q.IsCompleted);
+        _cachedTotalCount = BlueQuests.Count;
+        _cachedCompletionPercent = _cachedTotalCount > 0 ? (float)_cachedCompletedCount / _cachedTotalCount * 100f : 0f;
+        _cachedExpansionStats = null;
+        _cachedCategoryStats = null;
     }
 
     public (string Name, bool IsCompleted, bool IsBlueQuest) GetPrerequisiteInfo(uint rowId)
@@ -508,11 +549,10 @@ public sealed class QuestService
         if (BlueQuestLookup.TryGetValue(rowId, out var blueQuest))
             return (blueQuest.Name, blueQuest.IsCompleted, true);
 
-        var questSheet = Svc.Data.GetExcelSheet<Quest>();
-        if (questSheet == null)
+        if (_questSheet == null)
             return ("Unknown", false, false);
 
-        var quest = questSheet.GetRowOrDefault(rowId);
+        var quest = _questSheet.GetRowOrDefault(rowId);
         if (quest == null)
             return ("Unknown", false, false);
 
@@ -534,11 +574,10 @@ public sealed class QuestService
 
     public void OpenQuestOnMap(uint rowId)
     {
-        var questSheet = Svc.Data.GetExcelSheet<Quest>();
-        if (questSheet == null)
+        if (_questSheet == null)
             return;
 
-        var quest = questSheet.GetRowOrDefault(rowId);
+        var quest = _questSheet.GetRowOrDefault(rowId);
         if (quest == null)
             return;
 
@@ -554,7 +593,7 @@ public sealed class QuestService
 
         var mapCoords = MapUtil.WorldToMap(new Vector2(level.X, level.Z), map.Value);
         var payload = new MapLinkPayload(territory.Value.RowId, map.Value.RowId, mapCoords.X, mapCoords.Y);
-        Svc.GameGui.OpenMapWithMapLink(payload);
+        QuestieBestiePlugin.GameGui.OpenMapWithMapLink(payload);
     }
 
     public List<PrerequisiteNode> GetPrerequisiteTree(uint rowId, int maxDepth = 10)
@@ -565,14 +604,10 @@ public sealed class QuestService
 
     private List<PrerequisiteNode> BuildPrerequisiteTree(uint rowId, HashSet<uint> visited, int depth)
     {
-        if (depth <= 0)
+        if (depth <= 0 || _questSheet == null)
             return [];
 
-        var questSheet = Svc.Data.GetExcelSheet<Quest>();
-        if (questSheet == null)
-            return [];
-
-        var quest = questSheet.GetRowOrDefault(rowId);
+        var quest = _questSheet.GetRowOrDefault(rowId);
         if (quest == null)
             return [];
 
@@ -701,7 +736,7 @@ public sealed class QuestService
                     || instruction.StartsWith("UNLOCK_ADD_NEW_CONTENT") || instruction.StartsWith("UNLOCK_DUNGEON"))
                     hasUnlockInstruction = true;
             }
-            catch { break; }
+            catch { break; } // Expected: index out of range for ScriptInstruction/QuestParams
         }
 
         if (hasUnlockInstruction && scriptInstanceId != 0)
@@ -783,31 +818,33 @@ public sealed class QuestService
 
     private (QuestCategory Category, string Unlocks)? LookupInstanceContent(uint instanceContentId)
     {
-        var cfcSheet = Svc.Data.GetExcelSheet<ContentFinderCondition>();
-        if (cfcSheet == null)
-            return null;
-
-        foreach (var cfc in cfcSheet)
+        // Lazy-init CFC index on first use
+        if (_cfcByContentId == null)
         {
-            // Match by Content RowId — try any ContentLinkType, not just 1
-            if (cfc.Content.RowId != instanceContentId)
-                continue;
+            var cfcSheet = QuestieBestiePlugin.Data.GetExcelSheet<ContentFinderCondition>();
+            if (cfcSheet == null)
+                return null;
 
-            var contentName = cfc.Name.ExtractText();
-            if (string.IsNullOrWhiteSpace(contentName))
-                continue;
-
-            var contentTypeId = cfc.ContentType.RowId;
-            return contentTypeId switch
+            _cfcByContentId = [];
+            foreach (var cfc in cfcSheet)
             {
-                2 => (QuestCategory.Dungeon, $"Unlocks {contentName}"),
-                4 => (QuestCategory.Trial, $"Unlocks {contentName}"),
-                5 or 28 or 37 => (QuestCategory.Raid, $"Unlocks {contentName}"),
-                _ => (QuestCategory.Other, $"Unlocks {contentName}"),
-            };
+                if (cfc.Content.RowId != 0 && !string.IsNullOrWhiteSpace(cfc.Name.ExtractText()))
+                    _cfcByContentId.TryAdd(cfc.Content.RowId, cfc);
+            }
         }
 
-        return null;
+        if (!_cfcByContentId.TryGetValue(instanceContentId, out var match))
+            return null;
+
+        var contentName = match.Name.ExtractText();
+        var contentTypeId = match.ContentType.RowId;
+        return contentTypeId switch
+        {
+            2 => (QuestCategory.Dungeon, $"Unlocks {contentName}"),
+            4 => (QuestCategory.Trial, $"Unlocks {contentName}"),
+            5 or 28 or 37 => (QuestCategory.Raid, $"Unlocks {contentName}"),
+            _ => (QuestCategory.Other, $"Unlocks {contentName}"),
+        };
     }
 
     private static (QuestCategory Category, string Unlocks)? CheckUmbrellaQuest(Quest quest)
@@ -849,11 +886,10 @@ public sealed class QuestService
 
     public bool IsMsqQuest(uint rowId)
     {
-        var questSheet = Svc.Data.GetExcelSheet<Quest>();
-        if (questSheet == null)
+        if (_questSheet == null)
             return false;
 
-        var quest = questSheet.GetRowOrDefault(rowId);
+        var quest = _questSheet.GetRowOrDefault(rowId);
         return quest != null && quest.Value.EventIconType.RowId == 3;
     }
 
@@ -871,12 +907,12 @@ public sealed class QuestService
     public float GetDistanceToPlayer(QuestData quest)
     {
         #pragma warning disable CS0618
-        var player = Svc.ClientState.LocalPlayer;
+        var player = QuestieBestiePlugin.ClientState.LocalPlayer;
         #pragma warning restore CS0618
         if (player == null)
             return float.MaxValue;
 
-        var playerTerritory = Svc.ClientState.TerritoryType;
+        var playerTerritory = QuestieBestiePlugin.ClientState.TerritoryType;
         if (quest.TerritoryId != playerTerritory)
             return float.MaxValue;
 
@@ -892,9 +928,9 @@ public sealed class QuestService
 
         // Group by territory, sort groups by closest territory first, then nearest-neighbor within each group
         #pragma warning disable CS0618
-        var player = Svc.ClientState.LocalPlayer;
+        var player = QuestieBestiePlugin.ClientState.LocalPlayer;
         #pragma warning restore CS0618
-        var playerTerritory = Svc.ClientState.TerritoryType;
+        var playerTerritory = QuestieBestiePlugin.ClientState.TerritoryType;
         var playerX = player?.Position.X ?? 0f;
         var playerZ = player?.Position.Z ?? 0f;
 
@@ -939,9 +975,8 @@ public sealed class QuestService
         if (!BlueQuestLookup.TryGetValue(rowId, out var questData))
             return;
 
-        var questSheet = Svc.Data.GetExcelSheet<Quest>();
-        if (questSheet == null) return;
-        var quest = questSheet.GetRowOrDefault(rowId);
+        if (_questSheet == null) return;
+        var quest = _questSheet.GetRowOrDefault(rowId);
         if (quest == null) return;
 
         var issuerLocation = quest.Value.IssuerLocation.ValueNullable;
@@ -967,14 +1002,14 @@ public sealed class QuestService
             .AddText($"{payload.PlaceName} ({mapCoords.X:F1}, {mapCoords.Y:F1})")
             .Add(RawPayload.LinkTerminator)
             .Build();
-        Svc.Chat.Print(new Dalamud.Game.Text.XivChatEntry { Message = msg });
+        QuestieBestiePlugin.Chat.Print(new Dalamud.Game.Text.XivChatEntry { Message = msg });
 
         // Also copy flag command to clipboard so user can paste in chat for others
         var flagCmd = $"/flag {payload.PlaceName} ({mapCoords.X:F1}, {mapCoords.Y:F1})";
         ImGui.SetClipboardText($"{name} (Lv.{questData.RequiredLevel}){unlockInfo} - {payload.PlaceName} ({mapCoords.X:F1}, {mapCoords.Y:F1})");
 
         // Confirmation
-        Svc.Chat.Print(new Dalamud.Game.Text.XivChatEntry
+        QuestieBestiePlugin.Chat.Print(new Dalamud.Game.Text.XivChatEntry
         {
             Message = new Dalamud.Game.Text.SeStringHandling.SeStringBuilder()
                 .AddUiForeground("[QuestieBestie] ", 35)
@@ -987,12 +1022,12 @@ public sealed class QuestService
     public (float DirectionRad, float Distance, string QuestName)? GetNearestTrackedQuestDirection(List<uint> trackedIds)
     {
         #pragma warning disable CS0618
-        var player = Svc.ClientState.LocalPlayer;
+        var player = QuestieBestiePlugin.ClientState.LocalPlayer;
         #pragma warning restore CS0618
         if (player == null || trackedIds.Count == 0)
             return null;
 
-        var territory = Svc.ClientState.TerritoryType;
+        var territory = QuestieBestiePlugin.ClientState.TerritoryType;
         QuestData? nearest = null;
         var minDist = float.MaxValue;
 
@@ -1020,9 +1055,9 @@ public sealed class QuestService
         return (angle, minDist, nearest.Name);
     }
 
-    public int CompletedCount => BlueQuests.Count(q => q.IsCompleted);
-    public int TotalCount => BlueQuests.Count;
-    public float CompletionPercent => TotalCount > 0 ? (float)CompletedCount / TotalCount * 100f : 0f;
+    public int CompletedCount => _cachedCompletedCount;
+    public int TotalCount => _cachedTotalCount;
+    public float CompletionPercent => _cachedCompletionPercent;
 
     public record ExpansionStats(string Name, int Total, int Completed)
     {
@@ -1036,7 +1071,7 @@ public sealed class QuestService
 
     public List<ExpansionStats> GetExpansionStats()
     {
-        return BlueQuests
+        return _cachedExpansionStats ??= BlueQuests
             .GroupBy(q => q.Expansion)
             .OrderBy(g => g.First().ExpansionId)
             .Select(g => new ExpansionStats(g.Key, g.Count(), g.Count(q => q.IsCompleted)))
@@ -1045,7 +1080,7 @@ public sealed class QuestService
 
     public List<CategoryStats> GetCategoryStats()
     {
-        return BlueQuests
+        return _cachedCategoryStats ??= BlueQuests
             .GroupBy(q => q.Category)
             .OrderBy(g => g.Key)
             .Select(g => new CategoryStats(g.Key.ToString(), g.Count(), g.Count(q => q.IsCompleted)))

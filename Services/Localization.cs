@@ -1,5 +1,3 @@
-using ECommons.DalamudServices;
-
 namespace QuestieBestie.Services;
 
 public static class Loc
@@ -8,7 +6,7 @@ public static class Loc
 
     public static void Init()
     {
-        var clientLang = Svc.ClientState.ClientLanguage.ToString().ToLowerInvariant();
+        var clientLang = QuestieBestiePlugin.ClientState.ClientLanguage.ToString().ToLowerInvariant();
         _lang = clientLang switch
         {
             "german" => "de",

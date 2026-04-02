@@ -2,9 +2,9 @@ using Dalamud.Game.Gui.Dtr;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Interface.Windowing;
+using Dalamud.IoC;
 using Dalamud.Plugin;
-using ECommons;
-using ECommons.DalamudServices;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using QuestieBestie.Services;
 using QuestieBestie.UI;
@@ -13,6 +13,16 @@ namespace QuestieBestie;
 
 public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 {
+    [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
+    [PluginService] internal static IChatGui Chat { get; private set; } = null!;
+    [PluginService] internal static ICommandManager Commands { get; private set; } = null!;
+    [PluginService] internal static IClientState ClientState { get; private set; } = null!;
+    [PluginService] internal static IDataManager Data { get; private set; } = null!;
+    [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
+    [PluginService] internal static IDtrBar DtrBar { get; private set; } = null!;
+    [PluginService] internal static IPluginLog Log { get; private set; } = null!;
+    [PluginService] internal static IFramework Framework { get; private set; } = null!;
+
     private readonly WindowSystem _windowSystem;
     private readonly MainWindow _mainWindow;
     private readonly OverlayWindow _overlayWindow;
@@ -27,19 +37,14 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
     public QuestieBestiePlugin(IDalamudPluginInterface pluginInterface)
     {
-        ECommonsMain.Init(pluginInterface, this);
         Loc.Init();
 
         _questService = new QuestService();
         _trackingService = new TrackingService();
         _questService.SetManuallyCompleted(_trackingService.ManuallyCompleted);
-        _detailWindow = new DetailWindow(_questService);
-        _detailWindow.SetTrackingService(_trackingService);
-        _overlayWindow = new OverlayWindow(_questService, _trackingService);
-        _settingsWindow = new SettingsWindow(_trackingService);
-        _settingsWindow.SetQuestService(_questService);
-        _overlayWindow.SetSettingsWindow(_settingsWindow);
-        _overlayWindow.SetDetailWindow(_detailWindow);
+        _detailWindow = new DetailWindow(_questService, _trackingService);
+        _settingsWindow = new SettingsWindow(_trackingService, _questService);
+        _overlayWindow = new OverlayWindow(_questService, _trackingService, _settingsWindow, _detailWindow);
         _widgetWindow = new WidgetWindow(_questService, _trackingService);
         _mainWindow = new MainWindow(_questService, _detailWindow, _trackingService, _overlayWindow, _settingsWindow, _widgetWindow);
 
@@ -58,20 +63,20 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         _detailWindow.IsOpen = false;
         _settingsWindow.IsOpen = false;
 
-        _dtrEntry = Svc.DtrBar.Get("QuestieBestie");
+        _dtrEntry = DtrBar.Get("QuestieBestie");
         _dtrEntry.OnClick += OnDtrClick;
         UpdateDtrText();
 
-        Svc.PluginInterface.UiBuilder.OpenMainUi += OnOpenMainUi;
-        Svc.PluginInterface.UiBuilder.OpenConfigUi += OnOpenMainUi;
-        Svc.PluginInterface.UiBuilder.Draw += OnDraw;
+        PluginInterface.UiBuilder.OpenMainUi += OnOpenMainUi;
+        PluginInterface.UiBuilder.OpenConfigUi += OnOpenMainUi;
+        PluginInterface.UiBuilder.Draw += OnDraw;
         // Journal hook disabled — caused false triggers opening detail window
-        // Svc.Framework.Update += OnFrameworkUpdate;
+        // Framework.Update += OnFrameworkUpdate;
 
         // Chat message handler — detect quest names in chat and offer to open detail
-        Svc.Chat.ChatMessage += OnChatMessage;
+        Chat.ChatMessage += OnChatMessage;
 
-        Svc.Commands.AddHandler("/questie", new Dalamud.Game.Command.CommandInfo(OnCommand)
+        Commands.AddHandler("/questie", new Dalamud.Game.Command.CommandInfo(OnCommand)
         {
             HelpMessage = "/questie — Toggle main window | /questie overlay — Toggle overlay | /questie widget — Toggle widget | /questie search <name> — Search quest"
         });
@@ -121,13 +126,12 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         }
         else
         {
-            Svc.Chat.Print(new XivChatEntry
+            Chat.Print(new XivChatEntry
             {
                 Message = new SeStringBuilder()
                     .AddUiForeground("[QuestieBestie] ", 35)
                     .AddText($"No blue quest found matching \"{searchTerm}\"")
                     .Build(),
-                Type = XivChatType.Echo
             });
         }
     }
@@ -153,7 +157,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
     private void OnDraw()
     {
-        if (Svc.GameGui.GameUiHidden) return;
+        if (GameGui.GameUiHidden) return;
         _windowSystem.Draw();
         UpdateDtrText();
         CheckNotifications();
@@ -164,7 +168,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
     {
         try
         {
-            var addon = Svc.GameGui.GetAddonByName("JournalDetail");
+            var addon = GameGui.GetAddonByName("JournalDetail");
             var isOpen = !addon.IsNull && addon.IsVisible;
 
             if (isOpen && !_wasJournalOpen)
@@ -195,7 +199,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
             _wasJournalOpen = isOpen;
         }
-        catch { }
+        catch { /* Journal detection is best-effort */ }
     }
 
     private void UpdateDtrText()
@@ -213,7 +217,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
         foreach (var quest in _questService.CheckNewlyAvailable())
         {
-            Svc.Chat.Print(new XivChatEntry
+            Chat.Print(new XivChatEntry
             {
                 Message = new SeStringBuilder()
                     .AddUiForeground("[QuestieBestie] ", 35)
@@ -221,7 +225,6 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
                     .AddUiForeground(quest.Name, 34)
                     .AddText($" (Lv.{quest.RequiredLevel})")
                     .Build(),
-                Type = XivChatType.Echo
             });
         }
     }
@@ -242,13 +245,12 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
     public void Dispose()
     {
-        Svc.Chat.ChatMessage -= OnChatMessage;
-        Svc.Commands.RemoveHandler("/questie");
-        Svc.PluginInterface.UiBuilder.OpenMainUi -= OnOpenMainUi;
-        Svc.PluginInterface.UiBuilder.OpenConfigUi -= OnOpenMainUi;
-        Svc.PluginInterface.UiBuilder.Draw -= OnDraw;
+        Chat.ChatMessage -= OnChatMessage;
+        Commands.RemoveHandler("/questie");
+        PluginInterface.UiBuilder.OpenMainUi -= OnOpenMainUi;
+        PluginInterface.UiBuilder.OpenConfigUi -= OnOpenMainUi;
+        PluginInterface.UiBuilder.Draw -= OnDraw;
         _dtrEntry.OnClick -= OnDtrClick;
         _dtrEntry.Remove();
-        ECommonsMain.Dispose();
     }
 }

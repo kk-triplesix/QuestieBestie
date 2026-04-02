@@ -2,6 +2,7 @@
 	<PropertyGroup>
 		<Description>QuestieBestie - Your friendly quest companion.</Description>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
 
 	<ItemGroup>
