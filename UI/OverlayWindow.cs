@@ -110,23 +110,22 @@ internal sealed class OverlayWindow : Window, IDisposable
         ImGui.Text($"({_questService.CompletionPercent:F0}%)");
         ImGui.PopStyleColor();
 
-        // Settings + Close buttons (right-aligned, only on hover)
-        if (_showButtons)
-        {
-            ImGui.SameLine();
-            ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 64 * ImGuiHelpers.GlobalScale);
-            if (ImGuiComponents.IconButton("ovSettings", FontAwesomeIcon.Cog))
-                _settingsWindow.Toggle();
-            if (ImGui.IsItemHovered())
-            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("header.settings")); }
-            ImGui.SameLine();
-            ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);
-            if (ImGuiComponents.IconButton("ovClose", FontAwesomeIcon.Times))
-                IsOpen = false;
-            ImGui.PopStyleColor();
-            if (ImGui.IsItemHovered())
-            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("misc.close")); }
-        }
+        // Settings + Close buttons (right-aligned, always rendered for stable layout)
+        ImGui.SameLine();
+        ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 64 * ImGuiHelpers.GlobalScale);
+        if (!_showButtons) ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.0f);
+        if (ImGuiComponents.IconButton("ovSettings", FontAwesomeIcon.Cog) && _showButtons)
+            _settingsWindow.Toggle();
+        if (_showButtons && ImGui.IsItemHovered())
+        { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("header.settings")); }
+        ImGui.SameLine();
+        if (_showButtons) ImGui.PushStyleColor(ImGuiCol.Text, Styles.TextRed);
+        if (ImGuiComponents.IconButton("ovClose", FontAwesomeIcon.Times) && _showButtons)
+            IsOpen = false;
+        if (_showButtons) ImGui.PopStyleColor();
+        if (_showButtons && ImGui.IsItemHovered())
+        { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("misc.close")); }
+        if (!_showButtons) ImGui.PopStyleVar();
     }
 
     private void DrawListSwitcher(OverlaySettings s)
