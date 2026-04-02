@@ -9,7 +9,7 @@ using QuestieBestie.Services;
 
 namespace QuestieBestie.UI;
 
-internal sealed class MainWindow : Window
+internal sealed class MainWindow : Window, IDisposable
 {
     private readonly QuestService _questService;
     private readonly DetailWindow _detailWindow;
@@ -51,6 +51,8 @@ internal sealed class MainWindow : Window
         _unlockFilterOptions = ["All Unlocks", .. questService.BlueQuests
             .Select(q => q.Unlocks).Where(u => !string.IsNullOrWhiteSpace(u)).Distinct().OrderBy(u => u)];
     }
+
+    public void Dispose() { }
 
     public override void PreDraw() => Styles.PushMainStyle();
     public override void PostDraw() => Styles.PopMainStyle();

@@ -264,5 +264,12 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
         PluginInterface.UiBuilder.Draw -= OnDraw;
         _dtrEntry.OnClick -= OnDtrClick;
         _dtrEntry.Remove();
+
+        _windowSystem.RemoveAllWindows();
+        _mainWindow.Dispose();
+        _overlayWindow.Dispose();
+        _detailWindow.Dispose();
+        _settingsWindow.Dispose();
+        _widgetWindow.Dispose();
     }
 }

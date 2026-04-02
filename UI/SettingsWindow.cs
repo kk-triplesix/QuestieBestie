@@ -7,7 +7,7 @@ using QuestieBestie.Services;
 
 namespace QuestieBestie.UI;
 
-internal sealed class SettingsWindow : Window
+internal sealed class SettingsWindow : Window, IDisposable
 {
     private readonly TrackingService _trackingService;
     private readonly QuestService _questService;
@@ -25,6 +25,8 @@ internal sealed class SettingsWindow : Window
         };
         IsOpen = false;
     }
+
+    public void Dispose() { }
 
     public override void PreDraw() => Styles.PushMainStyle();
     public override void PostDraw() => Styles.PopMainStyle();

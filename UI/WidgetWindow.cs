@@ -8,7 +8,7 @@ using QuestieBestie.Services;
 
 namespace QuestieBestie.UI;
 
-internal sealed class WidgetWindow : Window
+internal sealed class WidgetWindow : Window, IDisposable
 {
     private readonly QuestService _questService;
     private readonly TrackingService _trackingService;
@@ -31,6 +31,8 @@ internal sealed class WidgetWindow : Window
         AllowPinning = false;
         ShowCloseButton = false;
     }
+
+    public void Dispose() { }
 
     public override void PreDraw()
     {

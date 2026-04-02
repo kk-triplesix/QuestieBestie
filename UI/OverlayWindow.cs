@@ -9,7 +9,7 @@ using QuestieBestie.Services;
 
 namespace QuestieBestie.UI;
 
-internal sealed class OverlayWindow : Window
+internal sealed class OverlayWindow : Window, IDisposable
 {
     private readonly QuestService _questService;
     private readonly TrackingService _trackingService;
@@ -42,6 +42,8 @@ internal sealed class OverlayWindow : Window
             MaximumSize = new Vector2(800, 1200) * ImGuiHelpers.GlobalScale,
         };
     }
+
+    public void Dispose() { }
 
     public override void PreDraw()
     {
