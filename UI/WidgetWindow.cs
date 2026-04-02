@@ -54,7 +54,6 @@ internal sealed class WidgetWindow : Window, IDisposable
 
     public override void Draw()
     {
-        _questService.RefreshCompletionStatus();
         var s = _trackingService.OverlaySettings;
 
         if (ImGui.IsWindowHovered(ImGuiHoveredFlags.RootAndChildWindows | ImGuiHoveredFlags.AllowWhenBlockedByActiveItem))

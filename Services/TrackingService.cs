@@ -200,8 +200,9 @@ public sealed class TrackingService
             Save();
             return true;
         }
-        catch
+        catch (Exception ex)
         {
+            QuestieBestiePlugin.Log.Warning("Failed to import list: {Error}", ex.Message);
             return false;
         }
     }

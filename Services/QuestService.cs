@@ -39,6 +39,8 @@ public sealed class QuestService
         LoadBlueQuests();
         LoadSideQuests();
         _cachedTotalCount = BlueQuests.Count;
+        QuestieBestiePlugin.Log.Information("QuestService: {Blue} blue quests, {Side} side quests, {Chains} chains loaded",
+            BlueQuests.Count, SideQuests.Count, ChainLookup.Count);
     }
 
     public void SetManuallyCompleted(HashSet<uint> manuallyCompleted)
@@ -122,7 +124,7 @@ public sealed class QuestService
                 if (npcRow != null)
                     npcName = npcRow.Value.Singular.ExtractText();
             }
-            catch { /* NPC resolution is best-effort */ }
+            catch (Exception ex) { QuestieBestiePlugin.Log.Verbose("NPC resolution failed for quest {Id}: {Error}", quest.RowId, ex.Message); }
 
             // Rewards
             var rewardGil = quest.GilReward;

@@ -53,7 +53,6 @@ internal sealed class DetailWindow : Window, IDisposable
     public override void Draw()
     {
         if (_quest == null) { IsOpen = false; return; }
-        _questService.RefreshCompletionStatus();
 
         DrawQuestHeader();
         ImGui.Spacing(); ImGui.Separator(); ImGui.Spacing();

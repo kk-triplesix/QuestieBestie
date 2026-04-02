@@ -59,7 +59,6 @@ internal sealed class MainWindow : Window, IDisposable
 
     public override void Draw()
     {
-        _questService.RefreshCompletionStatus();
         DrawHeader();
         ImGui.Spacing();
 

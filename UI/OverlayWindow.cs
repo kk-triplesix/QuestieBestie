@@ -79,8 +79,6 @@ internal sealed class OverlayWindow : Window, IDisposable
             _lastHovered = DateTime.Now;
         _showButtons = (DateTime.Now - _lastHovered).TotalSeconds < 2.0;
 
-        _questService.RefreshCompletionStatus();
-
         DrawHeader(s);
         ImGui.Separator();
         DrawListSwitcher(s);
