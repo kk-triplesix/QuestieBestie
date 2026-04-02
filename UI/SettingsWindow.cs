@@ -47,10 +47,10 @@ internal sealed class SettingsWindow : Window, IDisposable
         ImGui.Text(Loc.Get("settings.general"));
         ImGui.PopStyleColor();
 
-        changed |= ImGui.SliderFloat("Font Scale", ref s.FontScale, 0.5f, 2.0f, "%.1f");
-        changed |= ImGui.SliderFloat("Background Opacity", ref s.BackgroundAlpha, 0.0f, 1.0f, "%.2f");
-        changed |= ImGui.SliderFloat("Border Opacity", ref s.BorderAlpha, 0.0f, 1.0f, "%.2f");
-        changed |= ImGui.SliderFloat("Window Rounding", ref s.WindowRounding, 0.0f, 20.0f, "%.0f");
+        changed |= ImGui.SliderFloat(Loc.Get("settings.fontScale"), ref s.FontScale, 0.5f, 2.0f, "%.1f");
+        changed |= ImGui.SliderFloat(Loc.Get("settings.bgOpacity"), ref s.BackgroundAlpha, 0.0f, 1.0f, "%.2f");
+        changed |= ImGui.SliderFloat(Loc.Get("settings.borderOpacity"), ref s.BorderAlpha, 0.0f, 1.0f, "%.2f");
+        changed |= ImGui.SliderFloat(Loc.Get("settings.windowRounding"), ref s.WindowRounding, 0.0f, 20.0f, "%.0f");
 
         ImGui.Spacing();
         ImGui.Separator();
@@ -61,13 +61,13 @@ internal sealed class SettingsWindow : Window, IDisposable
         ImGui.Text(Loc.Get("settings.colors"));
         ImGui.PopStyleColor();
 
-        changed |= ColorEdit("Text", ref s.TextColor);
-        changed |= ColorEdit("Header", ref s.HeaderColor);
-        changed |= ColorEdit("Completed", ref s.CompletedColor);
-        changed |= ColorEdit("Level Badge", ref s.LevelColor);
-        changed |= ColorEdit("Warning", ref s.WarningColor);
-        changed |= ColorEdit("Background", ref s.BackgroundColor);
-        changed |= ColorEdit("Border", ref s.BorderColor);
+        changed |= ColorEdit(Loc.Get("settings.colorText"), ref s.TextColor);
+        changed |= ColorEdit(Loc.Get("settings.colorHeader"), ref s.HeaderColor);
+        changed |= ColorEdit(Loc.Get("settings.colorCompleted"), ref s.CompletedColor);
+        changed |= ColorEdit(Loc.Get("settings.colorLevel"), ref s.LevelColor);
+        changed |= ColorEdit(Loc.Get("settings.colorWarning"), ref s.WarningColor);
+        changed |= ColorEdit(Loc.Get("settings.colorBg"), ref s.BackgroundColor);
+        changed |= ColorEdit(Loc.Get("settings.colorBorder"), ref s.BorderColor);
 
         ImGui.Spacing();
         ImGui.Separator();
@@ -78,7 +78,7 @@ internal sealed class SettingsWindow : Window, IDisposable
         ImGui.Text(Loc.Get("settings.widgetBars"));
         ImGui.PopStyleColor();
 
-        if (ImGui.Checkbox("Total", ref s.WidgetShowTotal))
+        if (ImGui.Checkbox(Loc.Get("misc.total"), ref s.WidgetShowTotal))
             changed = true;
 
         foreach (var (id, name) in Styles.Expansions)

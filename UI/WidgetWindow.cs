@@ -148,7 +148,7 @@ internal sealed class WidgetWindow : Window, IDisposable
         ImGui.Separator();
 
         // Total toggle
-        if (ImGui.Checkbox("Total", ref s.WidgetShowTotal))
+        if (ImGui.Checkbox(Loc.Get("misc.total"), ref s.WidgetShowTotal))
             changed = true;
 
         ImGui.Separator();

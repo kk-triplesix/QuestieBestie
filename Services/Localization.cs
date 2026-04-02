@@ -147,5 +147,22 @@ public static class Loc
 
         // ── Recent Tab ──────────────────────────────────────────────────
         ["tab.recent"] = new() { ["en"] = "Recent", ["de"] = "Zuletzt", ["fr"] = "R\u00e9cents", ["ja"] = "\u6700\u8fd1" },
+
+        // ── Settings Slider/Color Labels ────────────────────────────────
+        ["settings.fontScale"] = new() { ["en"] = "Font Scale", ["de"] = "Schriftgr\u00f6\u00dfe", ["fr"] = "\u00c9chelle police", ["ja"] = "\u30d5\u30a9\u30f3\u30c8\u30b5\u30a4\u30ba" },
+        ["settings.bgOpacity"] = new() { ["en"] = "Background Opacity", ["de"] = "Hintergrund-Deckkraft", ["fr"] = "Opacit\u00e9 arri\u00e8re-plan", ["ja"] = "\u80cc\u666f\u306e\u4e0d\u900f\u660e\u5ea6" },
+        ["settings.borderOpacity"] = new() { ["en"] = "Border Opacity", ["de"] = "Rahmen-Deckkraft", ["fr"] = "Opacit\u00e9 bordure", ["ja"] = "\u30dc\u30fc\u30c0\u30fc\u306e\u4e0d\u900f\u660e\u5ea6" },
+        ["settings.windowRounding"] = new() { ["en"] = "Window Rounding", ["de"] = "Fenster-Abrundung", ["fr"] = "Arrondi fen\u00eatre", ["ja"] = "\u30a6\u30a3\u30f3\u30c9\u30a6\u4e38\u307f" },
+        ["settings.colorText"] = new() { ["en"] = "Text", ["de"] = "Text", ["fr"] = "Texte", ["ja"] = "\u30c6\u30ad\u30b9\u30c8" },
+        ["settings.colorHeader"] = new() { ["en"] = "Header", ["de"] = "Kopfzeile", ["fr"] = "En-t\u00eate", ["ja"] = "\u30d8\u30c3\u30c0\u30fc" },
+        ["settings.colorCompleted"] = new() { ["en"] = "Completed", ["de"] = "Erledigt", ["fr"] = "Termin\u00e9", ["ja"] = "\u5b8c\u4e86" },
+        ["settings.colorLevel"] = new() { ["en"] = "Level Badge", ["de"] = "Level-Abzeichen", ["fr"] = "Badge niveau", ["ja"] = "\u30ec\u30d9\u30eb\u30d0\u30c3\u30b8" },
+        ["settings.colorWarning"] = new() { ["en"] = "Warning", ["de"] = "Warnung", ["fr"] = "Avertissement", ["ja"] = "\u8b66\u544a" },
+        ["settings.colorBg"] = new() { ["en"] = "Background", ["de"] = "Hintergrund", ["fr"] = "Arri\u00e8re-plan", ["ja"] = "\u80cc\u666f" },
+        ["settings.colorBorder"] = new() { ["en"] = "Border", ["de"] = "Rahmen", ["fr"] = "Bordure", ["ja"] = "\u30dc\u30fc\u30c0\u30fc" },
+
+        // ── Table Misc ──────────────────────────────────────────────────
+        ["misc.autoFit"] = new() { ["en"] = "Auto-fit columns", ["de"] = "Spalten anpassen", ["fr"] = "Ajuster colonnes", ["ja"] = "\u5217\u3092\u81ea\u52d5\u8abf\u6574" },
+        ["misc.resetColumns"] = new() { ["en"] = "Reset column widths", ["de"] = "Spaltenbreiten zur\u00fccksetzen", ["fr"] = "R\u00e9initialiser largeurs", ["ja"] = "\u5217\u5e45\u3092\u30ea\u30bb\u30c3\u30c8" },
     };
 }

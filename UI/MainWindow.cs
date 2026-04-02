@@ -300,7 +300,7 @@ internal sealed class MainWindow : Window, IDisposable
         }
         ImGui.PopStyleVar();
         if (ImGui.IsItemHovered())
-        { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(_autoFitted ? "Reset column widths" : "Auto-fit columns"); }
+        { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(_autoFitted ? Loc.Get("misc.resetColumns") : Loc.Get("misc.autoFit")); }
         for (var col = 1; col < 8; col++)
         { ImGui.TableSetColumnIndex(col); ImGui.TableHeader(ImGui.TableGetColumnName(col)); }
         HandleSorting();
