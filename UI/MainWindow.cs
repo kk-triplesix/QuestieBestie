@@ -44,11 +44,11 @@ internal sealed class MainWindow : Window, IDisposable
         _widgetWindow = widgetWindow;
         SizeConstraints = new WindowSizeConstraints { MinimumSize = new Vector2(750, 500) * ImGuiHelpers.GlobalScale, MaximumSize = new Vector2(9999, 9999) };
 
-        _classJobOptions = ["All Classes", .. questService.BlueQuests.Select(q => q.RequiredClassJob).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().OrderBy(c => c)];
-        _locationOptions = ["All Locations", .. questService.BlueQuests.Select(q => q.Location).Where(l => !string.IsNullOrWhiteSpace(l)).Distinct().OrderBy(l => l)];
-        _expansionOptions = ["All Expansions", .. questService.BlueQuests.Select(q => q.Expansion).Where(e => !string.IsNullOrWhiteSpace(e)).Distinct().OrderBy(e => questService.BlueQuests.First(q => q.Expansion == e).ExpansionId)];
-        _categoryOptions = ["All Types", "Feature", "Job Unlock", "Dungeon", "Trial", "Raid", "Other"];
-        _unlockFilterOptions = ["All Unlocks", .. questService.BlueQuests
+        _classJobOptions = [Loc.Get("filter.allClasses"), .. questService.BlueQuests.Select(q => q.RequiredClassJob).Where(c => !string.IsNullOrWhiteSpace(c)).Distinct().OrderBy(c => c)];
+        _locationOptions = [Loc.Get("filter.allLocations"), .. questService.BlueQuests.Select(q => q.Location).Where(l => !string.IsNullOrWhiteSpace(l)).Distinct().OrderBy(l => l)];
+        _expansionOptions = [Loc.Get("filter.allExpansions"), .. questService.BlueQuests.Select(q => q.Expansion).Where(e => !string.IsNullOrWhiteSpace(e)).Distinct().OrderBy(e => questService.BlueQuests.First(q => q.Expansion == e).ExpansionId)];
+        _categoryOptions = [Loc.Get("filter.allTypes"), Loc.Get("cat.feature"), Loc.Get("cat.jobUnlock"), Loc.Get("cat.dungeon"), Loc.Get("cat.trial"), Loc.Get("cat.raid"), Loc.Get("cat.other")];
+        _unlockFilterOptions = [Loc.Get("filter.allUnlocks"), .. questService.BlueQuests
             .Select(q => q.Unlocks).Where(u => !string.IsNullOrWhiteSpace(u)).Distinct().OrderBy(u => u)];
     }
 
@@ -720,12 +720,12 @@ internal sealed class MainWindow : Window, IDisposable
         // Location + Special tag filters
         if (_sideLocationOptions.Length == 0)
         {
-            _sideLocationOptions = ["All Locations", .. _questService.SideQuests
+            _sideLocationOptions = [Loc.Get("filter.allLocations"), .. _questService.SideQuests
                 .Select(q => q.Location).Where(l => !string.IsNullOrWhiteSpace(l)).Distinct().OrderBy(l => l)];
         }
         if (_sideSpecialOptions.Length == 0)
         {
-            _sideSpecialOptions = ["All Specials", .. _questService.SideQuests
+            _sideSpecialOptions = [Loc.Get("filter.allSpecials"), .. _questService.SideQuests
                 .Where(q => q.IsSpecial && !string.IsNullOrWhiteSpace(q.SpecialTag))
                 .Select(q => q.SpecialTag).Distinct().OrderBy(s => s)];
         }

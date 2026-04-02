@@ -167,5 +167,21 @@ public static class Loc
         ["col.exp"] = new() { ["en"] = "Exp.", ["de"] = "Erw.", ["fr"] = "Ext.", ["ja"] = "\u62e1\u5f35" },
         ["col.done"] = new() { ["en"] = "Done", ["de"] = "Fertig", ["fr"] = "Fait", ["ja"] = "\u6e08" },
         ["badge.new"] = new() { ["en"] = "NEW", ["de"] = "NEU", ["fr"] = "NOUV.", ["ja"] = "NEW" },
+
+        // ── Filter Defaults ─────────────────────────────────────────────
+        ["filter.allClasses"] = new() { ["en"] = "All Classes", ["de"] = "Alle Klassen", ["fr"] = "Toutes les classes", ["ja"] = "\u5168\u30af\u30e9\u30b9" },
+        ["filter.allLocations"] = new() { ["en"] = "All Locations", ["de"] = "Alle Orte", ["fr"] = "Tous les lieux", ["ja"] = "\u5168\u5834\u6240" },
+        ["filter.allExpansions"] = new() { ["en"] = "All Expansions", ["de"] = "Alle Erweiterungen", ["fr"] = "Toutes les extensions", ["ja"] = "\u5168\u62e1\u5f35" },
+        ["filter.allTypes"] = new() { ["en"] = "All Types", ["de"] = "Alle Typen", ["fr"] = "Tous les types", ["ja"] = "\u5168\u30bf\u30a4\u30d7" },
+        ["filter.allUnlocks"] = new() { ["en"] = "All Unlocks", ["de"] = "Alle Freischaltungen", ["fr"] = "Tous les d\u00e9blocages", ["ja"] = "\u5168\u89e3\u653e" },
+        ["filter.allSpecials"] = new() { ["en"] = "All Specials", ["de"] = "Alle Besonderen", ["fr"] = "Tous les sp\u00e9ciaux", ["ja"] = "\u5168\u7279\u5225" },
+
+        // ── Category Names ──────────────────────────────────────────────
+        ["cat.feature"] = new() { ["en"] = "Feature", ["de"] = "Feature", ["fr"] = "Fonctionnalit\u00e9", ["ja"] = "\u6a5f\u80fd" },
+        ["cat.jobUnlock"] = new() { ["en"] = "Job Unlock", ["de"] = "Job-Freischaltung", ["fr"] = "D\u00e9blocage de job", ["ja"] = "\u30b8\u30e7\u30d6\u89e3\u653e" },
+        ["cat.dungeon"] = new() { ["en"] = "Dungeon", ["de"] = "Dungeon", ["fr"] = "Donjon", ["ja"] = "\u30c0\u30f3\u30b8\u30e7\u30f3" },
+        ["cat.trial"] = new() { ["en"] = "Trial", ["de"] = "Primal", ["fr"] = "\u00c9preuve", ["ja"] = "\u8a0e\u4f10" },
+        ["cat.raid"] = new() { ["en"] = "Raid", ["de"] = "Raid", ["fr"] = "Raid", ["ja"] = "\u30ec\u30a4\u30c9" },
+        ["cat.other"] = new() { ["en"] = "Other", ["de"] = "Sonstiges", ["fr"] = "Autre", ["ja"] = "\u305d\u306e\u4ed6" },
     };
 }
