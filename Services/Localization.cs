@@ -30,7 +30,7 @@ public static class Loc
         ["tab.stats"] = new() { ["en"] = "Statistics", ["de"] = "Statistiken", ["fr"] = "Statistiques", ["ja"] = "\u7d71\u8a08" },
 
         // ── Header ──────────────────────────────────────────────────────
-        ["header.subtitle"] = new() { ["en"] = "Blue Quest Tracker", ["de"] = "Blauer Quest Tracker", ["fr"] = "Suivi de qu\u00eates bleues", ["ja"] = "\u9752\u30af\u30a8\u30b9\u30c8\u30c8\u30e9\u30c3\u30ab\u30fc" },
+        ["header.subtitle"] = new() { ["en"] = "Blue Quest Tracker", ["de"] = "Blue Quest Tracker", ["fr"] = "Blue Quest Tracker", ["ja"] = "\u9752\u30af\u30a8\u30b9\u30c8\u30c8\u30e9\u30c3\u30ab\u30fc" },
         ["header.overlay"] = new() { ["en"] = "Overlay", ["de"] = "Overlay", ["fr"] = "Overlay", ["ja"] = "\u30aa\u30fc\u30d0\u30fc\u30ec\u30a4" },
         ["header.hideOverlay"] = new() { ["en"] = "Hide Overlay", ["de"] = "Overlay aus", ["fr"] = "Masquer", ["ja"] = "\u975e\u8868\u793a" },
         ["header.widget"] = new() { ["en"] = "Widget", ["de"] = "Widget", ["fr"] = "Widget", ["ja"] = "\u30a6\u30a3\u30b8\u30a7\u30c3\u30c8" },
