@@ -129,19 +129,19 @@ internal sealed class SettingsWindow : Window
                 if (modal.Success)
                 {
                     ImGui.PushStyleColor(ImGuiCol.Text, Styles.FavoriteStar);
-                    ImGui.Text("WARNUNG");
+                    ImGui.Text(Loc.Get("settings.syncWarning"));
                     ImGui.PopStyleColor();
                     ImGui.Spacing();
-                    ImGui.TextWrapped($"Alle {manualCount} manuellen Completion-Aenderungen werden unwiderruflich entfernt und der Quest-Status wird mit dem Gamestate synchronisiert.");
+                    ImGui.TextWrapped(string.Format(Loc.Get("settings.syncDesc"), manualCount));
                     ImGui.Spacing();
-                    ImGui.TextWrapped("Dieser Vorgang kann nicht rueckgaengig gemacht werden!");
+                    ImGui.TextWrapped(Loc.Get("settings.syncIrreversible"));
                     ImGui.Spacing();
                     ImGui.Separator();
                     ImGui.Spacing();
 
                     ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.7f, 0.15f, 0.15f, 1f));
                     ImGui.PushStyleColor(ImGuiCol.ButtonHovered, new Vector4(0.9f, 0.2f, 0.2f, 1f));
-                    if (ImGui.Button("Ja, alle lokalen Aenderungen entfernen", new Vector2(300 * ImGuiHelpers.GlobalScale, 0)))
+                    if (ImGui.Button(Loc.Get("settings.syncConfirm"), new Vector2(300 * ImGuiHelpers.GlobalScale, 0)))
                     {
                         _trackingService.ClearManualCompletions();
                         _questService.RefreshCompletionStatus();
@@ -150,7 +150,7 @@ internal sealed class SettingsWindow : Window
                     ImGui.PopStyleColor(2);
 
                     ImGui.SameLine();
-                    if (ImGui.Button("Abbrechen", new Vector2(100 * ImGuiHelpers.GlobalScale, 0)))
+                    if (ImGui.Button(Loc.Get("settings.syncCancel"), new Vector2(100 * ImGuiHelpers.GlobalScale, 0)))
                         ImGui.CloseCurrentPopup();
                 }
             }
