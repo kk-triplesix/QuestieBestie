@@ -99,6 +99,7 @@ public static class Loc
 
         // ── Settings ────────────────────────────────────────────────────
         ["settings.title"] = new() { ["en"] = "Overlay Settings", ["de"] = "Overlay Einstellungen", ["fr"] = "Param\u00e8tres Overlay", ["ja"] = "\u30aa\u30fc\u30d0\u30fc\u30ec\u30a4\u8a2d\u5b9a" },
+        ["settings.customTheme"] = new() { ["en"] = "Use QuestieBestie dark theme (override Dalamud style)", ["de"] = "QuestieBestie Dark-Theme verwenden (Dalamud-Stil \u00fcberschreiben)", ["fr"] = "Utiliser le th\u00e8me sombre QuestieBestie (remplacer le style Dalamud)", ["ja"] = "QuestieBestie\u30c0\u30fc\u30af\u30c6\u30fc\u30de\u3092\u4f7f\u7528 (Dalamud\u30b9\u30bf\u30a4\u30eb\u3092\u4e0a\u66f8\u304d)" },
         ["settings.general"] = new() { ["en"] = "General", ["de"] = "Allgemein", ["fr"] = "G\u00e9n\u00e9ral", ["ja"] = "\u4e00\u822c" },
         ["settings.colors"] = new() { ["en"] = "Colors", ["de"] = "Farben", ["fr"] = "Couleurs", ["ja"] = "\u30ab\u30e9\u30fc" },
         ["settings.behavior"] = new() { ["en"] = "Behavior", ["de"] = "Verhalten", ["fr"] = "Comportement", ["ja"] = "\u52d5\u4f5c" },

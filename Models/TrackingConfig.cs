@@ -37,6 +37,7 @@ public sealed class OverlaySettings
     public Vector4 WarningColor = new(0.90f, 0.35f, 0.40f, 1.00f);
     public Vector4 BackgroundColor = new(0.08f, 0.08f, 0.14f, 1.00f);
     public Vector4 BorderColor = new(0.33f, 0.79f, 0.79f, 1.00f);
+    public bool UseCustomTheme;
     public bool AutoRemoveCompleted;
     public bool ChatNotifications;
     public bool SoundNotifications;

@@ -28,6 +28,9 @@ internal sealed class SettingsWindow : Window, IDisposable
 
     public void Dispose() { }
 
+    public override void PreDraw() { if (_trackingService.OverlaySettings.UseCustomTheme) Styles.PushCustomTheme(); }
+    public override void PostDraw() { if (_trackingService.OverlaySettings.UseCustomTheme) Styles.PopCustomTheme(); }
+
     public override void Draw()
     {
         var s = _trackingService.OverlaySettings;
@@ -36,6 +39,13 @@ internal sealed class SettingsWindow : Window, IDisposable
         ImGui.PushStyleColor(ImGuiCol.Text, Styles.AccentCyan);
         ImGui.Text(Loc.Get("settings.title"));
         ImGui.PopStyleColor();
+        ImGui.Separator();
+        ImGui.Spacing();
+
+        // Theme
+        changed |= ImGui.Checkbox(Loc.Get("settings.customTheme"), ref s.UseCustomTheme);
+
+        ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
 
