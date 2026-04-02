@@ -226,6 +226,7 @@ public static class Loc
 
         // ── Plugin Info ─────────────────────────────────────────────────
         ["plugin.dtrTooltip"] = new() { ["en"] = "QuestieBestie \u2014 Click to toggle", ["de"] = "QuestieBestie \u2014 Klicken zum Umschalten", ["fr"] = "QuestieBestie \u2014 Cliquer pour basculer", ["ja"] = "QuestieBestie \u2014 \u30af\u30ea\u30c3\u30af\u3067\u5207\u66ff" },
+        ["plugin.helpMessage"] = new() { ["en"] = "/questie \u2014 Toggle main window | /questie overlay \u2014 Toggle overlay | /questie widget \u2014 Toggle widget | /questie search <name> \u2014 Search quest", ["de"] = "/questie \u2014 Hauptfenster umschalten | /questie overlay \u2014 Overlay umschalten | /questie widget \u2014 Widget umschalten | /questie search <Name> \u2014 Quest suchen", ["fr"] = "/questie \u2014 Basculer fen\u00eatre | /questie overlay \u2014 Basculer overlay | /questie widget \u2014 Basculer widget | /questie search <nom> \u2014 Chercher qu\u00eate", ["ja"] = "/questie \u2014 \u30e1\u30a4\u30f3\u30a6\u30a3\u30f3\u30c9\u30a6\u5207\u66ff | /questie overlay \u2014 \u30aa\u30fc\u30d0\u30fc\u30ec\u30a4\u5207\u66ff | /questie widget \u2014 \u30a6\u30a3\u30b8\u30a7\u30c3\u30c8\u5207\u66ff | /questie search <\u540d\u524d> \u2014 \u30af\u30a8\u30b9\u30c8\u691c\u7d22" },
 
         // ── Filter Defaults ─────────────────────────────────────────────
         ["filter.allClasses"] = new() { ["en"] = "All Classes", ["de"] = "Alle Klassen", ["fr"] = "Toutes les classes", ["ja"] = "\u5168\u30af\u30e9\u30b9" },

@@ -72,7 +72,7 @@ public sealed class QuestieBestiePlugin : IDalamudPlugin, IDisposable
 
         Commands.AddHandler("/questie", new Dalamud.Game.Command.CommandInfo(OnCommand)
         {
-            HelpMessage = "/questie — Toggle main window | /questie overlay — Toggle overlay | /questie widget — Toggle widget | /questie search <name> — Search quest"
+            HelpMessage = Loc.Get("plugin.helpMessage")
         });
 
         Log.Information("QuestieBestie loaded — {Count} blue quests found", _questService.BlueQuests.Count);
