@@ -111,18 +111,19 @@ internal sealed class OverlayWindow : Window, IDisposable
         // Settings + Close buttons (right-aligned, always rendered for stable layout)
         ImGui.SameLine();
         ImGui.SetCursorPosX(ImGui.GetWindowWidth() - 64 * ImGuiHelpers.GlobalScale);
-        if (!_showButtons) ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.0f);
-        if (ImGuiComponents.IconButton("ovSettings", FontAwesomeIcon.Cog) && _showButtons)
-            _settingsWindow.Toggle();
-        if (_showButtons && ImGui.IsItemHovered())
-        { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("header.settings")); }
-        ImGui.SameLine();
-        using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextRed, _showButtons))
-            if (ImGuiComponents.IconButton("ovClose", FontAwesomeIcon.Times) && _showButtons)
-                IsOpen = false;
-        if (_showButtons && ImGui.IsItemHovered())
-        { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("misc.close")); }
-        if (!_showButtons) ImGui.PopStyleVar();
+        using (ImRaii.PushStyle(ImGuiStyleVar.Alpha, 0.0f, !_showButtons))
+        {
+            if (ImGuiComponents.IconButton("ovSettings", FontAwesomeIcon.Cog) && _showButtons)
+                _settingsWindow.Toggle();
+            if (_showButtons && ImGui.IsItemHovered())
+            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("header.settings")); }
+            ImGui.SameLine();
+            using (ImRaii.PushColor(ImGuiCol.Text, Styles.TextRed, _showButtons))
+                if (ImGuiComponents.IconButton("ovClose", FontAwesomeIcon.Times) && _showButtons)
+                    IsOpen = false;
+            if (_showButtons && ImGui.IsItemHovered())
+            { using var tt = ImRaii.Tooltip(); if (tt.Success) ImGui.Text(Loc.Get("misc.close")); }
+        }
     }
 
     private void DrawListSwitcher(OverlaySettings s)

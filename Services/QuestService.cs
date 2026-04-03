@@ -66,13 +66,13 @@ public sealed class QuestService
             if (!BlueQuestEventIconTypes.Contains(quest.EventIconType.RowId))
                 continue;
 
-            var enName = quest.Name.ExtractText();
+            var enName = quest.Name.ToString();
             if (string.IsNullOrWhiteSpace(enName))
                 continue;
 
             // Display name from client language
             var localQuest = localSheet.GetRowOrDefault(quest.RowId);
-            var name = localQuest?.Name.ExtractText() ?? enName;
+            var name = localQuest?.Name.ToString() ?? enName;
             if (string.IsNullOrWhiteSpace(name))
                 name = enName;
 
@@ -93,17 +93,17 @@ public sealed class QuestService
             if (quest.PreviousQuest[1].RowId != 0) prereqs.Add(quest.PreviousQuest[1].RowId);
             if (quest.PreviousQuest[2].RowId != 0) prereqs.Add(quest.PreviousQuest[2].RowId);
 
-            var classJob = quest.ClassJobCategory0.ValueNullable?.Name.ExtractText() ?? Loc.Get("data.allClasses");
+            var classJob = quest.ClassJobCategory0.ValueNullable?.Name.ToString() ?? Loc.Get("data.allClasses");
             var isClassQuest = quest.ClassJobRequired.RowId != 0;
 
             // Location from quest PlaceName
-            var location = quest.PlaceName.ValueNullable?.Name.ExtractText() ?? "";
+            var location = quest.PlaceName.ValueNullable?.Name.ToString() ?? "";
             if (string.IsNullOrWhiteSpace(location))
-                location = quest.IssuerLocation.ValueNullable?.Territory.ValueNullable?.PlaceName.ValueNullable?.Name.ExtractText() ?? "";
+                location = quest.IssuerLocation.ValueNullable?.Territory.ValueNullable?.PlaceName.ValueNullable?.Name.ToString() ?? "";
 
             // Expansion
             var expansionId = quest.Expansion.RowId;
-            var expansion = quest.Expansion.ValueNullable?.Name.ExtractText() ?? "";
+            var expansion = quest.Expansion.ValueNullable?.Name.ToString() ?? "";
             if (string.IsNullOrWhiteSpace(expansion))
                 expansion = expansionId == 0 ? "A Realm Reborn" : $"Expansion {expansionId}";
 
@@ -123,7 +123,7 @@ public sealed class QuestService
             {
                 var npcRow = npcSheet?.GetRowOrDefault(quest.IssuerStart.RowId);
                 if (npcRow != null)
-                    npcName = npcRow.Value.Singular.ExtractText();
+                    npcName = npcRow.Value.Singular.ToString();
             }
             catch (Exception ex) { QuestieBestiePlugin.Log.Verbose("NPC resolution failed for quest {Id}: {Error}", quest.RowId, ex.Message); }
 
@@ -387,9 +387,7 @@ public sealed class QuestService
 
     private void LoadSideQuests()
     {
-        var questSheet = QuestieBestiePlugin.Data.GetExcelSheet<Quest>();
-        if (questSheet == null)
-            return;
+        var questSheet = QuestieBestiePlugin.Data.GetExcelSheet<Quest>()!;
 
         // Collect all blue quest prerequisite IDs that are NOT blue quests themselves
         var bluePrereqIds = BlueQuests
@@ -414,7 +412,7 @@ public sealed class QuestService
             if (quest.EventIconType.RowId != 1)
                 continue;
 
-            var name = quest.Name.ExtractText();
+            var name = quest.Name.ToString();
             if (string.IsNullOrWhiteSpace(name))
                 continue;
 
@@ -436,7 +434,7 @@ public sealed class QuestService
             var emote = quest.EmoteReward.ValueNullable;
             if (emote != null)
             {
-                var emoteName = emote.Value.Name.ExtractText();
+                var emoteName = emote.Value.Name.ToString();
                 if (!string.IsNullOrWhiteSpace(emoteName))
                 { isSpecial = true; specialTags.Add($"{Loc.Get("side.emote")} /{emoteName}"); }
             }
@@ -447,7 +445,7 @@ public sealed class QuestService
                 var ga = quest.GeneralActionReward[i].ValueNullable;
                 if (ga != null)
                 {
-                    var gaName = ga.Value.Name.ExtractText();
+                    var gaName = ga.Value.Name.ToString();
                     if (!string.IsNullOrWhiteSpace(gaName))
                     { isSpecial = true; specialTags.Add($"{Loc.Get("side.unlocks")} {gaName}"); }
                 }
@@ -456,18 +454,18 @@ public sealed class QuestService
             // Beast tribe
             if (quest.BeastTribe.RowId != 0)
             {
-                var tribeName = quest.BeastTribe.ValueNullable?.Name.ExtractText();
+                var tribeName = quest.BeastTribe.ValueNullable?.Name.ToString();
                 if (!string.IsNullOrWhiteSpace(tribeName))
                 { isSpecial = true; specialTags.Add($"{Loc.Get("side.tribe")} {tribeName}"); }
             }
 
-            var classJob = quest.ClassJobCategory0.ValueNullable?.Name.ExtractText() ?? Loc.Get("data.allClasses");
-            var location = quest.PlaceName.ValueNullable?.Name.ExtractText() ?? "";
+            var classJob = quest.ClassJobCategory0.ValueNullable?.Name.ToString() ?? Loc.Get("data.allClasses");
+            var location = quest.PlaceName.ValueNullable?.Name.ToString() ?? "";
             if (string.IsNullOrWhiteSpace(location))
-                location = quest.IssuerLocation.ValueNullable?.Territory.ValueNullable?.PlaceName.ValueNullable?.Name.ExtractText() ?? "";
+                location = quest.IssuerLocation.ValueNullable?.Territory.ValueNullable?.PlaceName.ValueNullable?.Name.ToString() ?? "";
 
             var expansionId = quest.Expansion.RowId;
-            var expansion = quest.Expansion.ValueNullable?.Name.ExtractText() ?? "";
+            var expansion = quest.Expansion.ValueNullable?.Name.ToString() ?? "";
             if (string.IsNullOrWhiteSpace(expansion))
                 expansion = expansionId == 0 ? "A Realm Reborn" : $"Expansion {expansionId}";
 
@@ -559,7 +557,7 @@ public sealed class QuestService
         if (quest == null)
             return (Loc.Get("data.unknown"), false, false);
 
-        var name = quest.Value.Name.ExtractText();
+        var name = quest.Value.Name.ToString();
         if (string.IsNullOrWhiteSpace(name))
             return (Loc.Get("data.unknown"), false, false);
 
@@ -656,7 +654,7 @@ public sealed class QuestService
         var jobUnlock = displayQuest.ClassJobUnlock.ValueNullable;
         if (jobUnlock != null)
         {
-            var jobName = jobUnlock.Value.Name.ExtractText();
+            var jobName = jobUnlock.Value.Name.ToString();
             if (!string.IsNullOrWhiteSpace(jobName))
                 return (QuestCategory.JobUnlock, $"{Loc.Get("unlock.unlocks")} {jobName}");
         }
@@ -678,7 +676,7 @@ public sealed class QuestService
             var ga = displayQuest.GeneralActionReward[i].ValueNullable;
             if (ga != null)
             {
-                var gaName = ga.Value.Name.ExtractText();
+                var gaName = ga.Value.Name.ToString();
                 if (!string.IsNullOrWhiteSpace(gaName))
                     return (QuestCategory.Feature, $"{Loc.Get("unlock.unlocks")} {gaName}");
             }
@@ -688,7 +686,7 @@ public sealed class QuestService
         var otherReward = displayQuest.OtherReward.ValueNullable;
         if (otherReward != null)
         {
-            var rewardName = otherReward.Value.Name.ExtractText();
+            var rewardName = otherReward.Value.Name.ToString();
             if (!string.IsNullOrWhiteSpace(rewardName) && rewardName != "???")
                 return (QuestCategory.Feature, $"{Loc.Get("unlock.rewards")} {rewardName}");
         }
@@ -697,7 +695,7 @@ public sealed class QuestService
         var emote = displayQuest.EmoteReward.ValueNullable;
         if (emote != null)
         {
-            var emoteName = emote.Value.Name.ExtractText();
+            var emoteName = emote.Value.Name.ToString();
             if (!string.IsNullOrWhiteSpace(emoteName))
                 return (QuestCategory.Feature, $"{Loc.Get("unlock.unlocks")} /{emoteName}");
         }
@@ -706,7 +704,7 @@ public sealed class QuestService
         var action = displayQuest.ActionReward.ValueNullable;
         if (action != null)
         {
-            var actionName = action.Value.Name.ExtractText();
+            var actionName = action.Value.Name.ToString();
             if (!string.IsNullOrWhiteSpace(actionName))
                 return (QuestCategory.Feature, $"{Loc.Get("unlock.unlocks")} {actionName}");
         }
@@ -714,7 +712,7 @@ public sealed class QuestService
         // Beast tribe
         if (quest.BeastTribe.RowId != 0)
         {
-            var tribeName = displayQuest.BeastTribe.ValueNullable?.Name.ExtractText();
+            var tribeName = displayQuest.BeastTribe.ValueNullable?.Name.ToString();
             if (!string.IsNullOrWhiteSpace(tribeName))
                 return (QuestCategory.Feature, $"{Loc.Get("unlock.unlocks")} {tribeName}");
         }
@@ -730,7 +728,7 @@ public sealed class QuestService
         var paramCount = quest.QuestParams.Count;
         for (var i = 0; i < paramCount; i++)
         {
-            var instruction = quest.QuestParams[i].ScriptInstruction.ExtractText();
+            var instruction = quest.QuestParams[i].ScriptInstruction.ToString();
             if (string.IsNullOrEmpty(instruction))
                 continue;
 
@@ -754,7 +752,7 @@ public sealed class QuestService
             return (QuestCategory.Dungeon, Loc.Get("unlock.content"));
 
         // Manual lookup (quest is already English)
-        var manual = QuestUnlockData.Lookup(quest.Name.ExtractText());
+        var manual = QuestUnlockData.Lookup(quest.Name.ToString());
         if (manual.HasValue)
             return manual.Value;
 
@@ -767,20 +765,20 @@ public sealed class QuestService
         // Job quest chain (has class requirement but didn't unlock a new job)
         if (quest.ClassJobRequired.RowId != 0)
         {
-            var jobName = displayQuest.ClassJobRequired.ValueNullable?.Name.ExtractText();
+            var jobName = displayQuest.ClassJobRequired.ValueNullable?.Name.ToString();
             if (!string.IsNullOrWhiteSpace(jobName))
                 return (QuestCategory.JobUnlock, $"{jobName} ({Loc.Get("unlock.jobAbility")})");
         }
 
         // Role quest chains
-        var questName = quest.Name.ExtractText();
+        var questName = quest.Name.ToString();
         if (questName.Contains("Role Quest", StringComparison.OrdinalIgnoreCase))
             return (QuestCategory.Feature, Loc.Get("unlock.roleQuest"));
 
         // Tribal/Beast tribe related (follow-up quests in tribal chains)
         if (quest.BeastTribe.RowId != 0)
         {
-            var tribeName = displayQuest.BeastTribe.ValueNullable?.Name.ExtractText();
+            var tribeName = displayQuest.BeastTribe.ValueNullable?.Name.ToString();
             return (QuestCategory.Feature, !string.IsNullOrWhiteSpace(tribeName) ? $"{tribeName} ({Loc.Get("unlock.tribalQuest")})" : Loc.Get("unlock.tribalQuest"));
         }
 
@@ -795,7 +793,7 @@ public sealed class QuestService
         var genre = quest.JournalGenre.ValueNullable;
         if (genre != null)
         {
-            var genreName = genre.Value.Name.ExtractText();
+            var genreName = genre.Value.Name.ToString();
             if (!string.IsNullOrWhiteSpace(genreName))
             {
                 if (genreName.Contains("Chronicles", StringComparison.OrdinalIgnoreCase))
@@ -812,7 +810,7 @@ public sealed class QuestService
                     genreName.Contains("Resistance", StringComparison.OrdinalIgnoreCase) ||
                     genreName.Contains("Manderville", StringComparison.OrdinalIgnoreCase))
                     return (QuestCategory.Feature, Loc.Get("unlock.relic"));
-                var localGenreName = displayQuest.JournalGenre.ValueNullable?.Name.ExtractText();
+                var localGenreName = displayQuest.JournalGenre.ValueNullable?.Name.ToString();
                 return (QuestCategory.Feature, $"{localGenreName ?? genreName}");
             }
         }
@@ -825,14 +823,11 @@ public sealed class QuestService
         // Lazy-init CFC index on first use
         if (_cfcByContentId == null)
         {
-            var cfcSheet = QuestieBestiePlugin.Data.GetExcelSheet<ContentFinderCondition>();
-            if (cfcSheet == null)
-                return null;
-
+            var cfcSheet = QuestieBestiePlugin.Data.GetExcelSheet<ContentFinderCondition>()!;
             _cfcByContentId = [];
             foreach (var cfc in cfcSheet)
             {
-                if (cfc.Content.RowId != 0 && !string.IsNullOrWhiteSpace(cfc.Name.ExtractText()))
+                if (cfc.Content.RowId != 0 && !string.IsNullOrWhiteSpace(cfc.Name.ToString()))
                     _cfcByContentId.TryAdd(cfc.Content.RowId, cfc);
             }
         }
@@ -840,7 +835,7 @@ public sealed class QuestService
         if (!_cfcByContentId.TryGetValue(instanceContentId, out var match))
             return null;
 
-        var contentName = match.Name.ExtractText();
+        var contentName = match.Name.ToString();
         var contentTypeId = match.ContentType.RowId;
         return contentTypeId switch
         {
@@ -852,7 +847,7 @@ public sealed class QuestService
     }
 
     private static (QuestCategory Category, string Unlocks)? CheckUmbrellaQuest(Quest quest)
-        => CheckUmbrellaQuestByName(quest.Name.ExtractText());
+        => CheckUmbrellaQuestByName(quest.Name.ToString());
 
     private static (QuestCategory Category, string Unlocks)? CheckUmbrellaQuestByName(string name)
     {
@@ -996,7 +991,7 @@ public sealed class QuestService
         var mapCoords = MapUtil.WorldToMap(new Vector2(level.X, level.Z), map.Value);
         var payload = new MapLinkPayload(territory.Value.RowId, map.Value.RowId, mapCoords.X, mapCoords.Y);
 
-        var name = quest.Value.Name.ExtractText();
+        var name = quest.Value.Name.ToString();
         var unlockInfo = !string.IsNullOrEmpty(questData.Unlocks) ? $" - {questData.Unlocks}" : "";
 
         // Show locally with clickable map link

@@ -57,7 +57,7 @@
 
 ## AI Disclaimer
 
-This plugin was developed with the assistance of AI tools. The plugin icon was also generated using AI. All code has been reviewed, tested, and validated by the developer with the feedback of the dalamud reviewers.
+This plugin was developed with the assistance of AI tools. The plugin icon was also generated using AI. All code has been reviewed, tested and validated by the developer with the feedback of the dalamud reviewers.
 
 ## License
 
