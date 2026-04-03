@@ -1,6 +1,6 @@
 <Project Sdk="Dalamud.NET.Sdk/14.0.2">
 	<PropertyGroup>
-		<Version>7.4.5.92</Version>
+		<Version>7.4.5.95</Version>
 		<Description>QuestieBestie - Your friendly quest companion.</Description>
 		<PackageProjectUrl>https://github.com/kk-triplesix/QuestieBestie</PackageProjectUrl>
 		<IsPackable>false</IsPackable>
