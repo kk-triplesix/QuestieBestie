@@ -1,0 +1,31 @@
+[
+  {
+    "Author": "kk-triplesix",
+    "Name": "QuestieBestie",
+    "Description": "Track every blue quest unlock in FFXIV.\n\n- Browse all feature unlock quests with smart filters (expansion, class, location, type, level)\n- See what each quest unlocks: dungeons, trials, raids, jobs, and 200+ more\n- Full prerequisite trees with MSQ indicators\n- Custom tracking lists with in-game overlay and route planner\n- Mark quests as completed manually\n- Aether Current tracker, Duty Unlock checklist, Side Quest tracker\n- Statistics, favorites, personal notes, map flags, chat links\n- Customizable overlay with 7 colors, transparency, and font scale\n- Multi-language (EN/DE/FR/JP)\n\nCommands:\n/questie - Toggle main window\n/questie overlay - Toggle overlay\n/questie widget - Toggle progress widget\n/questie search <name> - Search quest",
+    "Punchline": "Track every blue quest unlock — see what you're missing, plan your route, never skip a feature.",
+    "ApplicableVersion": "any",
+    "Tags": [
+      "quest",
+      "tracker",
+      "unlock",
+      "blue quest",
+      "feature",
+      "dungeon",
+      "aether current",
+      "overlay"
+    ],
+    "CategoryTags": [
+      "other"
+    ],
+    "IconUrl": "https://raw.githubusercontent.com/kk-triplesix/QuestieBestie/main/QuestieBestieLogo.png",
+    "AcceptsFeedback": true,
+    "AssemblyVersion": "7.4.5.96",
+    "TestingAssemblyVersion": "7.4.5.96",
+    "DownloadLinkInstall": "https://github.com/kk-triplesix/QuestieBestie/releases/download/7.4.5.96/latest.zip",
+    "DownloadLinkUpdate": "https://github.com/kk-triplesix/QuestieBestie/releases/download/7.4.5.96/latest.zip",
+    "DownloadLinkTesting": "https://github.com/kk-triplesix/QuestieBestie/releases/download/7.4.5.96/latest.zip",
+    "DownloadCount": 0,
+    "LastUpdated": "2026-04-03T16:48:09Z"
+  }
+]
